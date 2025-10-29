@@ -14,7 +14,7 @@ const toneTexts: ToneTexts = {
     soft: 'Deine Guide-Präferenzen',
   },
   nudgingDescription: {
-    straight: 'Ich erinnere dich jetzt, weil du gesagt hast, das ist wichtig.',
+    straight: 'Ich erinnere dich, wenn es wichtig wird. Nicht nervig, aber konsequent.',
     soft: 'Dein Guide passt sich an deine Bedürfnisse an.',
   },
   
@@ -34,7 +34,7 @@ const toneTexts: ToneTexts = {
   
   // Nudging
   nudgingTitle: {
-    straight: 'Nudging-Frequenz',
+    straight: 'NUDGING-FREQUENZ',
     soft: 'Wie oft soll ich dich erinnern?',
   },
   

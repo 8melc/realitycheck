@@ -45,32 +45,32 @@ export const getNudgingFrequencyInfo = (frequency: NudgingFrequency) => {
   switch (frequency) {
     case 'high':
       return {
-        label: 'Hoch',
-        description: 'Täglich mehrere Erinnerungen und Impulse',
+        label: 'Intensiv',
+        description: 'Ich checke dich alle paar Stunden. Du willst es ja so.',
         interval: 'Alle 2-3 Stunden',
       };
     case 'medium':
       return {
-        label: 'Mittel',
-        description: 'Regelmäßige, aber nicht aufdringliche Erinnerungen',
+        label: 'Standard',
+        description: 'Ich erinnere dich, wenn es wichtig wird. Nicht nervig, aber konsequent.',
         interval: '2-3x täglich',
       };
     case 'low':
       return {
-        label: 'Niedrig',
-        description: 'Wenige, aber gezielte Erinnerungen',
+        label: 'Minimal',
+        description: 'Nur wenn es wirklich drauf ankommt. Ich halte mich zurück.',
         interval: '1x täglich',
       };
     case 'off':
       return {
         label: 'Aus',
-        description: 'Keine automatischen Erinnerungen',
+        description: 'Ich halte die Klappe. Du musst mich aktivieren, wenn du willst.',
         interval: 'Nur bei manueller Aktivierung',
       };
     default:
       return {
-        label: 'Mittel',
-        description: 'Regelmäßige, aber nicht aufdringliche Erinnerungen',
+        label: 'Standard',
+        description: 'Ich erinnere dich, wenn es wichtig wird. Nicht nervig, aber konsequent.',
         interval: '2-3x täglich',
       };
   }
