@@ -48,11 +48,11 @@ export default function LifeWeeksPreview({ profile }: LifeWeeksPreviewProps) {
   const totalCells = weeksPerRow * totalRows;
 
   return (
-    <div className="life-weeks-preview">
-        <div className="life-weeks-preview-header">
-          <span className="guide-kicker">Quick Access</span>
-          <h2 className="guide-title">{getGuideText('lifeWeeksTitle', tone)}</h2>
-          <p className="guide-subtitle">{getGuideText('lifeWeeksSubtitle', tone)}</p>
+    <div className="rc-card">
+        <div className="rc-card-header">
+          <span className="rc-kicker">Quick Access</span>
+          <h2 className="rc-subheading">{getGuideText('lifeWeeksTitle', tone)}</h2>
+          <p className="rc-microcopy">{getGuideText('lifeWeeksSubtitle', tone)}</p>
         </div>
 
       <div className="life-weeks-preview-content">
@@ -98,7 +98,7 @@ export default function LifeWeeksPreview({ profile }: LifeWeeksPreviewProps) {
 
         {/* Action Button */}
         <div className="life-weeks-action">
-          <Link href="/life-weeks" className="guide-btn guide-btn-primary">
+          <Link href="/life-weeks" className="rc-btn rc-btn--primary">
             Life Weeks öffnen
           </Link>
         </div>

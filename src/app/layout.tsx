@@ -63,6 +63,7 @@ export default function RootLayout({
               <ul>
                 <li><a href="/transparenz">Transparenz</a></li>
                 <li><a href="/credits">Credits</a></li>
+                <li><a href="/impressum">Impressum</a></li>
                 <li><a href="mailto:hello@realitycheck.studio">Kontakt</a></li>
               </ul>
             </div>

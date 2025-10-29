@@ -1,0 +1,59 @@
+/* Impressum Page Styles - Matching Transparenz Page */
+
+/* Import RealityCheck Design System Tokens */
+:root {
+  /* Core RealityCheck Colors */
+  --rc-bg: #0A0A0A;
+  --rc-layer: rgba(10, 10, 10, 0.94);
+  --rc-mint: #4ECDC4;
+  --rc-offwhite: rgba(255, 255, 255, 0.88);
+  --rc-muted: rgba(255, 255, 255, 0.62);
+  --rc-coral: #FF6B6B;
+  --rc-cream: #FFF8E7;
+  --rc-noir: #06090B;
+  --rc-steel: #9CA3AF;
+  --rc-mint-glow: rgba(78, 205, 196, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .impressum-container {
+    padding: 40px 16px 20px !important;
+  }
+  
+  .impressum-title {
+    font-size: clamp(2.5rem, 6vw, 4rem) !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .impressum-subtitle {
+    font-size: 1rem !important;
+    margin-bottom: 40px !important;
+  }
+  
+  .impressum-content {
+    font-size: 1rem !important;
+  }
+  
+  .impressum-section h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  .impressum-info-box {
+    padding: 16px !important;
+  }
+}
+
+/* Link Hover Effects */
+.impressum-content a:hover {
+  color: var(--rc-coral) !important;
+  text-decoration: underline !important;
+  transition: color 0.2s ease;
+}
+
+/* Focus States for Accessibility */
+.impressum-content a:focus {
+  outline: 2px solid var(--rc-mint);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

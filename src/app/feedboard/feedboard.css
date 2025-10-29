@@ -40,7 +40,7 @@
 .ticktock-header {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, rgba(7, 9, 12, 0.92), rgba(7, 9, 12, 0.82));
@@ -625,7 +625,7 @@
   place-items: center;
   background: rgba(6, 8, 10, 0.85);
   backdrop-filter: blur(12px);
-  z-index: 50;
+  z-index: 30;
   padding: 24px;
 }
 
@@ -1702,7 +1702,7 @@
   place-items: center;
   background: rgba(6, 8, 10, 0.85);
   backdrop-filter: blur(12px);
-  z-index: 50;
+  z-index: 30;
   padding: 32px;
 }
 
@@ -1890,7 +1890,7 @@
   backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 30;
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
   
   /* Default: Hidden */
@@ -1904,6 +1904,8 @@
   transform: translateX(0);
   opacity: 1;
   pointer-events: auto;
+  /* Ensure clean separation from feedboard content */
+  isolation: isolate;
 }
 
 .guidechat-sidebar__header {
@@ -2293,6 +2295,17 @@
   .feedboard-shell.has-sidebar {
     margin-right: 360px;
   }
+}
+
+/* Ensure clean layer separation when guide is open */
+.feedboard-shell.has-sidebar .ticktock-header {
+  z-index: 5;
+}
+
+.feedboard-shell.has-sidebar .feedboard-controls,
+.feedboard-shell.has-sidebar .feedboard-grid {
+  position: relative;
+  z-index: 1;
 }
 
 /* Mobile: Sidebar as full overlay */
