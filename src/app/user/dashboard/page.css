@@ -824,6 +824,31 @@
   color: var(--rc-steel);
 }
 
+/* Compact Credits Widget for Sidebar */
+.rc-credits-widget {
+  background: var(--rc-noir);
+  border: 2px solid var(--rc-mint);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.rc-credits-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rc-credits-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rc-credits-value {
+  text-align: right;
+}
+
 /* Chips */
 .rc-chip {
   display: inline-block;

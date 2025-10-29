@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Profile } from '@/types/profile';
 import { CompassIcon, TargetIcon, PenSquareIcon, ClockIcon, MusicIcon, GaugeIcon, FlameIcon } from './icons';
+import CreditsWidget from './CreditsWidget';
 
 interface SidebarProps {
   profile: Profile;
@@ -52,14 +53,9 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
 
   return (
     <aside className={`rc-floating-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* Restzeit-Kachel - Persistent */}
-      <div className="rc-time-banner">
-        <div className="rc-time-statement">
-          Nur noch <span className="rc-time-number">
-            {isClient ? daysRemaining.toLocaleString() : '...'}
-          </span> Tage
-        </div>
-        <div className="rc-time-subtext">Mach keinen Bullshit</div>
+      {/* Credits Widget - Compact for Sidebar */}
+      <div className="rc-credits-widget">
+        <CreditsWidget userId={profile.id} hideCTA={true} compact={true} />
       </div>
 
       {/* Profile & Ziel-Block - Lebendiges Dashboard */}

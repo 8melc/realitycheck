@@ -6,6 +6,7 @@ import { CoinsIcon, TrendingUpIcon, GiftIcon, ChevronDownIcon, ChevronUpIcon } f
 interface CreditsWidgetProps {
   userId?: string;
   hideCTA?: boolean;
+  compact?: boolean;
 }
 
 interface CreditsData {
@@ -15,7 +16,7 @@ interface CreditsData {
   lastEarned?: string;
 }
 
-const CreditsWidget = ({ userId, hideCTA = false }: CreditsWidgetProps) => {
+const CreditsWidget = ({ userId, hideCTA = false, compact = false }: CreditsWidgetProps) => {
   const [credits, setCredits] = useState<CreditsData>({
     remaining: 0,
     earned: 0,
@@ -65,8 +66,27 @@ const CreditsWidget = ({ userId, hideCTA = false }: CreditsWidgetProps) => {
     }
   };
 
+  if (compact) {
+    return (
+      <div className="rc-credits-compact" aria-label="Credits Übersicht">
+        <div className="rc-credits-header">
+          <div className="flex items-center gap-2">
+            <CoinsIcon className="h-4 w-4 text-rc-mint" />
+            <span className="text-sm font-semibold text-rc-cream">Credits</span>
+          </div>
+          <div className="text-rc-mint font-bold text-lg">
+            {isClient ? credits.remaining : '...'}
+          </div>
+        </div>
+        <div className="rc-credits-value">
+          <span className="text-xs text-rc-steel">Wert: €{(credits.remaining * credits.creditValue).toFixed(2)}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fyf-card fyf-card--sidebar motion-fade-up" aria-label="Credits Übersicht">
+    <div className="rc-card rc-card--sidebar motion-fade-up" aria-label="Credits Übersicht">
       <div className="flex flex-col gap-4">
         {/* Header - Clickable */}
         <button 
@@ -74,17 +94,17 @@ const CreditsWidget = ({ userId, hideCTA = false }: CreditsWidgetProps) => {
           className="flex items-center justify-between gap-2 w-full text-left hover:bg-white/5 p-2 rounded-lg transition-colors"
         >
           <div className="flex items-center gap-2">
-            <CoinsIcon className="h-5 w-5 text-fyf-mint" />
-            <h3 className="text-lg font-semibold text-fyf-cream">Credits</h3>
+            <CoinsIcon className="h-5 w-5 text-rc-mint" />
+            <h3 className="text-lg font-semibold text-rc-cream">Credits</h3>
           </div>
           <div className="flex items-center gap-2">
-            <div className="text-fyf-mint font-bold">
+            <div className="text-rc-mint font-bold">
               {isClient ? credits.remaining : '...'}
             </div>
             {isExpanded ? (
-              <ChevronUpIcon className="h-4 w-4 text-fyf-steel" />
+              <ChevronUpIcon className="h-4 w-4 text-rc-steel" />
             ) : (
-              <ChevronDownIcon className="h-4 w-4 text-fyf-steel" />
+              <ChevronDownIcon className="h-4 w-4 text-rc-steel" />
             )}
           </div>
         </button>
@@ -95,23 +115,23 @@ const CreditsWidget = ({ userId, hideCTA = false }: CreditsWidgetProps) => {
             {/* Remaining Credits */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-fyf-steel">Verbleibend</span>
-                <span className="text-lg font-bold text-fyf-mint">
+                <span className="text-sm text-rc-steel">Verbleibend</span>
+                <span className="text-lg font-bold text-rc-mint">
                   {isClient ? credits.remaining : '...'}
                 </span>
               </div>
-              <div className="text-xs text-fyf-steel">
+              <div className="text-xs text-rc-steel">
                 Wert: {isClient ? formatCurrency(credits.remaining * credits.creditValue) : '...'}
               </div>
             </div>
 
             {/* Credit Value Info */}
-            <div className="rounded-lg bg-fyf-mint/10 border border-fyf-mint/20 p-3">
+            <div className="rounded-lg bg-rc-mint/10 border border-rc-mint/20 p-3">
               <div className="flex items-center gap-2 mb-1">
-                <GiftIcon className="h-4 w-4 text-fyf-mint" />
-                <span className="text-sm font-medium text-fyf-cream">Credit-Wert</span>
+                <GiftIcon className="h-4 w-4 text-rc-mint" />
+                <span className="text-sm font-medium text-rc-cream">Credit-Wert</span>
               </div>
-              <div className="text-sm text-fyf-steel">
+              <div className="text-sm text-rc-steel">
                 1 Credit = {isClient ? formatCurrency(credits.creditValue) : '...'}
               </div>
             </div>
@@ -119,13 +139,13 @@ const CreditsWidget = ({ userId, hideCTA = false }: CreditsWidgetProps) => {
             {/* Earned Credits */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-fyf-steel">Verdient</span>
-                <span className="text-lg font-bold text-fyf-coral">
+                <span className="text-sm text-rc-steel">Verdient</span>
+                <span className="text-lg font-bold text-rc-coral">
                   {isClient ? credits.earned : '...'}
                 </span>
               </div>
               {credits.lastEarned && (
-                <div className="text-xs text-fyf-steel">
+                <div className="text-xs text-rc-steel">
                   Letztes: {formatTimestamp(credits.lastEarned)}
                 </div>
               )}
@@ -134,14 +154,14 @@ const CreditsWidget = ({ userId, hideCTA = false }: CreditsWidgetProps) => {
             {/* Progress Bar */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-fyf-steel">Gesamtfortschritt</span>
-                <span className="text-xs text-fyf-steel">
+                <span className="text-xs text-rc-steel">Gesamtfortschritt</span>
+                <span className="text-xs text-rc-steel">
                   {isClient ? `${credits.earned + credits.remaining}` : '...'} Credits
                 </span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-fyf-mint to-fyf-coral h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-rc-mint to-rc-coral h-2 rounded-full transition-all duration-300"
                   style={{ 
                     width: isClient ? `${(credits.earned / (credits.earned + credits.remaining)) * 100}%` : '0%' 
                   }}
@@ -151,7 +171,7 @@ const CreditsWidget = ({ userId, hideCTA = false }: CreditsWidgetProps) => {
 
             {/* Action Button - Only show if not hidden */}
             {!hideCTA && (
-              <button className="fyf-btn fyf-btn-sm fyf-btn--outline w-full">
+              <button className="rc-btn rc-btn-sm rc-btn--outline w-full">
                 <TrendingUpIcon className="h-4 w-4" />
                 Credits verdienen
               </button>
