@@ -22,16 +22,16 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
   };
 
   const menuItems = [
-    { href: '/life-weeks', label: 'Life in Weeks', icon: CompassIcon },
-    { href: '#actions', label: 'Actions', icon: TargetIcon },
-    { href: '#conversation', label: 'Conversation', icon: PenSquareIcon },
-    { href: '#conversation', label: 'Guide Präferenzen', icon: PenSquareIcon, isGuidePrefs: true },
+    { href: '#life-weeks', label: 'Life in Weeks', icon: CompassIcon },
+    { href: '#feedback', label: 'Feedback & Impulse', icon: PenSquareIcon },
     { href: '#zeit-profil', label: 'Zeit-Profil', icon: ClockIcon },
     { href: '#energie-feeds', label: 'Energie-Feeds', icon: MusicIcon },
+    { href: '#conversation', label: 'Guide Präferenzen', icon: PenSquareIcon, isGuidePrefs: true },
     { href: '#tageslimit', label: 'Tageslimit', icon: GaugeIcon },
     { href: '#filter', label: 'Filter-Funktion', icon: TargetIcon },
+    { href: '#conversation', label: 'Conversation', icon: PenSquareIcon },
     { href: '#journey', label: 'Journey', icon: CompassIcon },
-    { href: '#feedback', label: 'Feedback & Impulse', icon: PenSquareIcon },
+    { href: '#actions', label: 'Actions', icon: TargetIcon },
   ];
 
   return (
