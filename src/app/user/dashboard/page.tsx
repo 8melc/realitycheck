@@ -250,31 +250,20 @@ export default function GuideDashboardPage() {
           </div>
         </section>
 
-        {/* Life Weeks Preview */}
+        {/* 1. Life Weeks Preview */}
         <section className="guide-section" id="life-weeks">
           <LifeWeeksPreview profile={profile} />
         </section>
 
-        {/* Actions Section */}
-        <section className="guide-section" id="actions">
-          <GuideActionsSection
-            items={state.actionItems}
-            onToggle={(id) => console.log('Toggle action:', id)}
-            onReminder={(id) => console.log('Reminder for:', id)}
+        {/* 2. Feedback Section */}
+        <section className="guide-section" id="feedback">
+          <MotivationFeed 
+            profile={profile} 
+            onEdit={() => handleEditSection('Feedback & Impulse')} 
           />
         </section>
 
-        {/* Conversation Section */}
-        <section className="guide-section" id="conversation">
-          <GuideConversationSection prompts={state.guidePrompts} />
-          
-          {/* Guide Settings unter Conversation */}
-          <div className="guide-settings-container" id="guide-settings">
-            <GuideSettings />
-          </div>
-        </section>
-
-        {/* Zeit-Profil Section */}
+        {/* 3. Zeit-Profil Section */}
         <section className="guide-section" id="zeit-profil">
           <TimeStyleCard 
             profile={profile} 
@@ -282,7 +271,7 @@ export default function GuideDashboardPage() {
           />
         </section>
 
-        {/* Energie-Feeds Section */}
+        {/* 4. Energie-Feeds Section */}
         <section className="guide-section" id="energie-feeds">
           <EnergyFeeds
             profile={profile}
@@ -291,17 +280,27 @@ export default function GuideDashboardPage() {
           />
         </section>
 
-        {/* Tageslimit Section */}
+        {/* 5. Guide Settings */}
+        <section className="guide-section" id="guide-settings">
+          <GuideSettings />
+        </section>
+
+        {/* 6. Tageslimit Section */}
         <section className="guide-section" id="tageslimit">
           <UsageLimitSettings onEdit={() => handleEditSection('Tageslimit')} />
         </section>
 
-        {/* Filter Section */}
+        {/* 7. Filter Section */}
         <section className="guide-section" id="filter">
           <FilterTodoCard onEdit={() => handleEditSection('Filter-Funktion')} />
         </section>
 
-        {/* Journey Section */}
+        {/* 8. Conversation Section */}
+        <section className="guide-section" id="conversation">
+          <GuideConversationSection prompts={state.guidePrompts} />
+        </section>
+
+        {/* 9. Journey Section */}
         <section className="guide-section" id="journey">
           <JourneyTimeline 
             journey={profile.journey} 
@@ -309,11 +308,12 @@ export default function GuideDashboardPage() {
           />
         </section>
 
-        {/* Feedback Section */}
-        <section className="guide-section" id="feedback">
-          <MotivationFeed 
-            profile={profile} 
-            onEdit={() => handleEditSection('Feedback & Impulse')} 
+        {/* 10. Actions Section */}
+        <section className="guide-section" id="actions">
+          <GuideActionsSection
+            items={state.actionItems}
+            onToggle={(id) => console.log('Toggle action:', id)}
+            onReminder={(id) => console.log('Reminder for:', id)}
           />
         </section>
       </main>
