@@ -12,6 +12,7 @@ interface SidebarProps {
 
 const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   
   const handleLinkClick = (href: string, isGuidePrefs?: boolean) => {
     if (href.startsWith('#')) {
@@ -23,7 +24,7 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
     }
   };
 
-  // Calculate time metrics
+  // Calculate time metrics only on client side to avoid hydration mismatch
   const birthDate = new Date(profile.identity.birthdate);
   const today = new Date();
   const targetAge = profile.identity.targetAge || 80;
@@ -31,6 +32,11 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
   const daysLived = Math.floor((today.getTime() - birthDate.getTime()) / msPerDay);
   const totalDays = targetAge * 365;
   const daysRemaining = Math.max(0, totalDays - daysLived);
+
+  // Set client flag after hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Core navigation - minimal, situational
   const coreActions = [
@@ -50,7 +56,9 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
       {/* Restzeit-Kachel - Persistent */}
       <div className="fyf-time-banner">
         <div className="fyf-time-statement">
-          Nur noch <span className="fyf-time-number">{daysRemaining.toLocaleString()}</span> Tage
+          Nur noch <span className="fyf-time-number">
+            {isClient ? daysRemaining.toLocaleString() : '...'}
+          </span> Tage
         </div>
         <div className="fyf-time-subtext">Mach keinen Bullshit</div>
       </div>
