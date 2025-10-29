@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Profile } from '@/types/profile';
 import { CompassIcon, TargetIcon, PenSquareIcon, ClockIcon, MusicIcon, GaugeIcon, FlameIcon } from './icons';
-import CreditsWidget from './CreditsWidget';
 
 interface SidebarProps {
   profile: Profile;
@@ -53,9 +52,40 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
 
   return (
     <aside className={`rc-floating-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* Credits Widget - Full for Sidebar */}
-      <div className="rc-credits-widget">
-        <CreditsWidget userId={profile.id} hideCTA={true} />
+      {/* Credits Section - Complete in Sidebar */}
+      <div className="rc-credits-section">
+        <div className="rc-credits-header">
+          <h3 className="rc-section-title">Credits</h3>
+          <a 
+            href="/credits#purchase" 
+            className="rc-btn rc-btn--primary rc-btn--small inline-flex items-center gap-1"
+          >
+            Credits holen
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+        
+        <div className="rc-credits-stats">
+          <div className="rc-credits-stat">
+            <div className="rc-credits-stat-label">Verfügbar</div>
+            <div className="rc-credits-stat-value rc-credits-stat-value--mint">47</div>
+            <div className="rc-credits-stat-subtitle">Credits für Sessions</div>
+          </div>
+          
+          <div className="rc-credits-stat">
+            <div className="rc-credits-stat-label">Wert</div>
+            <div className="rc-credits-stat-value rc-credits-stat-value--cream">€11,28</div>
+            <div className="rc-credits-stat-subtitle">Aktueller Wert</div>
+          </div>
+          
+          <div className="rc-credits-stat">
+            <div className="rc-credits-stat-label">Verbraucht</div>
+            <div className="rc-credits-stat-value rc-credits-stat-value--coral">3</div>
+            <div className="rc-credits-stat-subtitle">Diese Woche</div>
+          </div>
+        </div>
       </div>
 
       {/* Profile & Ziel-Block - Lebendiges Dashboard */}

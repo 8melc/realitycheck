@@ -250,54 +250,6 @@ export default function GuideDashboardPage() {
         </div>
       </section>
 
-      {/* Credits Section - Prominent at top */}
-      <section className="guide-section" id="credits">
-        <div className="rc-card rc-card--hero">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="rc-subheading mb-2">Credits</h2>
-              <p className="rc-microcopy">
-                Deine Credits für RealityCheck-Sessions. Transparent, fair, ohne Abo-Zwang.
-              </p>
-            </div>
-            <a 
-              href="/credits#purchase" 
-              className="rc-btn rc-btn--primary inline-flex items-center gap-2"
-            >
-              Credits holen
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="rc-subcard">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-rc-steel">Verfügbar</span>
-                <span className="text-2xl font-bold text-rc-mint">47</span>
-              </div>
-              <p className="text-xs text-rc-steel">Credits für Sessions</p>
-            </div>
-            
-            <div className="rc-subcard">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-rc-steel">Wert</span>
-                <span className="text-lg font-semibold text-rc-cream">€11,28</span>
-              </div>
-              <p className="text-xs text-rc-steel">Aktueller Wert</p>
-            </div>
-            
-            <div className="rc-subcard">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-rc-steel">Verbraucht</span>
-                <span className="text-lg font-semibold text-rc-coral">3</span>
-              </div>
-              <p className="text-xs text-rc-steel">Diese Woche</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
         {/* 1. Life Weeks Preview */}
         <section className="guide-section" id="life-weeks">
