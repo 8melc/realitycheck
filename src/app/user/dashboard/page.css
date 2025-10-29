@@ -650,6 +650,35 @@ select.fyf-select {
   color: var(--fyf-noir);
 }
 
+/* Feedback Items - Guide-Präferenzen Styling */
+.fyf-feedback-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.fyf-feedback-item:hover {
+  border-color: var(--fyf-mint);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.fyf-feedback-item__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(78, 205, 196, 0.1);
+  color: var(--fyf-mint);
+  flex-shrink: 0;
+}
+
 /* Voices Grid */
 .guide-voices-grid {
   display: grid;

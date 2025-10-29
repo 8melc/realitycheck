@@ -39,9 +39,11 @@ const MotivationFeed = ({ profile, onEdit }: MotivationFeedProps) => {
       </header>
 
       {entries.length === 0 ? (
-        <div className="mt-8 rounded-lg border border-white/10 bg-white/5 p-6 text-sm text-fyf-steel">
-          Wir analysieren dein Profil und deine Aktionen. Bald bekommst du den ersten Impuls – zugeschnitten auf dein
-          Ziel.
+        <div className="mt-8 fyf-subcard">
+          <p className="text-sm text-fyf-steel">
+            Wir analysieren dein Profil und deine Aktionen. Bald bekommst du den ersten Impuls – zugeschnitten auf dein
+            Ziel.
+          </p>
         </div>
       ) : (
         <ul className="mt-8 space-y-4">
