@@ -21,19 +21,19 @@ import { useGuideStore } from '@/stores/guideStore';
 import { getGuideText } from '@/lib/guideTone';
 import './page.css';
 
-// Mock profile data - TODO: Replace with real profile from API/context
+// Mock profile data - Melissa Conrads Demo-Profil (Priorität 2)
 const mockProfile: Profile = {
-  id: 'mock-user-1',
+  id: 'melissa-conrads-demo',
   identity: {
-    name: 'Mara Jensen',
-    email: 'mara@example.com',
-    avatarUrl: '/MaraJensen_ProfilePicture.avif',
-    birthdate: '1990-04-12T00:00:00.000Z',
+    name: 'Melissa Conrads',
+    email: 'conrads@gannaca.com',
+    avatarUrl: '/MelissaConrads_ProfilePicture.avif',
+    birthdate: '1997-08-08T00:00:00.000Z',
     targetAge: 85,
   },
   goal: {
-    text: 'Freiheit spüren, bevor ich 50 bin',
-    source: 'chip',
+    text: 'Workation Winter 25/26, FYF-Prototyp-Launch, Studienprojekt',
+    source: 'custom',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -48,30 +48,44 @@ const mockProfile: Profile = {
     selectedAt: new Date().toISOString(),
   },
   interests: [
-    { id: 'interest-1', label: 'Krypto & Blockchain' },
-    { id: 'interest-2', label: 'Kunst & Design' },
-    { id: 'interest-3', label: 'Philosophie' },
-    { id: 'interest-4', label: 'Reisen' },
+    { id: 'interest-1', label: 'Tech & Innovation' },
+    { id: 'interest-2', label: 'Digital Nomad Lifestyle' },
+    { id: 'interest-3', label: 'UX/UI Design' },
+    { id: 'interest-4', label: 'Entrepreneurship' },
+    { id: 'interest-5', label: 'Workation Planning' },
   ],
   projects: [
     {
       id: 'project-1',
-      title: 'FYF Guide Prototype',
+      title: 'FYF-Prototyp-Launch',
       status: 'active',
-      description: 'Tägliche Iterationen an Content und Matching-Mechanik.',
+      description: 'MVP-Entwicklung und Launch-Vorbereitung für FYF Reality Check.',
       updatedAt: new Date().toISOString(),
     },
     {
       id: 'project-2',
-      title: 'Nomad Retreat Aufbau',
+      title: 'Workation Winter 25/26',
       status: 'active',
-      description: 'Co-living Retreat in Lissabon vorbereiten.',
+      description: 'Planung und Organisation der Winter-Workation in Portugal.',
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: 'project-3',
+      title: 'Studienprojekt',
+      status: 'active',
+      description: 'Forschungsprojekt zu digitalen Lebensstilen und Zeitmanagement.',
       updatedAt: new Date().toISOString(),
     },
   ],
   musicDNA: {
     genres: ['Electronic', 'Ambient', 'Indie'],
     spotifyLinked: false,
+    spotifyData: {
+      topArtists: ['Fred Again', 'Blaze', 'Böhmer'],
+      topGenres: ['Electronic', 'Ambient', 'Indie'],
+      playlistId: 'fyf-focus-melissa',
+      linkedAt: new Date().toISOString(),
+    },
   },
   progress: {
     guideStatus: 'warming-up',
@@ -83,20 +97,26 @@ const mockProfile: Profile = {
     {
       id: 'journey-1',
       type: 'onboarding',
-      description: 'Profil erstellt – Ready für FYF.',
+      description: 'Melissa Conrads Demo-Profil erstellt – Ready für FYF.',
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     },
     {
       id: 'journey-2',
       type: 'life-in-weeks',
-      description: 'Life in Weeks visualisiert – Zeitwert aktualisiert.',
+      description: 'Life in Weeks visualisiert – 27 Jahre, 1.408 Wochen gelebt.',
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     },
     {
       id: 'journey-3',
-      type: 'people',
-      description: 'People-Sektion erkundet und zwei Matches gespeichert.',
+      type: 'goal-setting',
+      description: 'Ziel gesetzt: Workation Winter 25/26, FYF-Prototyp-Launch, Studienprojekt.',
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    },
+    {
+      id: 'journey-4',
+      type: 'music-dna',
+      description: 'Musik-DNA verknüpft: Fred Again, Blaze, Böhmer als Favoriten.',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
     },
   ],
   feedback: [
@@ -104,15 +124,22 @@ const mockProfile: Profile = {
       id: 'feedback-1',
       tone: 'motivating',
       message:
-        'Du hast dein Ziel klar gezogen. Jetzt jede Woche einen Fokus-Block reservieren, der nur diesem Ziel gehört.',
+        'Deine Ziele sind ambitioniert und konkret. Workation Winter 25/26 + FYF-Launch + Studienprojekt – das ist ein starker Fokus.',
       createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     },
     {
       id: 'feedback-2',
       tone: 'challenging',
       message:
-        'Dein Kalender zeigt noch 6 Stunden Meetings pro Woche. Welche kannst du streichen, damit Freiheit mehr ist als ein Wort?',
+        'Du willst 3 große Projekte parallel. Welches ist dein #1 Priority? FYF-Prototyp braucht wahrscheinlich 80% deiner Energie.',
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    },
+    {
+      id: 'feedback-3',
+      tone: 'motivating',
+      message:
+        'Deine Musik-DNA zeigt Fokus: Fred Again, Blaze, Böhmer. Das sind perfekte Workation-Sounds für Portugal.',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
     },
   ],
   createdAt: new Date().toISOString(),
