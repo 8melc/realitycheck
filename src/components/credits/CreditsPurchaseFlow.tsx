@@ -272,8 +272,8 @@ export default function CreditsPurchaseFlow() {
               {paymentMethod === 'paypal' ? 'PayPal' : 'Kreditkarte'}.
             </p>
             <ul>
-              <li>Rechnung FYF-{new Date().getFullYear()}-{selectedPackage.credits}</li>
-              <li>Versand an: melissa.conrads@fyf.app (Beispieladresse)</li>
+              <li>Rechnung RC-{new Date().getFullYear()}-{selectedPackage.credits}</li>
+              <li>Versand an: melissa.conrads@realitycheck.app (Beispieladresse)</li>
               <li>Credits sofort aktiv, Übersicht im Dashboard unter „Käufe & Belege“.</li>
             </ul>
           </div>
@@ -290,7 +290,7 @@ export default function CreditsPurchaseFlow() {
                 jederzeit, wie sich der Preis zusammensetzt.
               </p>
               <p>
-                <strong>Warum keine "Team" oder "Community" Pakete?</strong> FYF ist für persönliche Entwicklung – 
+                <strong>Warum keine "Team" oder "Community" Pakete?</strong> RealityCheck ist für persönliche Entwicklung – 
                 Credits gelten für deine Sessions. Für Gruppen/Firmen gibt es separate Ansprachen (später).
               </p>
               <p>
@@ -306,16 +306,16 @@ export default function CreditsPurchaseFlow() {
       <style jsx>{`
         .credits-purchase-flow {
           padding: 4rem 2rem;
-          background: var(--fyf-bg);
+          background: var(--rc-bg);
           position: relative;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
         }
 
         .credits-purchase-flow::before {
           content: '';
           position: absolute;
           inset: 0;
-          background: var(--fyf-noise);
+          background: var(--rc-noise);
           opacity: 0.08;
           pointer-events: none;
         }
@@ -331,19 +331,19 @@ export default function CreditsPurchaseFlow() {
         }
 
         .flow-header h2 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: clamp(28px, 4vw, 36px);
           font-weight: 600;
           margin-bottom: 0.75rem;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           letter-spacing: -0.01em;
         }
 
         .flow-header p {
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 17px;
           line-height: 1.6;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           max-width: 760px;
         }
 
@@ -355,7 +355,7 @@ export default function CreditsPurchaseFlow() {
 
         .flow-step {
           background: rgba(255, 255, 255, 0.04);
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           border-radius: 18px;
           padding: 1.5rem;
           display: flex;
@@ -365,7 +365,7 @@ export default function CreditsPurchaseFlow() {
         }
 
         .flow-step.active {
-          border-color: var(--fyf-border-strong);
+          border-color: var(--rc-border-strong);
           transform: translateY(-4px);
         }
 
@@ -374,7 +374,7 @@ export default function CreditsPurchaseFlow() {
           height: 36px;
           border-radius: 999px;
           background: rgba(78, 205, 196, 0.22);
-          color: var(--fyf-mint);
+          color: var(--rc-mint);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -384,14 +384,14 @@ export default function CreditsPurchaseFlow() {
         .flow-step h3 {
           margin: 0;
           font-size: 18px;
-          font-family: var(--fyf-font-display);
-          color: var(--fyf-cream);
+          font-family: var(--rc-font-display);
+          color: var(--rc-cream);
         }
 
         .flow-step p {
           margin: 0.35rem 0 0;
           font-size: 15px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
         }
 
         .packages-grid {
@@ -402,7 +402,7 @@ export default function CreditsPurchaseFlow() {
 
         .package-card {
           background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           border-radius: 22px;
           padding: 1.5rem;
           text-align: left;
@@ -414,16 +414,16 @@ export default function CreditsPurchaseFlow() {
         .package-card:hover {
           transform: translateY(-6px);
           border-color: rgba(78, 205, 196, 0.4);
-          box-shadow: var(--fyf-shadow);
+          box-shadow: var(--rc-shadow);
         }
 
         .package-card.selected {
-          border-color: var(--fyf-border-strong);
+          border-color: var(--rc-border-strong);
           box-shadow: 0 18px 40px rgba(78, 205, 196, 0.25);
         }
 
         .package-card:focus-visible {
-          outline: 2px solid var(--fyf-mint);
+          outline: 2px solid var(--rc-mint);
           outline-offset: 2px;
         }
 
@@ -436,27 +436,27 @@ export default function CreditsPurchaseFlow() {
         }
 
         .package-label {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 20px;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
         }
 
         .package-price {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 18px;
-          color: var(--fyf-mint);
+          color: var(--rc-mint);
         }
 
         .package-card p {
           margin: 0;
           font-size: 15px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
         }
 
         .package-meta {
           margin-top: 1rem;
           font-size: 14px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           font-family: 'Monaco', 'Menlo', monospace;
         }
 
@@ -469,7 +469,7 @@ export default function CreditsPurchaseFlow() {
         .cost-panel,
         .payment-panel {
           background: rgba(255, 255, 255, 0.04);
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           border-radius: 24px;
           padding: 2rem;
           grid-column: span 6;
@@ -481,9 +481,9 @@ export default function CreditsPurchaseFlow() {
         .cost-panel h3,
         .payment-panel h3 {
           margin: 0;
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 20px;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
         }
 
         dl {
@@ -501,12 +501,12 @@ export default function CreditsPurchaseFlow() {
 
         dt {
           font-size: 14px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
         }
 
         dd {
           font-size: 15px;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
           margin: 0;
           font-family: 'Monaco', 'Menlo', monospace;
         }
@@ -514,7 +514,7 @@ export default function CreditsPurchaseFlow() {
         .cost-hint {
           margin: 0;
           font-size: 14px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           line-height: 1.5;
         }
 
@@ -525,7 +525,7 @@ export default function CreditsPurchaseFlow() {
 
         .payment-card {
           background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           border-radius: 18px;
           padding: 1.25rem;
           text-align: left;
@@ -537,30 +537,30 @@ export default function CreditsPurchaseFlow() {
         .payment-card:hover {
           transform: translateY(-4px);
           border-color: rgba(78, 205, 196, 0.3);
-          box-shadow: var(--fyf-shadow);
+          box-shadow: var(--rc-shadow);
         }
 
         .payment-card.selected {
-          border-color: var(--fyf-border-strong);
+          border-color: var(--rc-border-strong);
           box-shadow: 0 16px 32px rgba(78, 205, 196, 0.18);
         }
 
         .payment-label {
           display: block;
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 18px;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           margin-bottom: 0.5rem;
         }
 
         .payment-helper {
           font-size: 14px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
         }
 
         .confirm-button {
           margin-top: 0.5rem;
-          background: var(--fyf-mint);
+          background: var(--rc-mint);
           color: #041716;
           border: none;
           border-radius: 999px;
@@ -584,7 +584,7 @@ export default function CreditsPurchaseFlow() {
         .confirmation-hint {
           margin: 0;
           font-size: 14px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
         }
 
         .confirmation-card {
@@ -600,26 +600,26 @@ export default function CreditsPurchaseFlow() {
         .confirmation-card h3 {
           margin: 0;
           font-size: 19px;
-          font-family: var(--fyf-font-display);
-          color: var(--fyf-cream);
+          font-family: var(--rc-font-display);
+          color: var(--rc-cream);
         }
 
         .confirmation-card p {
           margin: 0;
           font-size: 15px;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
         }
 
         .confirmation-card ul {
           margin: 0;
           padding-left: 1.1rem;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           font-size: 14px;
         }
 
         .faq-panel {
           background: rgba(255, 255, 255, 0.04);
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           border-radius: 20px;
           padding: 1.5rem;
         }
@@ -629,9 +629,9 @@ export default function CreditsPurchaseFlow() {
         }
 
         summary {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 18px;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           list-style: none;
         }
 
@@ -646,14 +646,14 @@ export default function CreditsPurchaseFlow() {
         .faq-body {
           margin-top: 1rem;
           font-size: 15px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           display: flex;
           flex-direction: column;
           gap: 1rem;
         }
 
         .faq-body a {
-          color: var(--fyf-mint);
+          color: var(--rc-mint);
           text-decoration: underline;
         }
 

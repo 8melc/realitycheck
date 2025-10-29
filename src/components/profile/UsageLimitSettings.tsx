@@ -74,13 +74,13 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
   };
 
   return (
-    <div id="tageslimit" className="fyf-card motion-fade-up">
+    <div id="tageslimit" className="rc-card motion-fade-up">
       <div className="flex flex-col gap-6">
         <header className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="fyf-subheading mb-2">Tageslimit</h3>
-            <p className="fyf-microcopy">
-              Setze ein tägliches Zeitlimit für deine FYF-Nutzung. Änderungen werden erst nach erneutem Anmelden aktiv.
+            <h3 className="rc-subheading mb-2">Tageslimit</h3>
+            <p className="rc-microcopy">
+              Setze ein tägliches Zeitlimit für deine RealityCheck-Nutzung. Änderungen werden erst nach erneutem Anmelden aktiv.
             </p>
           </div>
           {onEdit && (
@@ -90,7 +90,7 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
                 onEdit();
                 toggleRef.current?.focus();
               }}
-              className="fyf-btn fyf-btn--ghost inline-flex items-center gap-2"
+              className="rc-btn rc-btn--ghost inline-flex items-center gap-2"
             >
               <PenSquareIcon className="h-4 w-4" aria-hidden="true" />
               Bearbeiten
@@ -107,9 +107,9 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
             onChange={(e) => handleToggleChange(e.target.checked)}
             disabled={isLoading || requiresReauth}
             ref={toggleRef}
-            className="w-5 h-5 rounded border-2 border-fyf-mint bg-transparent text-fyf-mint focus:ring-2 focus:ring-fyf-mint focus:ring-offset-2 focus:ring-offset-fyf-noir"
+            className="w-5 h-5 rounded border-2 border-rc-mint bg-transparent text-rc-mint focus:ring-2 focus:ring-rc-mint focus:ring-offset-2 focus:ring-offset-rc-noir"
           />
-          <label htmlFor="limit-toggle" className="text-fyf-cream font-medium">
+          <label htmlFor="limit-toggle" className="text-rc-cream font-medium">
             Tageslimit aktivieren
           </label>
         </div>
@@ -117,7 +117,7 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
         {/* Limit Selector */}
         {isEnabled && (
           <div className="flex flex-col gap-3">
-            <label htmlFor="limit-select" className="text-fyf-cream font-medium">
+            <label htmlFor="limit-select" className="text-rc-cream font-medium">
               Maximale Nutzungszeit pro Tag
             </label>
             <select
@@ -125,7 +125,7 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
               value={selectedMinutes || ''}
               onChange={(e) => handleMinutesChange(parseInt(e.target.value))}
               disabled={isLoading || requiresReauth}
-              className="w-full p-3 rounded-lg border border-fyf-steel bg-fyf-noir text-fyf-cream focus:border-fyf-mint focus:ring-2 focus:ring-fyf-mint focus:ring-offset-2 focus:ring-offset-fyf-noir"
+              className="w-full p-3 rounded-lg border border-rc-steel bg-rc-noir text-rc-cream focus:border-rc-mint focus:ring-2 focus:ring-rc-mint focus:ring-offset-2 focus:ring-offset-rc-noir"
             >
               <option value="">Wähle ein Limit</option>
               {limitOptions.map((minutes) => {
@@ -145,10 +145,10 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
         )}
 
         {/* Today's Usage Display */}
-        <div className="fyf-subcard">
+        <div className="rc-subcard">
           <div className="flex items-center justify-between">
-            <span className="text-fyf-steel">Heute verbraucht:</span>
-            <span className="text-fyf-mint font-semibold">
+            <span className="text-rc-steel">Heute verbraucht:</span>
+            <span className="text-rc-mint font-semibold">
               {Math.floor(todayUsageMinutes / 60)}h {todayUsageMinutes % 60}m
             </span>
           </div>
@@ -156,22 +156,22 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
 
         {/* Reauth Warning */}
         {requiresReauth && (
-          <div className="fyf-subcard fyf-subcard--accent">
+          <div className="rc-subcard rc-subcard--accent">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full bg-fyf-coral flex items-center justify-center">
-                <span className="text-fyf-noir text-sm font-bold">!</span>
+              <div className="w-6 h-6 rounded-full bg-rc-coral flex items-center justify-center">
+                <span className="text-rc-noir text-sm font-bold">!</span>
               </div>
               <div className="flex-1">
-                <p className="text-fyf-cream font-medium mb-1">
+                <p className="text-rc-cream font-medium mb-1">
                   Re-Anmeldung erforderlich
                 </p>
-                <p className="text-fyf-steel text-sm">
+                <p className="text-rc-steel text-sm">
                   Melde dich neu an, um das Limit zu ändern.
                 </p>
               </div>
               <button
                 onClick={handleReauth}
-                className="fyf-btn fyf-btn--outline"
+                className="rc-btn rc-btn--outline"
               >
                 Neu anmelden
               </button>
@@ -181,15 +181,15 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
 
         {/* Error Display */}
         {error && (
-          <div className="fyf-subcard" style={{ borderColor: 'var(--fyf-coral)' }}>
-            <p className="text-fyf-coral text-sm">{error}</p>
+          <div className="rc-subcard" style={{ borderColor: 'var(--rc-coral)' }}>
+            <p className="text-rc-coral text-sm">{error}</p>
           </div>
         )}
 
         {/* Success Message */}
         {showSuccess && (
-          <div className="fyf-subcard" style={{ borderColor: 'var(--fyf-mint)' }}>
-            <p className="text-fyf-mint text-sm">
+          <div className="rc-subcard" style={{ borderColor: 'var(--rc-mint)' }}>
+            <p className="text-rc-mint text-sm">
               ✓ Limit aktualisiert. Melde dich neu an, um es zu aktivieren.
             </p>
           </div>
@@ -199,13 +199,13 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
         <button
           onClick={handleSave}
           disabled={isLoading || requiresReauth || (isEnabled && selectedMinutes === null)}
-          className="fyf-btn fyf-btn--primary w-full"
+          className="rc-btn rc-btn--primary w-full"
         >
           {isLoading ? 'Speichern...' : 'Speichern'}
         </button>
 
         {/* Help Text */}
-        <div className="text-xs text-fyf-steel">
+        <div className="text-xs text-rc-steel">
           <p>
             • Limit wird täglich um Mitternacht zurückgesetzt<br/>
             • Änderungen werden erst nach erneutem Anmelden wirksam<br/>

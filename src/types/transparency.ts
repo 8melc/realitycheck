@@ -1,5 +1,5 @@
 /**
- * FYF Transparenz System Type Definitions
+ * RealityCheck Transparenz System Type Definitions
  * 
  * TypeScript Interfaces für das Transparenz-Grid System
  */

@@ -24,7 +24,7 @@ export const useGuideStore = create<GuideState>()(
       toggleGuideMute: () => set((state) => ({ isGuideMuted: !state.isGuideMuted })),
     }),
     {
-      name: 'fyf-guide-settings',
+      name: 'rc-guide-settings',
       version: 1,
       migrate: (persistedState: any, version: number) => {
         // Reset to default state if version mismatch

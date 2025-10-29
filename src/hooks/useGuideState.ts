@@ -36,29 +36,29 @@ export type GuideState = {
   guidePrompts: GuidePromptHistory[];
 };
 
-const STORAGE_KEY = 'fyf-guide-dashboard';
+const STORAGE_KEY = 'rc-guide-dashboard';
 
 // TODO: Convert to API endpoint /api/feedboard/images for live loading
 // feedboard_images.json converted to static constant for client-side use
 const FEEDBOARD_IMAGES_DATA = [
-  { title: 'Your Life in Weeks', filename: 'FYF_01_Life-in-Weeks.jpg', url: 'http://localhost:8080/FYF_01_Life-in-Weeks.jpg' },
-  { title: 'Four Thousand Weeks', filename: 'FYF_02_FourThousandWeeks.jpg', url: 'http://localhost:8080/FYF_02_FourThousandWeeks.jpg' },
-  { title: 'Frankl Quote', filename: 'FYF_03_Frankl-Quote.jpg', url: 'http://localhost:8080/FYF_03_Frankl-Quote.jpg' },
-  { title: 'Bali Coworking', filename: 'FYF_04_Bali-Coworking.jpg', url: 'http://localhost:8080/FYF_04_Bali-Coworking.jpg' },
-  { title: 'Nomad Podcast', filename: 'FYF_05_NomadPodcast.jpg', url: 'http://localhost:8080/FYF_05_NomadPodcast.jpg' },
-  { title: 'Jenny Odell', filename: 'FYF_06_Jenny-Odell.jpg', url: 'http://localhost:8080/FYF_06_Jenny-Odell.jpg' },
-  { title: 'Cal Newport', filename: 'FYF_07_Cal-Newport.jpg', url: 'http://localhost:8080/FYF_07_Cal-Newport.jpg' },
-  { title: 'Farnam Street Attention', filename: 'FYF_08_FarnamStreet-Attention.jpg', url: 'http://localhost:8080/FYF_08_FarnamStreet-Attention.jpg' },
-  { title: 'FYF Limit Freedom', filename: 'FYF_09_FYF-Limit-Freedom.jpg', url: 'http://localhost:8080/FYF_09_FYF-Limit-Freedom.jpg' },
-  { title: 'Money as Energy', filename: 'FYF_10_Money-as-Energy.jpg', url: 'http://localhost:8080/FYF_10_Money-as-Energy.jpg' },
-  { title: 'Hidden Brain Enough', filename: 'FYF_11_HiddenBrain-Enough.jpg', url: 'http://localhost:8080/FYF_11_HiddenBrain-Enough.jpg' },
-  { title: 'Psychology of Money', filename: 'FYF_12_Psychology-of-Money.jpg', url: 'http://localhost:8080/FYF_12_Psychology-of-Money.jpg' },
-  { title: 'Psyche Meaning', filename: 'FYF_13_Psyche-Meaning.jpg', url: 'http://localhost:8080/FYF_13_Psyche-Meaning.jpg' },
-  { title: 'On Being Purpose', filename: 'FYF_14_OnBeing-Purpose.jpg', url: 'http://localhost:8080/FYF_14_OnBeing-Purpose.jpg' },
-  { title: 'Ikigai Book', filename: 'FYF_15_Ikigai-Book.jpg', url: 'http://localhost:8080/FYF_15_Ikigai-Book.jpg' },
-  { title: 'Show Your Work', filename: 'FYF_16_Show-Your-Work.jpg', url: 'http://localhost:8080/FYF_16_Show-Your-Work.jpg' },
-  { title: 'Art Resistance', filename: 'FYF_17_Art-Resistance.jpg', url: 'http://localhost:8080/FYF_17_Art-Resistance.jpg' },
-  { title: 'Erykah Badu – Didn\'t Cha Know', filename: 'FYF_18_Erykah-Badu.jpg', url: 'http://localhost:8080/FYF_18_Erykah-Badu.jpg' },
+  { title: 'Your Life in Weeks', filename: 'RC_01_Life-in-Weeks.jpg', url: 'http://localhost:8080/RC_01_Life-in-Weeks.jpg' },
+  { title: 'Four Thousand Weeks', filename: 'RC_02_FourThousandWeeks.jpg', url: 'http://localhost:8080/RC_02_FourThousandWeeks.jpg' },
+  { title: 'Frankl Quote', filename: 'RC_03_Frankl-Quote.jpg', url: 'http://localhost:8080/RC_03_Frankl-Quote.jpg' },
+  { title: 'Bali Coworking', filename: 'RC_04_Bali-Coworking.jpg', url: 'http://localhost:8080/RC_04_Bali-Coworking.jpg' },
+  { title: 'Nomad Podcast', filename: 'RC_05_NomadPodcast.jpg', url: 'http://localhost:8080/RC_05_NomadPodcast.jpg' },
+  { title: 'Jenny Odell', filename: 'RC_06_Jenny-Odell.jpg', url: 'http://localhost:8080/RC_06_Jenny-Odell.jpg' },
+  { title: 'Cal Newport', filename: 'RC_07_Cal-Newport.jpg', url: 'http://localhost:8080/RC_07_Cal-Newport.jpg' },
+  { title: 'Farnam Street Attention', filename: 'RC_08_FarnamStreet-Attention.jpg', url: 'http://localhost:8080/RC_08_FarnamStreet-Attention.jpg' },
+  { title: 'RealityCheck Limit Freedom', filename: 'RC_09_RC-Limit-Freedom.jpg', url: 'http://localhost:8080/RC_09_RC-Limit-Freedom.jpg' },
+  { title: 'Money as Energy', filename: 'RC_10_Money-as-Energy.jpg', url: 'http://localhost:8080/RC_10_Money-as-Energy.jpg' },
+  { title: 'Hidden Brain Enough', filename: 'RC_11_HiddenBrain-Enough.jpg', url: 'http://localhost:8080/RC_11_HiddenBrain-Enough.jpg' },
+  { title: 'Psychology of Money', filename: 'RC_12_Psychology-of-Money.jpg', url: 'http://localhost:8080/RC_12_Psychology-of-Money.jpg' },
+  { title: 'Psyche Meaning', filename: 'RC_13_Psyche-Meaning.jpg', url: 'http://localhost:8080/RC_13_Psyche-Meaning.jpg' },
+  { title: 'On Being Purpose', filename: 'RC_14_OnBeing-Purpose.jpg', url: 'http://localhost:8080/RC_14_OnBeing-Purpose.jpg' },
+  { title: 'Ikigai Book', filename: 'RC_15_Ikigai-Book.jpg', url: 'http://localhost:8080/RC_15_Ikigai-Book.jpg' },
+  { title: 'Show Your Work', filename: 'RC_16_Show-Your-Work.jpg', url: 'http://localhost:8080/RC_16_Show-Your-Work.jpg' },
+  { title: 'Art Resistance', filename: 'RC_17_Art-Resistance.jpg', url: 'http://localhost:8080/RC_17_Art-Resistance.jpg' },
+  { title: 'Erykah Badu – Didn\'t Cha Know', filename: 'RC_18_Erykah-Badu.jpg', url: 'http://localhost:8080/RC_18_Erykah-Badu.jpg' },
 ];
 
 // Initial state with mock data merged from all sources
@@ -69,7 +69,7 @@ const getInitialState = (): GuideState => {
     image: img.url,
     kicker: 'Wissen',
     title: img.title,
-    meta: ['5 Min Lesezeit', 'FYF Content'],
+    meta: ['5 Min Lesezeit', 'RealityCheck Content'],
     guide: 'Dieser Content kann dein Verständnis von Freiheit vertiefen.',
     chips: ['Mindset', 'Fokus', 'Zeit'],
     addedAt: new Date().toISOString(),
@@ -324,7 +324,7 @@ export const useGuideState = () => {
   }, []);
 
   // Guide prompt operations
-  // TODO: Connect with Feedboard dispatch event 'fyf:addPrompt'
+  // TODO: Connect with Feedboard dispatch event 'rc:addPrompt'
   // TODO: Implement real-time sync via WebSocket/SSE
   const addPrompt = useCallback((prompt: string, response: string) => {
     setState(prev => ({

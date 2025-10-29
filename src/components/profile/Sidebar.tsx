@@ -52,41 +52,41 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
   ];
 
   return (
-    <aside className={`fyf-floating-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <aside className={`rc-floating-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       {/* Restzeit-Kachel - Persistent */}
-      <div className="fyf-time-banner">
-        <div className="fyf-time-statement">
-          Nur noch <span className="fyf-time-number">
+      <div className="rc-time-banner">
+        <div className="rc-time-statement">
+          Nur noch <span className="rc-time-number">
             {isClient ? daysRemaining.toLocaleString() : '...'}
           </span> Tage
         </div>
-        <div className="fyf-time-subtext">Mach keinen Bullshit</div>
+        <div className="rc-time-subtext">Mach keinen Bullshit</div>
       </div>
 
       {/* Profile & Ziel-Block - Lebendiges Dashboard */}
-      <div className="fyf-profile-block">
-        <div className="fyf-profile-header">
-          <div className="fyf-profile-avatar">
+      <div className="rc-profile-block">
+        <div className="rc-profile-header">
+          <div className="rc-profile-avatar">
             <img src={profile.identity.avatarUrl} alt={profile.identity.name} />
           </div>
-          <div className="fyf-profile-info">
-            <div className="fyf-profile-name">{profile.identity.name}</div>
-            <div className="fyf-profile-status">On Fire</div>
+          <div className="rc-profile-info">
+            <div className="rc-profile-name">{profile.identity.name}</div>
+            <div className="rc-profile-status">On Fire</div>
           </div>
         </div>
 
-        <div className="fyf-goal-section">
-          <div className="fyf-goal-question">Was willst du wirklich?</div>
-          <div className="fyf-goal-text">{profile.goal.text}</div>
-          <div className="fyf-goal-progress">
-            <div className="fyf-progress-bar">
-              <div className="fyf-progress-fill" style={{ width: '32%' }} />
+        <div className="rc-goal-section">
+          <div className="rc-goal-question">Was willst du wirklich?</div>
+          <div className="rc-goal-text">{profile.goal.text}</div>
+          <div className="rc-goal-progress">
+            <div className="rc-progress-bar">
+              <div className="rc-progress-fill" style={{ width: '32%' }} />
             </div>
-            <div className="fyf-progress-text">32% Fokus</div>
+            <div className="rc-progress-text">32% Fokus</div>
           </div>
         </div>
 
-        <button onClick={onEditGoal} className="fyf-btn fyf-btn--primary fyf-btn--statement">
+        <button onClick={onEditGoal} className="rc-btn rc-btn--primary rc-btn--statement">
           <PenSquareIcon className="h-4 w-4" />
           Ziel ändern
         </button>
@@ -96,34 +96,34 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
       <CreditsWidget userId={profile.id} hideCTA={true} />
 
       {/* Core Actions - Situational */}
-      <div className="fyf-actions-section">
-        <div className="fyf-section-title">Was jetzt?</div>
-        <div className="fyf-action-grid">
+      <div className="rc-actions-section">
+        <div className="rc-section-title">Was jetzt?</div>
+        <div className="rc-action-grid">
           {coreActions.map(({ href, label, icon: Icon, urgent }) => (
             <button
               key={label}
               onClick={() => handleLinkClick(href)}
-              className={`fyf-action-card ${urgent ? 'urgent' : ''}`}
+              className={`rc-action-card ${urgent ? 'urgent' : ''}`}
             >
-              <Icon className="fyf-action-icon" />
-              <span className="fyf-action-label">{label}</span>
+              <Icon className="rc-action-icon" />
+              <span className="rc-action-label">{label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Mode Actions - Contextual */}
-      <div className="fyf-mode-section">
-        <div className="fyf-section-title">Einstellungen</div>
-        <div className="fyf-mode-grid">
+      <div className="rc-mode-section">
+        <div className="rc-section-title">Einstellungen</div>
+        <div className="rc-mode-grid">
           {modeActions.map(({ href, label, icon: Icon, isGuidePrefs, urgent }) => (
             <button
               key={label}
               onClick={() => handleLinkClick(href, isGuidePrefs)}
-              className={`fyf-mode-card ${urgent ? 'urgent' : ''}`}
+              className={`rc-mode-card ${urgent ? 'urgent' : ''}`}
             >
-              <Icon className="fyf-mode-icon" />
-              <span className="fyf-mode-label">{label}</span>
+              <Icon className="rc-mode-icon" />
+              <span className="rc-mode-label">{label}</span>
             </button>
           ))}
         </div>
@@ -132,7 +132,7 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
       {/* Collapse Toggle */}
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="fyf-sidebar-toggle"
+        className="rc-sidebar-toggle"
       >
         {isCollapsed ? '→' : '←'}
       </button>

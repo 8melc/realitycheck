@@ -54,7 +54,7 @@ const toneTexts: ToneTexts = {
     soft: 'Deine Gespräche mit mir',
   },
   conversationSubtitle: {
-    straight: 'Frag den FYF Guide etwas – deine Gespräche werden hier gespeichert.',
+    straight: 'Frag den RealityCheck Guide etwas – deine Gespräche werden hier gespeichert.',
     soft: 'Stell mir Fragen oder lass uns über deine Ziele sprechen.',
   },
   
@@ -98,7 +98,7 @@ const toneTexts: ToneTexts = {
     soft: 'Dein Weg',
   },
   journeySubtitle: {
-    straight: 'Deine letzten Schritte in FYF – damit dein Momentum sichtbar bleibt.',
+    straight: 'Deine letzten Schritte in RealityCheck – damit dein Momentum sichtbar bleibt.',
     soft: 'Schau dir an, was du bereits erreicht hast.',
   },
 };

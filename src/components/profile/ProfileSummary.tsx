@@ -23,10 +23,10 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
   const { tone } = useGuideStore();
 
   return (
-    <section className="fyf-card fyf-card--hero motion-fade-up" aria-labelledby="profile-summary-heading">
+    <section className="rc-card rc-card--hero motion-fade-up" aria-labelledby="profile-summary-heading">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-1 flex-col gap-6 lg:flex-row lg:items-center">
-          <div className="relative h-32 w-32 shrink-0 rounded-full border border-fyf-mint/60 bg-fyf-noir/60 text-4xl font-semibold uppercase tracking-wide text-fyf-mint shadow-lg shadow-fyf-mint/5 overflow-hidden">
+          <div className="relative h-32 w-32 shrink-0 rounded-full border border-rc-mint/60 bg-rc-noir/60 text-4xl font-semibold uppercase tracking-wide text-rc-mint shadow-lg shadow-rc-mint/5 overflow-hidden">
             {identity.avatarUrl ? (
               <img 
                 src={identity.avatarUrl} 
@@ -46,10 +46,10 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
 
           <div className="flex flex-col gap-3">
             <div>
-              <h1 id="profile-summary-heading" className="fyf-heading">
+              <h1 id="profile-summary-heading" className="rc-heading">
                 {identity.name}
               </h1>
-              <p className="text-sm text-fyf-steel">{identity.email}</p>
+              <p className="text-sm text-rc-steel">{identity.email}</p>
             </div>
             <GoalBadge goal={`${getGuideText('profileGoal', tone)} ${goal.text}`} />
           </div>
@@ -57,15 +57,15 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
 
         <div className="flex flex-1 flex-col gap-6 border-t border-white/5 pt-6 lg:border-t-0 lg:pt-0">
           <dl className="grid gap-6 sm:grid-cols-3">
-            <div className="fyf-stat">
+            <div className="rc-stat">
               <dt>GELEBT</dt>
               <dd>{formatNumber(timeMetrics.weeksLived)} Wochen</dd>
             </div>
-            <div className="fyf-stat">
+            <div className="rc-stat">
               <dt>ÜBRIG</dt>
               <dd>{formatNumber(timeMetrics.weeksRemaining)} Wochen</dd>
             </div>
-            <div className="fyf-stat">
+            <div className="rc-stat">
               <dt>ÜBRIG</dt>
               <dd>{formatNumber(timeMetrics.daysRemaining)} Tage</dd>
             </div>
@@ -76,7 +76,7 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
             <button
               type="button"
               onClick={onEditGoal}
-              className="fyf-btn fyf-btn--outline inline-flex items-center gap-2"
+              className="rc-btn rc-btn--outline inline-flex items-center gap-2"
             >
               <PenSquareIcon className="h-4 w-4" aria-hidden="true" />
               Ziel bearbeiten

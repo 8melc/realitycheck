@@ -68,10 +68,10 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
   };
 
   return (
-    <div className="fyf-modal-backdrop" role="presentation">
+    <div className="rc-modal-backdrop" role="presentation">
       <div
         ref={dialogRef}
-        className="fyf-modal"
+        className="rc-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="goal-modal-heading"
@@ -80,23 +80,23 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
         <div className="flex flex-col gap-6">
           <header className="flex items-start justify-between gap-4">
             <div>
-              <h2 id="goal-modal-heading" className="fyf-subheading">
+              <h2 id="goal-modal-heading" className="rc-subheading">
                 Ziel aktualisieren
               </h2>
-              <p className="fyf-microcopy">Kein Fremdzweck, kein Bullshit. Schreib auf, was du wirklich willst.</p>
+              <p className="rc-microcopy">Kein Fremdzweck, kein Bullshit. Schreib auf, was du wirklich willst.</p>
             </div>
-            <button type="button" onClick={onClose} className="fyf-btn fyf-btn--ghost">
+            <button type="button" onClick={onClose} className="rc-btn rc-btn--ghost">
               Schließen
             </button>
           </header>
 
           <div className="flex flex-col gap-4">
-            <label htmlFor="goal-text" className="text-sm font-medium text-fyf-cream">
+            <label htmlFor="goal-text" className="text-sm font-medium text-rc-cream">
               Dein Ziel
             </label>
             <textarea
               id="goal-text"
-              className="fyf-input h-28 resize-none"
+              className="rc-input h-28 resize-none"
               placeholder="Was würdest du verfolgen, wenn du niemandem etwas beweisen müsstest?"
               value={goalValue}
               onChange={(event) => {
@@ -107,7 +107,7 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
           </div>
 
           <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium text-fyf-cream">Shortcut auswählen</span>
+            <span className="text-sm font-medium text-rc-cream">Shortcut auswählen</span>
             <div className="flex flex-wrap gap-2">
               {GOAL_SUGGESTIONS.map((suggestion) => {
                 const isActive = selectedChip === suggestion;
@@ -115,7 +115,7 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
                   <button
                     key={suggestion}
                     type="button"
-                    className={`fyf-chip-button ${isActive ? 'active' : ''}`}
+                    className={`rc-chip-button ${isActive ? 'active' : ''}`}
                     onClick={() => {
                       setSelectedChip(suggestion);
                       setGoalValue(suggestion);
@@ -127,7 +127,7 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
               })}
               <button
                 type="button"
-                className="fyf-chip-button fyf-chip-button--outline"
+                className="rc-chip-button rc-chip-button--outline"
                 onClick={() => {
                   setSelectedChip(null);
                   setGoalValue('');
@@ -138,18 +138,18 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-fyf-steel">
-            <span className="text-xs uppercase tracking-wide text-fyf-mint">Reminder</span>
-            <p>Everything in FYF richtet sich nach deinem Ziel. Wenn du es änderst, reagiert der Guide sofort.</p>
+          <div className="flex flex-col gap-2 rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-rc-steel">
+            <span className="text-xs uppercase tracking-wide text-rc-mint">Reminder</span>
+            <p>Everything in RealityCheck richtet sich nach deinem Ziel. Wenn du es änderst, reagiert der Guide sofort.</p>
           </div>
 
           <div className="flex items-center justify-end gap-3">
-            <button type="button" onClick={onClose} className="fyf-btn fyf-btn--ghost">
+            <button type="button" onClick={onClose} className="rc-btn rc-btn--ghost">
               Abbrechen
             </button>
             <button
               type="button"
-              className="fyf-btn fyf-btn--primary inline-flex items-center gap-2"
+              className="rc-btn rc-btn--primary inline-flex items-center gap-2"
               onClick={handleSave}
               disabled={goalValue.trim().length === 0}
             >

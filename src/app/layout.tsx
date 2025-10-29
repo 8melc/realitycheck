@@ -27,7 +27,7 @@ const robotoMono = Roboto_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'RealityCheck - Fuck Your Future',
+  title: 'RealityCheck',
   description: 'Transform your life with RealityCheck - Life visualization, goal setting, and personal development tools.',
 }
 

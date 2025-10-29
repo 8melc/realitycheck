@@ -1,5 +1,5 @@
 /**
- * FYF Feedboard Type Definitions
+ * RealityCheck Feedboard Type Definitions
  * 
  * TypeScript Interfaces für das Feedboard-System
  * basierend auf der importierten Notion-Datenbank
@@ -42,7 +42,7 @@ export interface FeedItem {
   isHero?: boolean;          // Markiert dominante/hero cards
   isSilence?: boolean;       // Markiert Silence Cards
   hasGlitch?: boolean;       // Markiert Cards mit Störungseffekt
-  guideComment?: string;     // Neuer FYF-Untertitel
+  guideComment?: string;     // Neuer RealityCheck-Untertitel
   isPartner?: boolean;       // Markiert Partner Supported Cards
   partnerInfo?: PartnerInfo; // Partner-spezifische Informationen
   eventInfo?: EventInfo;     // Event-spezifische Informationen
@@ -70,7 +70,7 @@ export interface ClusterSection {
   items: FeedItem[];
   color: string;             // Hex color
   icon: string;              // Emoji icon
-  intro: string;             // FYF-Intro-Text
+  intro: string;             // RealityCheck-Intro-Text
 }
 
 export interface FeedboardState {

@@ -32,7 +32,7 @@ const mockProfile: Profile = {
     targetAge: 85,
   },
   goal: {
-    text: 'Workation Winter 25/26, FYF-Prototyp-Launch, Studienprojekt',
+    text: 'Workation Winter 25/26, RealityCheck-Prototyp-Launch, Studienprojekt',
     source: 'custom',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -57,9 +57,9 @@ const mockProfile: Profile = {
   projects: [
     {
       id: 'project-1',
-      title: 'FYF-Prototyp-Launch',
+      title: 'RealityCheck-Prototyp-Launch',
       status: 'active',
-      description: 'MVP-Entwicklung und Launch-Vorbereitung für FYF Reality Check.',
+      description: 'MVP-Entwicklung und Launch-Vorbereitung für RealityCheck.',
       updatedAt: new Date().toISOString(),
     },
     {
@@ -83,7 +83,7 @@ const mockProfile: Profile = {
     spotifyData: {
       topArtists: ['Fred Again', 'Blaze', 'Böhmer'],
       topGenres: ['Electronic', 'Ambient', 'Indie'],
-      playlistId: 'fyf-focus-melissa',
+      playlistId: 'rc-focus-melissa',
       linkedAt: new Date().toISOString(),
     },
   },
@@ -97,7 +97,7 @@ const mockProfile: Profile = {
     {
       id: 'journey-1',
       type: 'onboarding',
-      description: 'Melissa Conrads Demo-Profil erstellt – Ready für FYF.',
+      description: 'Melissa Conrads Demo-Profil erstellt – Ready für RealityCheck.',
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     },
     {
@@ -109,7 +109,7 @@ const mockProfile: Profile = {
     {
       id: 'journey-3',
       type: 'goal-setting',
-      description: 'Ziel gesetzt: Workation Winter 25/26, FYF-Prototyp-Launch, Studienprojekt.',
+      description: 'Ziel gesetzt: Workation Winter 25/26, RealityCheck-Prototyp-Launch, Studienprojekt.',
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
     },
     {
@@ -124,14 +124,14 @@ const mockProfile: Profile = {
       id: 'feedback-1',
       tone: 'motivating',
       message:
-        'Deine Ziele sind ambitioniert und konkret. Workation Winter 25/26 + FYF-Launch + Studienprojekt – das ist ein starker Fokus.',
+        'Deine Ziele sind ambitioniert und konkret. Workation Winter 25/26 + RealityCheck-Launch + Studienprojekt – das ist ein starker Fokus.',
       createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     },
     {
       id: 'feedback-2',
       tone: 'challenging',
       message:
-        'Du willst 3 große Projekte parallel. Welches ist dein #1 Priority? FYF-Prototyp braucht wahrscheinlich 80% deiner Energie.',
+        'Du willst 3 große Projekte parallel. Welches ist dein #1 Priority? RealityCheck-Prototyp braucht wahrscheinlich 80% deiner Energie.',
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
     },
     {
@@ -218,7 +218,7 @@ export default function GuideDashboardPage() {
         spotifyData: {
           topArtists: ['Bonobo', 'Kiasmos', 'Nils Frahm'],
           topGenres: ['Electronic', 'Ambient', 'Indie'],
-          playlistId: 'fyf-focus',
+          playlistId: 'rc-focus',
           linkedAt: new Date().toISOString(),
         },
       },
