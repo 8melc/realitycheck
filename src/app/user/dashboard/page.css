@@ -399,6 +399,165 @@
   color: var(--fyf-steel);
 }
 
+/* --------------------------------------------- */
+/* FYF utility classes mapped to Guide styling   */
+/* Ensure all dashboard cards/controls match the */
+/* Guide-Präferenzen look & feel (color, font,   */
+/* filter/selects, and buttons).                 */
+/* --------------------------------------------- */
+
+/* Cards */
+.fyf-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.fyf-subcard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.fyf-subcard--muted {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.fyf-subcard--accent {
+  background: rgba(78, 205, 196, 0.06);
+  border-color: var(--fyf-mint);
+}
+
+.fyf-subcard__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--fyf-cream);
+  margin-bottom: 0.75rem;
+}
+
+.fyf-subcard__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fyf-cream);
+}
+
+.fyf-subcard__body {
+  font-size: 0.875rem;
+  color: var(--fyf-steel);
+}
+
+/* Typography */
+.fyf-subheading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--fyf-cream);
+}
+
+.fyf-microcopy {
+  font-size: 0.875rem;
+  color: var(--fyf-steel);
+}
+
+/* Chips */
+.fyf-chip {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(78, 205, 196, 0.1);
+  color: var(--fyf-mint);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.fyf-chip--ghost {
+  background: transparent;
+  color: var(--fyf-steel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Links */
+.fyf-link {
+  color: var(--fyf-cream);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.fyf-link:hover {
+  color: var(--fyf-mint);
+  border-bottom-color: var(--fyf-mint);
+}
+
+/* Buttons aligned to Guide buttons */
+.fyf-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border: none;
+}
+
+.fyf-btn--primary {
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
+}
+
+.fyf-btn--primary:hover {
+  background: #3bb8b1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--fyf-mint-glow);
+}
+
+.fyf-btn--ghost {
+  background: transparent;
+  color: var(--fyf-steel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fyf-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--fyf-cream);
+  border-color: var(--fyf-steel);
+}
+
+.fyf-btn--outline {
+  background: transparent;
+  color: var(--fyf-cream);
+  border: 1px solid var(--fyf-cream);
+}
+
+.fyf-btn--outline:hover {
+  color: var(--fyf-mint);
+  border-color: var(--fyf-mint);
+}
+
+/* Selects / Filters */
+.fyf-select,
+select.fyf-select {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border-radius: 8px;
+  border: 1px solid var(--fyf-steel);
+  background: var(--fyf-noir);
+  color: var(--fyf-cream);
+}
+
+.fyf-select:focus {
+  outline: none;
+  border-color: var(--fyf-mint);
+  box-shadow: 0 0 0 2px var(--fyf-mint-glow);
+}
+
 /* Voices Grid */
 .guide-voices-grid {
   display: grid;
