@@ -160,13 +160,13 @@
 .fyf-floating-sidebar {
   position: fixed;
   left: 1rem;
-  top: 1rem;
+  top: 5rem; /* Start below navigation header */
   width: 320px;
-  height: calc(100vh - 2rem);
+  height: calc(100vh - 6rem); /* Account for header height */
   background: var(--fyf-noir);
   border: 2px solid var(--fyf-mint);
   border-radius: 16px;
-  z-index: 200;
+  z-index: 100; /* Lower than header */
   padding: 2rem;
   overflow: hidden;
   display: flex;
@@ -179,6 +179,7 @@
 
 .fyf-floating-sidebar.collapsed {
   width: 60px;
+  height: calc(100vh - 6rem); /* Same height as expanded */
   padding: 1rem 0.5rem;
 }
 
@@ -437,6 +438,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  z-index: 10; /* Ensure toggle is clickable */
 }
 
 .fyf-sidebar-toggle:hover {
