@@ -1,7 +1,7 @@
 import { Profile } from '@/types/profile';
 import StatusMeter from './StatusMeter';
 import GoalBadge from './GoalBadge';
-import { LocateIcon, PenSquareIcon } from './icons';
+import { PenSquareIcon } from './icons';
 import { useGuideStore } from '@/stores/guideStore';
 import { getGuideText } from '@/lib/guideTone';
 
@@ -42,9 +42,6 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
                   .slice(0, 2)}
               </div>
             )}
-            <span className="absolute -bottom-2 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-fyf-mint/60 bg-fyf-mint/20">
-              <LocateIcon className="h-3 w-3 text-fyf-mint" />
-            </span>
           </div>
 
           <div className="flex flex-col gap-3">
