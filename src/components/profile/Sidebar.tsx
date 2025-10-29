@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Profile } from '@/types/profile';
 import { CompassIcon, TargetIcon, PenSquareIcon, ClockIcon, MusicIcon, GaugeIcon, FlameIcon } from './icons';
-import CreditsWidget from './CreditsWidget';
 
 interface SidebarProps {
   profile: Profile;
@@ -92,8 +91,6 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
         </button>
       </div>
 
-      {/* Credits Widget */}
-      <CreditsWidget userId={profile.id} hideCTA={true} />
 
       {/* Core Actions - Situational */}
       <div className="rc-actions-section">

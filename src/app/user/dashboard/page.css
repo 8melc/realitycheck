@@ -727,6 +727,12 @@
   box-shadow: 0 8px 24px var(--rc-mint-glow);
 }
 
+.rc-card--hero {
+  background: var(--rc-noir);
+  border: 2px solid var(--rc-mint);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 .rc-subcard {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -799,6 +805,23 @@
   font-size: 0.875rem;
   color: var(--rc-steel);
   line-height: 1.5;
+}
+
+/* Text color utilities for Credits section */
+.text-rc-mint {
+  color: var(--rc-mint);
+}
+
+.text-rc-coral {
+  color: var(--rc-coral);
+}
+
+.text-rc-cream {
+  color: var(--rc-cream);
+}
+
+.text-rc-steel {
+  color: var(--rc-steel);
 }
 
 /* Chips */
