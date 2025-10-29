@@ -16,39 +16,39 @@ type CreditPackage = {
 
 const creditPackages: CreditPackage[] = [
   {
-    id: 'starter',
+    id: 'small',
     credits: 10,
-    label: '10 Credits',
+    label: 'Small',
     priceEuro: 4,
     description: 'Für kurze Tests oder spontane Sessions.'
   },
   {
-    id: 'focus',
+    id: 'medium',
     credits: 25,
-    label: '25 Credits',
+    label: 'Medium',
     priceEuro: 7.5,
     description: 'Einstieg in den Fokus – 0,30 € pro Credit.'
   },
   {
-    id: 'deep',
+    id: 'large',
     credits: 50,
-    label: '50 Credits',
+    label: 'Large',
     priceEuro: 14,
     description: 'Für regelmäßige Nutzung, günstiger pro Credit.'
   },
   {
-    id: 'studio',
+    id: 'xl',
     credits: 100,
-    label: '100 Credits',
+    label: 'XL',
     priceEuro: 26,
-    description: 'Team- oder Projektumfang, reduziert auf 0,26 €.'
+    description: 'Für Vielnutzer, reduziert auf 0,26 € pro Credit.'
   },
   {
-    id: 'collective',
+    id: 'xxl',
     credits: 1000,
-    label: '1.000 Credits',
+    label: 'XXL',
     priceEuro: 240,
-    description: 'Community-/Company-Paket, maximale Ersparnis.'
+    description: 'Für Poweruser, maximale Ersparnis bei 0,24 € pro Credit.'
   }
 ];
 
@@ -135,7 +135,7 @@ export default function CreditsPurchaseFlow() {
           <p>
             Keine Abos, kein Upsell. Du wählst selbst, wie viele Credits du brauchst und
             siehst, welcher Anteil den Betrieb deckt. Der Rest bleibt für Produktaufbau
-            und Community.
+            und unabhängige Inhalte. Deine Credits. Deine Sessions. Kein Team.
           </p>
         </header>
 
@@ -219,8 +219,8 @@ export default function CreditsPurchaseFlow() {
               </div>
             </dl>
             <p className="cost-hint">
-              Mindestpreis 0,30 € je Credit. Größere Pakete senken den Stückpreis, die
-              0,20 € Betriebskosten bleiben konstant.
+              Je größer dein Paket, desto günstiger der Einzelcredit. Betriebskosten bleiben gleich.
+              Mindestpreis 0,30 € je Credit, maximale Ersparnis bei 0,24 € je Credit.
             </p>
           </div>
 
@@ -288,6 +288,10 @@ export default function CreditsPurchaseFlow() {
                 Damit werden Infrastruktur, Datenhaltung und Support bezahlt. Alles
                 darüber fließt in Produktentwicklung und unabhängige Inhalte. Du siehst
                 jederzeit, wie sich der Preis zusammensetzt.
+              </p>
+              <p>
+                <strong>Warum keine "Team" oder "Community" Pakete?</strong> FYF ist für persönliche Entwicklung – 
+                Credits gelten für deine Sessions. Für Gruppen/Firmen gibt es separate Ansprachen (später).
               </p>
               <p>
                 Mehr Hintergründe findest du im{' '}
