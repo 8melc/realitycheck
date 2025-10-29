@@ -681,21 +681,35 @@
 /* filter/selects, and buttons).                 */
 /* --------------------------------------------- */
 
-/* Cards */
+/* Cards - Identical to Guide Styling */
 .fyf-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 1.5rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.fyf-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--fyf-mint);
+  box-shadow: 0 8px 24px var(--fyf-mint-glow);
 }
 
 .fyf-subcard {
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 1rem 1.25rem;
-  overflow: hidden; /* Prevent content overflow */
-  position: relative; /* Ensure proper positioning */
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.fyf-subcard:hover {
+  transform: translateY(-2px);
+  border-color: var(--fyf-mint);
 }
 
 .fyf-subcard--muted {
@@ -732,17 +746,19 @@
   color: var(--fyf-steel);
 }
 
-/* Typography */
+/* Typography - Identical to Guide Styling */
 .fyf-subheading {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
   color: var(--fyf-cream);
+  margin-bottom: 0.5rem;
 }
 
 .fyf-microcopy {
   font-size: 0.875rem;
   color: var(--fyf-steel);
+  line-height: 1.5;
 }
 
 /* Chips */
@@ -778,16 +794,21 @@
   border-bottom-color: var(--fyf-mint);
 }
 
-/* Buttons aligned to Guide buttons */
+/* Buttons - Identical to Guide Button Styling */
 .fyf-btn {
   padding: 0.625rem 1.25rem;
+  border: none;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  border: none;
+}
+
+.fyf-btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
 }
 
 .fyf-btn--primary {
@@ -824,7 +845,7 @@
   border-color: var(--fyf-mint);
 }
 
-/* Selects / Filters */
+/* Selects / Filters - Identical to Guide Styling */
 .fyf-select,
 select.fyf-select {
   width: 100%;
@@ -833,6 +854,8 @@ select.fyf-select {
   border: 1px solid var(--fyf-steel);
   background: var(--fyf-noir);
   color: var(--fyf-cream);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
 }
 
 .fyf-select:focus {
@@ -866,7 +889,7 @@ select.fyf-select {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* Input Styles */
+/* Input Styles - Identical to Guide Styling */
 .fyf-input {
   width: 100%;
   padding: 0.75rem 0.875rem;
@@ -923,21 +946,22 @@ select.fyf-select {
   color: var(--fyf-noir);
 }
 
-/* Feedback Items - Guide-Präferenzen Styling */
+/* Feedback Items - Identical to Guide Card Styling */
 .fyf-feedback-item {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.25rem;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .fyf-feedback-item:hover {
+  transform: translateY(-2px);
   border-color: var(--fyf-mint);
-  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 4px 12px var(--fyf-mint-glow);
 }
 
 .fyf-feedback-item__icon {
