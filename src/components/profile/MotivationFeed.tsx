@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Profile } from '@/types/profile';
 import { SparklesIcon, FlameIcon, TargetIcon, PenSquareIcon } from './icons';
 
@@ -13,7 +16,12 @@ const iconByTone: Record<Profile['feedback'][number]['tone'], JSX.Element> = {
 };
 
 const MotivationFeed = ({ profile, onEdit }: MotivationFeedProps) => {
+  const [isClient, setIsClient] = useState(false);
   const entries = profile.feedback;
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <section id="feedback" className="rc-card motion-fade-up" aria-labelledby="motivation-heading">
@@ -53,11 +61,11 @@ const MotivationFeed = ({ profile, onEdit }: MotivationFeedProps) => {
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-rc-cream">{entry.message}</p>
                 <span className="text-xs uppercase tracking-wider text-rc-steel">
-                  {new Intl.DateTimeFormat('de-DE', {
+                  {isClient ? new Intl.DateTimeFormat('de-DE', {
                     dateStyle: 'medium',
                     timeStyle: 'short',
                     timeZone: 'UTC',
-                  }).format(new Date(entry.createdAt))}
+                  }).format(new Date(entry.createdAt)) : '...'}
                 </span>
               </div>
             </li>
