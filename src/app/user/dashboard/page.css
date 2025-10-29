@@ -139,6 +139,8 @@
   max-width: 1080px; /* Limit content width */
   margin-right: auto; /* Center content */
   padding: 2rem 3rem; /* More padding for breathing room */
+  min-height: 100vh; /* Ensure full height */
+  padding-bottom: 4rem; /* Extra bottom padding to prevent cutoff */
 }
 
 /* Left Sidebar - Goals, Quick Actions, Credits */
@@ -419,10 +421,13 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1rem 1.25rem;
+  overflow: hidden; /* Prevent content overflow */
+  position: relative; /* Ensure proper positioning */
 }
 
 .fyf-subcard--muted {
   background: rgba(255, 255, 255, 0.015);
+  opacity: 0.7;
 }
 
 .fyf-subcard--accent {
@@ -482,6 +487,11 @@
   background: transparent;
   color: var(--fyf-steel);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fyf-chip--light {
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
 }
 
 /* Links */
