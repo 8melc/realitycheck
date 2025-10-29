@@ -46,7 +46,7 @@ const creditPackages: CreditPackage[] = [
   {
     id: 'xxl',
     credits: 1000,
-    label: 'XXL',
+    label: 'Vorrat',
     priceEuro: 240,
     description: 'Für Poweruser, maximale Ersparnis bei 0,24 € pro Credit.'
   }
