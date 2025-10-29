@@ -162,16 +162,16 @@
   left: 1rem;
   top: 1rem;
   width: 320px;
-  max-height: calc(100vh - 2rem);
+  height: calc(100vh - 2rem);
   background: var(--fyf-noir);
   border: 2px solid var(--fyf-mint);
   border-radius: 16px;
   z-index: 200;
-  padding: 1.5rem;
-  overflow-y: auto;
+  padding: 2rem;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
@@ -191,36 +191,50 @@
 
 /* Restzeit-Kachel - Persistent, Provokant */
 .fyf-time-banner {
-  background: linear-gradient(135deg, var(--fyf-mint), #3bb8b1);
-  color: var(--fyf-noir);
-  padding: 1rem;
-  border-radius: 12px;
+  background: var(--fyf-noir);
+  border: 2px solid var(--fyf-mint);
+  color: var(--fyf-cream);
+  padding: 1.25rem 1rem;
+  border-radius: 8px;
   text-align: center;
-  font-weight: 700;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .fyf-time-statement {
-  font-size: 1.25rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fyf-cream);
   margin-bottom: 0.25rem;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .fyf-time-number {
-  font-size: 1.5rem;
-  font-weight: 900;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--fyf-mint);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .fyf-time-subtext {
-  font-size: 0.875rem;
-  opacity: 0.8;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--fyf-steel);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-top: 0.25rem;
+  opacity: 1;
 }
 
 /* Profile & Ziel-Block - Lebendiges Dashboard */
 .fyf-profile-block {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1.25rem;
+  background: var(--fyf-noir);
+  border: 2px solid var(--fyf-mint);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .fyf-profile-header {
@@ -323,23 +337,25 @@
 .fyf-mode-section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .fyf-section-title {
-  font-size: 0.75rem;
-  color: var(--fyf-steel);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  color: var(--fyf-mint);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
+  text-align: center;
 }
 
 .fyf-action-grid,
 .fyf-mode-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .fyf-action-card,
@@ -348,21 +364,23 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 0.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  padding: 1rem 0.75rem;
+  background: var(--fyf-noir);
+  border: 2px solid var(--fyf-mint);
+  border-radius: 6px;
   color: var(--fyf-cream);
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .fyf-action-card:hover,
 .fyf-mode-card:hover {
-  border-color: var(--fyf-mint);
-  background: rgba(78, 205, 196, 0.1);
-  transform: translateY(-1px);
+  border-color: var(--fyf-coral);
+  background: var(--fyf-noir);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.2);
 }
 
 .fyf-action-card.urgent,
@@ -379,16 +397,26 @@
 
 .fyf-action-icon,
 .fyf-mode-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   color: var(--fyf-mint);
+  transition: color 0.2s ease;
+}
+
+.fyf-action-card:hover .fyf-action-icon,
+.fyf-mode-card:hover .fyf-mode-icon {
+  color: var(--fyf-coral);
 }
 
 .fyf-action-label,
 .fyf-mode-label {
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fyf-cream);
 }
 
 /* Collapse Toggle */
