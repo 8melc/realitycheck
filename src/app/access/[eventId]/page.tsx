@@ -2,12 +2,12 @@
 
 import { useEffect, useState, use } from 'react';
 import { realitycheckEvents } from '../../../data/realitycheckEvents';
-import type { FYFEvent } from '../../../data/realitycheckEvents';
+import type { RealityCheckEvent } from '../../../data/realitycheckEvents';
 import './event-detail.css';
 
 export default function EventDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params);
-  const [event, setEvent] = useState<FYFEvent | null>(null);
+  const [event, setEvent] = useState<RealityCheckEvent | null>(null);
   const [birthdate, setBirthdate] = useState<string>('');
   const [targetAge, setTargetAge] = useState<string>('80');
   const [restzeit, setRestzeit] = useState<number>(0);

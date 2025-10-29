@@ -106,7 +106,7 @@ export default function UserDashboardPage() {
   const [isGoalModalOpen, setGoalModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const { fetchUsageData } = useUsageStore();
-  const { guideTone, isGuideMuted } = useGuideStore();
+  const { tone } = useGuideStore();
 
   const timeMetrics = useMemo(() => {
     if (!isClient) {

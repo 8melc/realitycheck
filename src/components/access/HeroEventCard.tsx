@@ -1,10 +1,10 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import type { FYFEvent } from '../../data/realitycheckEvents';
+import type { RealityCheckEvent } from '../../data/realitycheckEvents';
 
 type HeroEventCardProps = {
-  event: FYFEvent;
+  event: RealityCheckEvent;
 };
 
 export default function HeroEventCard({ event }: HeroEventCardProps) {

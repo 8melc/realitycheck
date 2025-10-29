@@ -5,25 +5,23 @@ export type GuideTone = 'straight' | 'soft';
 export type NudgingFrequency = 'high' | 'medium' | 'low' | 'off';
 
 interface GuideState {
-  tone: GuideTone;
-  guideActive: boolean;
+  guideTone: GuideTone;
   nudgingFrequency: NudgingFrequency;
-  setTone: (tone: GuideTone) => void;
-  setGuideActive: (active: boolean) => void;
+  isGuideMuted: boolean;
+  setGuideTone: (tone: GuideTone) => void;
   setNudgingFrequency: (frequency: NudgingFrequency) => void;
-  toggleGuide: () => void;
+  toggleGuideMute: () => void;
 }
 
 export const useGuideStore = create<GuideState>()(
   persist(
     (set) => ({
-      tone: 'straight',
-      guideActive: true,
+      guideTone: 'straight',
       nudgingFrequency: 'medium',
-      setTone: (tone) => set({ tone }),
-      setGuideActive: (active) => set({ guideActive: active }),
+      isGuideMuted: false,
+      setGuideTone: (tone) => set({ guideTone: tone }),
       setNudgingFrequency: (frequency) => set({ nudgingFrequency: frequency }),
-      toggleGuide: () => set((state) => ({ guideActive: !state.guideActive })),
+      toggleGuideMute: () => set((state) => ({ isGuideMuted: !state.isGuideMuted })),
     }),
     {
       name: 'fyf-guide-settings',
@@ -32,9 +30,9 @@ export const useGuideStore = create<GuideState>()(
         // Reset to default state if version mismatch
         if (version !== 1) {
           return {
-            tone: 'straight',
-            guideActive: true,
+            guideTone: 'straight',
             nudgingFrequency: 'medium',
+            isGuideMuted: false,
           };
         }
         return persistedState;
@@ -44,11 +42,36 @@ export const useGuideStore = create<GuideState>()(
 );
 
 export const getNudgingFrequencyInfo = (frequency: NudgingFrequency) => {
-  const info = {
-    high: { label: 'Intensiv', description: 'Der Guide gibt dir oft Anstöße.', explanation: 'Der Guide gibt dir oft Anstöße.' },
-    medium: { label: 'Standard', description: 'Der Guide gibt dir gelegentlich Anstöße.', explanation: 'Der Guide gibt dir gelegentlich Anstöße.' },
-    low: { label: 'Minimal', description: 'Der Guide gibt dir selten Anstöße.', explanation: 'Der Guide gibt dir selten Anstöße.' },
-    off: { label: 'Aus', description: 'Der Guide gibt dir keine Anstöße.', explanation: 'Der Guide gibt dir keine Anstöße.' },
-  };
-  return info[frequency] || info.medium;
+  switch (frequency) {
+    case 'high':
+      return {
+        label: 'Hoch',
+        description: 'Täglich mehrere Erinnerungen und Impulse',
+        interval: 'Alle 2-3 Stunden',
+      };
+    case 'medium':
+      return {
+        label: 'Mittel',
+        description: 'Regelmäßige, aber nicht aufdringliche Erinnerungen',
+        interval: '2-3x täglich',
+      };
+    case 'low':
+      return {
+        label: 'Niedrig',
+        description: 'Wenige, aber gezielte Erinnerungen',
+        interval: '1x täglich',
+      };
+    case 'off':
+      return {
+        label: 'Aus',
+        description: 'Keine automatischen Erinnerungen',
+        interval: 'Nur bei manueller Aktivierung',
+      };
+    default:
+      return {
+        label: 'Mittel',
+        description: 'Regelmäßige, aber nicht aufdringliche Erinnerungen',
+        interval: '2-3x täglich',
+      };
+  }
 };
