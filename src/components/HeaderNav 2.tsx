@@ -21,7 +21,7 @@ export default function HeaderNav() {
         {/* Logo - Links */}
         <div className="header-nav-brand">
           <Link href="/" className="brand-link">
-            FYF
+            RealityCheck
           </Link>
         </div>
 
@@ -62,7 +62,7 @@ export default function HeaderNav() {
         <div className="mobile-menu-content">
           <div className="mobile-brand">
             <Link href="/" className="mobile-brand-link" onClick={toggleMobileMenu}>
-              FYF
+              RealityCheck
             </Link>
           </div>
           <nav className="mobile-nav-links">

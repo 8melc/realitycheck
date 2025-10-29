@@ -27,8 +27,8 @@ const robotoMono = Roboto_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Reality Check - Fuck Your Future',
-  description: 'Transform your life with Reality Check - Life visualization, goal setting, and personal development tools.',
+  title: 'RealityCheck - Fuck Your Future',
+  description: 'Transform your life with RealityCheck - Life visualization, goal setting, and personal development tools.',
 }
 
 export default function RootLayout({

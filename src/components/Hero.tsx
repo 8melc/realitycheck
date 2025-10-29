@@ -25,7 +25,7 @@ export type HeroProps = {
 };
 
 export function Hero({
-  overline = 'Reality Check Studio',
+  overline = 'RealityCheck Studio',
   headline,
   subheadline,
   description,
