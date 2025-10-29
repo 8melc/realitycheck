@@ -1,0 +1,535 @@
+/* FYF Transparenz Grid Styles - Feedboard/Profile Alignment */
+
+/* Import Feedboard CSS Variables */
+:root {
+  --fyf-bg: #06080a;
+  --fyf-layer: rgba(6, 8, 10, 0.94);
+  --fyf-mint: #4ecdc4;
+  --fyf-offwhite: rgba(255, 255, 255, 0.88);
+  --fyf-muted: rgba(255, 255, 255, 0.62);
+  --fyf-subtle: rgba(255, 255, 255, 0.18);
+  --fyf-border: rgba(255, 255, 255, 0.08);
+  --fyf-border-strong: rgba(78, 205, 196, 0.45);
+  --fyf-shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
+  --fyf-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --fyf-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+
+/* Grid Layout - FYF Handbuch Pattern */
+.transparency-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: auto; /* Auto height für Accordion-Expansion */
+  gap: 2.5rem;
+  position: relative;
+  padding: 0;
+}
+
+/* Mobile: Single Column */
+@media (max-width: 900px) {
+  .transparency-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 1.5rem;
+  }
+}
+
+/* Tablet: 2 Columns */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .transparency-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: auto;
+    gap: 2rem;
+  }
+}
+
+/* Individual Tile - FYF Handbuch Style */
+.transparency-tile {
+  position: relative;
+  isolation: isolate;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--fyf-border);
+  transition: transform 220ms ease, box-shadow 220ms ease, border 220ms ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 200px; /* Minimum height für Shorttext */
+  max-height: none; /* Allow accordion expansion */
+}
+
+.transparency-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(78, 205, 196, 0.08), transparent 60%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.transparency-tile:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--fyf-shadow);
+  border-color: rgba(78, 205, 196, 0.32);
+}
+
+.transparency-tile:hover::after {
+  opacity: 1;
+}
+
+.transparency-tile:focus {
+  outline: 2px solid var(--tile-color, #4ECDC4);
+  outline-offset: 2px;
+}
+
+/* Tile Header - Compact Pattern */
+.tile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 20px 20px 0;
+}
+
+.tile-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--tile-color, #4ECDC4);
+  display: none;
+}
+
+.tile-title {
+  font-family: var(--fyf-font-display);
+  font-size: clamp(16px, 1.8vw, 20px);
+  font-weight: 700;
+  color: var(--fyf-offwhite);
+  margin: 0;
+  line-height: 1.2;
+  flex: 1;
+  letter-spacing: -0.01em;
+  transition: color 200ms ease;
+}
+
+.transparency-tile:hover .tile-title {
+  color: var(--fyf-offwhite);
+}
+
+.transparency-tile[aria-expanded="true"] .tile-title {
+  color: #222222;
+}
+
+.tile-arrow {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 300;
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.transparency-tile[aria-expanded="true"] .tile-arrow {
+  transform: rotate(45deg);
+}
+
+/* Tile Content - FYF Handbuch Pattern */
+.tile-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px 20px;
+  gap: 0; /* Kein gap, da Shorttext margin hat */
+}
+
+.tile-short-text {
+  color: var(--fyf-offwhite);
+  font-size: 1.1rem; /* 1.1rem bis 1.15rem */
+  line-height: 1.5;
+  margin: 0 0 1rem 0; /* Margin bottom für Abstand */
+  font-weight: 400;
+  opacity: 0.88;
+  max-width: 100%;
+  /* Kein line-clamp - Shorttext IMMER vollständig sichtbar */
+}
+
+/* Accordion Styles - FYF Handbuch Pattern */
+.tile-accordion {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 300ms ease;
+  margin-top: 0;
+}
+
+.tile-accordion.expanded {
+  max-height: 400px; /* Allow expansion */
+  margin-top: 1rem; /* 1rem Abstand Shorttext - Longtext */
+}
+
+.tile-accordion-content {
+  padding-top: 16px;
+  border-top: 1px solid var(--fyf-border);
+}
+
+.tile-long-text {
+  color: #aaaaaa; /* FYF Editor-Layer grau */
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 100%;
+  font-weight: 400;
+}
+
+/* Accordion Trigger - FYF Handbuch Pattern */
+.tile-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 12px;
+  cursor: pointer;
+  transition: opacity 200ms ease;
+}
+
+.tile-accordion-trigger:hover {
+  opacity: 0.8;
+}
+
+.accordion-text {
+  color: var(--fyf-muted);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin-right: 6px;
+}
+
+.accordion-arrow {
+  color: var(--tile-color, #4ECDC4);
+  font-size: 14px;
+  font-weight: 300;
+  transition: transform 200ms ease;
+}
+
+.tile-accordion.expanded .accordion-arrow {
+  transform: rotate(45deg);
+}
+
+/* Modal Indicator - Only for KI-Quellen */
+.tile-modal-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--fyf-border);
+}
+
+.modal-text {
+  color: var(--fyf-muted);
+  font-size: 12px;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal-arrow {
+  color: var(--tile-color, #4ECDC4);
+  font-size: 16px;
+  font-weight: 300;
+}
+
+/* Modal Styles - Feedboard Pattern */
+.transparency-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(6, 8, 10, 0.75);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  padding: 32px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.transparency-modal {
+  background: linear-gradient(180deg, rgba(7, 9, 11, 0.96), rgba(7, 9, 11, 0.82));
+  border: 1px solid rgba(78, 205, 196, 0.45);
+  border-radius: 28px;
+  max-width: 800px;
+  max-height: 90vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  box-shadow: var(--fyf-shadow);
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Header - Feedboard Pattern */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px;
+  border-bottom: 1px solid var(--fyf-border);
+}
+
+.modal-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.modal-icon {
+  font-size: 20px;
+  color: var(--tile-color, #4ECDC4);
+}
+
+.modal-title {
+  font-family: var(--fyf-font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fyf-offwhite);
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--fyf-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  color: var(--fyf-offwhite);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Modal Content - Feedboard Pattern */
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+.modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: var(--fyf-muted);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--fyf-border);
+  border-top: 2px solid var(--fyf-mint);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Markdown Styles - Feedboard Pattern */
+.modal-markdown {
+  color: var(--fyf-offwhite);
+  line-height: 1.6;
+  font-family: var(--fyf-font-sans);
+}
+
+.markdown-h1 {
+  font-family: var(--fyf-font-display);
+  font-size: clamp(26px, 3vw, 28px);
+  font-weight: 700;
+  color: var(--fyf-offwhite);
+  margin: 0 0 24px 0;
+  border-bottom: 2px solid var(--fyf-mint);
+  padding-bottom: 8px;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.markdown-h2 {
+  font-family: var(--fyf-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--fyf-offwhite);
+  margin: 32px 0 16px 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.markdown-h3 {
+  font-family: var(--fyf-font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--fyf-offwhite);
+  margin: 24px 0 12px 0;
+}
+
+.markdown-p {
+  margin: 0 0 16px 0;
+  color: var(--fyf-offwhite);
+  opacity: 0.88;
+}
+
+.markdown-ul, .markdown-ol {
+  margin: 0 0 16px 0;
+  padding-left: 24px;
+}
+
+.markdown-li {
+  margin: 8px 0;
+  color: var(--fyf-offwhite);
+  opacity: 0.88;
+}
+
+.markdown-link {
+  color: var(--fyf-mint);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.markdown-link:hover {
+  border-bottom-color: var(--fyf-mint);
+}
+
+.markdown-blockquote {
+  border-left: 4px solid var(--fyf-mint);
+  padding-left: 16px;
+  margin: 16px 0;
+  font-style: italic;
+  color: var(--fyf-muted);
+}
+
+.markdown-code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  color: var(--fyf-mint);
+}
+
+.markdown-pre {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+/* Modal Footer - Feedboard Pattern */
+.modal-footer {
+  padding: 32px;
+  border-top: 1px solid var(--fyf-border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-close-button {
+  background: var(--fyf-mint);
+  color: #032321;
+  border: 1px solid rgba(78, 205, 196, 0.8);
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--fyf-font-sans);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 32px rgba(78, 205, 196, 0.28);
+}
+
+.modal-close-button:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsive Modal - Feedboard Pattern */
+@media (max-width: 900px) {
+  .transparency-modal {
+    margin: 16px;
+    max-height: 95vh;
+  }
+  
+  .modal-header {
+    padding: 20px;
+  }
+  
+  .modal-content {
+    padding: 20px;
+  }
+  
+  .modal-footer {
+    padding: 20px;
+  }
+  
+  .markdown-h1 {
+    font-size: 22px;
+  }
+  
+  .markdown-h2 {
+    font-size: 18px;
+  }
+}
+
+/* Responsive Grid - FYF Handbuch Pattern */
+@media (max-width: 1280px) {
+  .transparency-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .transparency-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 1.5rem;
+  }
+
+  .tile-header {
+    padding: 16px 16px 0;
+  }
+
+  .tile-content {
+    padding: 0 16px 16px;
+  }
+
+  .tile-short-text {
+    font-size: 1rem; /* Etwas kleiner auf Mobile */
+  }
+}

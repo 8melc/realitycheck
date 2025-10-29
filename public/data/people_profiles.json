@@ -1,0 +1,126 @@
+[
+  {
+    "name": "Sarah Chen",
+    "bio": "Digital Nomad, Krypto-Pionierin, Weltbürgerin",
+    "claim": "Freiheit ist tägliche Disziplin.",
+    "tags": ["Krypto", "Remote Work", "Minimalismus"],
+    "offer": "Q&A, Lernpfad: Ortsunabhängigkeit starten",
+    "questions": [
+      {
+        "q": "Was hat dich am meisten gebremst?",
+        "a": "Die Angst, aus festen Strukturen zu fallen – und dann zu merken, wie wenig es braucht, um frei zu sein."
+      },
+      {
+        "q": "Welcher Zeit-Fehler hat dich geprägt?",
+        "a": "Jahrelang: Überplanung. Alles wurde besser, als ich Raum für Spontanität geschaffen habe."
+      }
+    ],
+    "cta": [
+      { "label": "Frage stellen", "action": "openQuestionModal" },
+      { "label": "Lernweg anzeigen", "url": "/stories/sarah-chen" }
+    ],
+    "category": "Brüche",
+    "isSpotlight": true
+  },
+  {
+    "name": "Nico Richter",
+    "bio": "Pflegekraft, Nachbar, Alltagsmensch",
+    "claim": "Zeit ist, was ich daraus mache – auch wenn ich wenig davon habe.",
+    "tags": ["Schichtarbeit", "Resilienz", "Menschlichkeit"],
+    "offer": "Impulse für Alltagsfokus, Anti-Ausbrennen",
+    "questions": [
+      {
+        "q": "Was lernst du im Schichtdienst über Zeit?",
+        "a": "Du musst lernen, Pausen zu feiern – auch, wenn sie nur kurz sind."
+      },
+      {
+        "q": "Was würdest du anderen mitgeben?",
+        "a": "Nicht jede Stunde ist gleich viel wert. Noch weniger am Montagmorgen."
+      }
+    ],
+    "cta": [
+      { "label": "Frage stellen", "action": "openQuestionModal" }
+    ],
+    "category": "Konventionell"
+  },
+  {
+    "name": "Mila Weber",
+    "bio": "Gesellschaftskritikerin, Urbanistin, Pragmatikerin",
+    "claim": "Zeitverschwendung ist politisch.",
+    "tags": ["Stadtleben", "Ökologie", "Work-Life-Realität"],
+    "offer": "Mentoring für nachhaltige Alltagsentscheidungen",
+    "questions": [
+      {
+        "q": "Welchen Fehler macht unsere Gesellschaft beim Umgang mit Zeit?",
+        "a": "Wir lassen uns Workflows diktieren, statt eigene zu finden."
+      },
+      {
+        "q": "Dein radikalster Zeit-Tipp?",
+        "a": "Ignorier Termine, die deiner Haltung widersprechen."
+      }
+    ],
+    "cta": [
+      { "label": "Frage stellen", "action": "openQuestionModal" },
+      { "label": "Podcast hören", "url": "/podcast/mila-weber" }
+    ],
+    "category": "Radikal"
+  },
+  {
+    "name": "Lena Müller",
+    "bio": "Hackathon-Enthusiastin, Solopreneurin, Zeitforscherin",
+    "claim": "Weniger multitasken, mehr Zeitwahrnehmung.",
+    "tags": ["Tech", "Fokus", "Produktivität"],
+    "offer": "Praktische Zeit-Tipps, Mini-Workshops",
+    "questions": [
+      {
+        "q": "Dein bester Tipp gegen Zeitzerstreuung?",
+        "a": "Arbeite in 25-Minuten-Einheiten und mach dann fünf Minuten Pause – wie ein Computer."
+      }
+    ],
+    "cta": [
+      { "label": "Frage stellen", "action": "openQuestionModal" },
+      { "label": "Workshop buchen", "url": "/events/lena-mueller" }
+    ],
+    "category": "Konventionell"
+  },
+  {
+    "name": "Carlos Rodrigues",
+    "bio": "Soziologe, Achtsamkeitslehrer, Aktivist",
+    "claim": "Zeit ist politische Macht.",
+    "tags": ["Gesellschaft", "Achtsamkeit", "Aktivismus"],
+    "offer": "Impulse und Essays, Podcast-Gast",
+    "questions": [
+      {
+        "q": "Was bedeutet Zeit für dich?",
+        "a": "Ein gemeinsames Gut, das wir schützen müssen."
+      },
+      {
+        "q": "Wie bleibst du achtsam im digitalen Zeitalter?",
+        "a": "Indem ich Hypervernetzung konsequent reduziere."
+      }
+    ],
+    "cta": [
+      { "label": "Frage stellen", "action": "openQuestionModal" },
+      { "label": "Podcast hören", "url": "/podcast/carlos-rodrigues" }
+    ],
+    "category": "Radikal"
+  },
+  {
+    "name": "Mina Kim",
+    "bio": "Künstlerin, Urban Explorer, Minimalistin",
+    "claim": "Zeit ist Kunst und Raum zur Selbstfindung.",
+    "tags": ["Kunst", "Stadt", "Selbstfindung"],
+    "offer": "Visuelle Storys, Ausstellungen",
+    "questions": [
+      {
+        "q": "Was inspiriert dich zur Zeitgestaltung?",
+        "a": "Das Alltägliche neu zu sehen – mit offenen Augen und offenem Geist."
+      }
+    ],
+    "cta": [
+      { "label": "Frage stellen", "action": "openQuestionModal" },
+      { "label": "Mehr entdecken", "url": "/stories/mina-kim" }
+    ],
+    "category": "Brüche"
+  }
+]

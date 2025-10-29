@@ -1,0 +1,472 @@
+/* FYF Landing Manifest - Design DNA Implementation */
+
+.fyf-landing {
+  background: var(--fyf-noir);
+  color: var(--fyf-cream);
+  font-family: var(--font-display);
+  min-height: 100vh;
+}
+
+/* Header styles moved to HeaderNav component */
+
+/* Hero Section with Video Background */
+.hero-section {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-video-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+.hero-content-container {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 clamp(24px, 5vw, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-2vh);
+}
+
+.hero-text-layer {
+  text-align: center;
+  max-width: 60ch;
+}
+
+.hero-headline {
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.11;
+  text-transform: uppercase;
+  color: #F2F0EA;
+  margin: 0 0 24px 0;
+  max-width: 11ch;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    0 8px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 4;
+}
+
+.hero-subline-box {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(15px);
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  margin: 24px 0 24px 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 4;
+}
+
+.hero-subline {
+  font-size: clamp(16px, 2.5vw, 20px);
+  line-height: 1.22;
+  color: #F2F0EA;
+  margin: 0;
+  font-weight: 400;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.hero-claim {
+  font-size: 0.85em;
+  color: rgba(242, 240, 234, 0.8);
+  margin: 24px 0 0 0;
+  font-style: italic;
+  font-weight: 300;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 4;
+}
+
+.landing-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(72px, 12vh, 120px) clamp(24px, 5vw, 64px);
+}
+
+/* Old hero styles removed - using new video-based hero section */
+
+/* Old hero styles removed - using new video-based hero section */
+
+/* Life-in-Weeks Section */
+.life-weeks {
+  position: relative;
+  background: linear-gradient(135deg, rgba(6, 8, 10, 0.95), rgba(7, 20, 22, 0.9));
+}
+
+.life-weeks-content {
+  text-align: center;
+}
+
+.life-weeks-title {
+  font-size: clamp(36px, 6vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fyf-cream);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.life-weeks-copy {
+  font-size: clamp(18px, 3vw, 20px);
+  color: rgba(255,255,255,.75);
+  max-width: 60ch;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+
+.weeks-grid {
+  display: grid;
+  grid-template-columns: repeat(80, minmax(0, 1fr));
+  gap: 2px;
+  width: min(640px, 100%);
+  aspect-ratio: 80 / 50;
+  margin: clamp(24px, 4vw, 40px) auto;
+  background: rgba(7,16,18,.6);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 12px;
+}
+
+.week-dot {
+  display: block;
+  width: 100%;
+  padding-bottom: 100%;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  transition: all 0.2s ease;
+}
+
+.ttg-button--solid {
+  display: block;
+  margin: 2rem auto 0;
+  padding: 0.85rem 1.75rem;
+  border-radius: 9999px;
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
+  font-family: var(--font-righteous);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ttg-button--solid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(78, 205, 196, 0.4);
+}
+
+/* Module Cards - REMOVED */
+
+/* Footer */
+.landing-footer {
+  padding: 4rem 2rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--fyf-noir);
+}
+
+.footer-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 3rem;
+}
+
+.footer-column h3 {
+  font-family: var(--font-righteous), sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--fyf-cream);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-column li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-column a {
+  font-family: var(--font-roboto-mono), monospace;
+  font-size: 0.9rem;
+  color: var(--fyf-steel);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-column a:hover {
+  color: var(--fyf-mint);
+}
+
+.footer-copyright {
+  text-align: center;
+  font-family: var(--font-roboto-mono), monospace;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.05em;
+}
+
+/* Responsive Design */
+@media (max-width: 1280px) {
+  .landing-section {
+    padding: clamp(60px, 10vh, 100px) clamp(20px, 4vw, 48px);
+  }
+  
+  .header-nav {
+    gap: 1.5rem;
+  }
+  
+  .nav-links {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-section {
+    height: 100vh;
+  }
+  
+  .hero-headline {
+    font-size: clamp(36px, 6vw, 64px);
+    margin-bottom: 1.5rem;
+  }
+  
+  .hero-subline-box {
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .hero-subline {
+    font-size: clamp(14px, 2.2vw, 18px);
+  }
+  
+  .hero-claim {
+    font-size: clamp(12px, 1.6vw, 14px);
+  }
+  
+  .weeks-grid {
+    grid-template-columns: repeat(40, minmax(0,1fr));
+  }
+  
+  /* Header responsive styles moved to HeaderNav component */
+  
+  /* Footer responsive */
+  .footer-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    height: 100vh;
+  }
+  
+  .hero-content-container {
+    padding: 0 1rem;
+  }
+  
+  .hero-headline {
+    font-size: clamp(28px, 5vw, 48px);
+    margin-bottom: 1.25rem;
+  }
+  
+  .hero-subline-box {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-subline {
+    font-size: clamp(13px, 2vw, 16px);
+  }
+  
+  .hero-claim {
+    font-size: clamp(11px, 1.4vw, 13px);
+  }
+  
+  .landing-section {
+    padding: clamp(40px, 8vh, 80px) clamp(16px, 3vw, 32px);
+  }
+  
+  .weeks-grid {
+    grid-template-columns: repeat(30, minmax(0,1fr));
+    gap: 1px;
+    padding: 8px;
+  }
+  
+  /* Header mobile styles moved to HeaderNav component */
+  
+  /* Footer mobile */
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Motion & Accessibility */
+.motion-fade-up {
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.is-hidden {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Focus States */
+.hero-cta:focus-visible,
+.module-card:focus-visible,
+.life-weeks-link:focus-visible,
+.footer-link:focus-visible,
+.footer-link-item:focus-visible {
+  outline: 2px solid rgba(0,183,183,0.6);
+  outline-offset: 2px;
+}
+
+/* Accessibility Improvements */
+.hero-headline {
+  /* Ensure AA contrast ratio compliance */
+  color: #F2F0EA;
+}
+
+.hero-subline {
+  /* Ensure AA contrast ratio compliance */
+  color: #F2F0EA;
+}
+
+.hero-claim {
+  /* Ensure AA contrast ratio compliance */
+  color: rgba(242, 240, 234, 0.8);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hero-overlay {
+    background: rgba(0, 0, 0, 0.4);
+  }
+  
+  .hero-subline-box {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .hero-headline,
+  .hero-subline,
+  .hero-claim {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.ttg-button--solid:focus-visible {
+  outline: 2px solid rgba(0,183,183,0.6);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-cta,
+  .module-card,
+  .life-weeks-link,
+  .ttg-button--solid,
+  .motion-fade-up {
+    transition: none;
+  }
+  
+  .module-card:hover,
+  .life-weeks-link:hover {
+    transform: none;
+  }
+}
+
+/* Life Weeks Inline Section Styles */
+.lifeweeks-inline-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--fyf-noir);
+  padding: 2rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(78, 205, 196, 0.18);
+}
+
+.lifeweeks-close-btn {
+  position: sticky;
+  top: 1rem;
+  right: 1rem;
+  float: right;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--fyf-mint);
+  color: var(--fyf-cream);
+  font-size: 2rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.lifeweeks-close-btn:hover {
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
+  transform: rotate(90deg);
+}
+
+.lifeweeks-close-btn:focus-visible {
+  outline: 2px solid var(--fyf-mint);
+  outline-offset: 2px;
+}

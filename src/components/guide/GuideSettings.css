@@ -1,0 +1,194 @@
+/* Guide Settings Styles */
+
+.guide-settings {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.guide-settings-header {
+  margin-bottom: 1.5rem;
+}
+
+.guide-settings-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--fyf-cream);
+  margin-bottom: 0.5rem;
+}
+
+.guide-settings-description {
+  font-size: 0.9rem;
+  color: var(--fyf-steel);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.guide-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.guide-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-settings-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fyf-cream);
+  margin: 0;
+}
+
+/* Tone Calibration */
+.guide-tone-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.guide-tone-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--fyf-steel);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.guide-tone-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--fyf-cream);
+}
+
+.guide-tone-button.active {
+  background: var(--fyf-mint);
+  border-color: var(--fyf-mint);
+  color: var(--fyf-noir);
+  font-weight: 600;
+}
+
+.guide-tone-status {
+  margin-top: 0.5rem;
+}
+
+.guide-tone-indicator {
+  font-size: 0.8rem;
+  color: var(--fyf-mint);
+  font-weight: 500;
+}
+
+/* Nudging Controls */
+.guide-nudging-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-nudging-select {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--fyf-cream);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.guide-nudging-select:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.guide-nudging-select:focus {
+  outline: none;
+  border-color: var(--fyf-mint);
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+.guide-nudging-info {
+  margin-top: 0.5rem;
+}
+
+.guide-nudging-explanation {
+  font-size: 0.8rem;
+  color: var(--fyf-steel);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Silence Controls */
+.guide-silence-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-silence-button {
+  padding: 0.75rem 1.5rem;
+  background: var(--fyf-coral);
+  border: none;
+  border-radius: 8px;
+  color: var(--fyf-noir);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.guide-silence-button:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
+}
+
+.guide-silence-button.silenced {
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
+}
+
+.guide-silence-button.silenced:hover {
+  background: #3db5ad;
+}
+
+.guide-silence-feedback {
+  padding: 0.75rem;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  border-radius: 8px;
+}
+
+.guide-silence-feedback p {
+  font-size: 0.8rem;
+  color: var(--fyf-steel);
+  margin: 0;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .guide-settings {
+    padding: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .guide-tone-buttons {
+    flex-direction: column;
+  }
+  
+  .guide-settings-content {
+    gap: 1rem;
+  }
+}
+

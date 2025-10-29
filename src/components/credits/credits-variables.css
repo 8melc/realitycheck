@@ -1,0 +1,56 @@
+/* FYF Credits Page - Design System Integration */
+
+/* Import FYF Design System Tokens */
+:root {
+  /* Core FYF Colors from feedboard.css */
+  --fyf-bg: #06080a;
+  --fyf-layer: rgba(6, 8, 10, 0.94);
+  --fyf-mint: #4ecdc4;
+  --fyf-offwhite: rgba(255, 255, 255, 0.88);
+  --fyf-muted: rgba(255, 255, 255, 0.62);
+  --fyf-subtle: rgba(255, 255, 255, 0.18);
+  --fyf-border: rgba(255, 255, 255, 0.08);
+  --fyf-border-strong: rgba(78, 205, 196, 0.45);
+  --fyf-shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
+  --fyf-noise: url('data:image/svg+xml;charset=utf-8;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEyIiBoZWlnaHQ9IjEyIiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iMSIgY3k9IjQiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMSkiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMSIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjxjaXJjbGUgY3g9IjExIiBjeT0iMTAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMSkiLz48L3N2Zz4=');
+  
+  /* Typography from feedboard.css */
+  --fyf-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --fyf-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  
+  /* Additional tokens for credits page */
+  --fyf-cream: #F2F0EA;
+  --fyf-steel: rgba(255, 255, 255, 0.62);
+}
+
+/* Base animations matching feedboard timing */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 220ms ease;
+}
+
+/* Smooth transitions matching feedboard */
+.transition-smooth {
+  transition: all 220ms ease;
+}
+
+/* Feedboard-style card hover effect */
+.feedboard-hover {
+  transition: transform 220ms ease, box-shadow 220ms ease, border 220ms ease;
+}
+
+.feedboard-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--fyf-shadow);
+  border-color: rgba(78, 205, 196, 0.32);
+}

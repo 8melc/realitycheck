@@ -1,0 +1,114 @@
+/* FYF Credits Page - Design System Integration */
+
+/* Import CSS Variables */
+@import url('../components/credits/credits-variables.css');
+
+/* Global Page Styles */
+#fyf-credits-page {
+  background: var(--fyf-bg);
+  color: var(--fyf-cream);
+  font-family: var(--fyf-font-sans);
+  min-height: 100vh;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure proper font loading */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* Base animations matching feedboard timing */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 220ms ease;
+}
+
+/* Intersection Observer for scroll animations */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 400ms ease;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Feedboard-style card hover effect */
+.feedboard-hover {
+  transition: transform 220ms ease, box-shadow 220ms ease, border 220ms ease;
+}
+
+.feedboard-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--fyf-shadow);
+  border-color: rgba(78, 205, 196, 0.32);
+}
+
+/* Responsive breakpoints matching feedboard */
+@media (max-width: 1280px) {
+  .fade-in-up {
+    animation-duration: 200ms;
+  }
+}
+
+@media (max-width: 900px) {
+  .fade-in-up {
+    animation-duration: 180ms;
+  }
+}
+
+@media (max-width: 620px) {
+  .fade-in-up {
+    animation-duration: 160ms;
+  }
+}
+
+/* Print styles */
+@media print {
+  #fyf-credits-page {
+    background: white;
+    color: black;
+  }
+  
+  .fade-in-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .feedboard-hover:hover {
+    border-color: var(--fyf-mint);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up,
+  .feedboard-hover,
+  .scroll-reveal {
+    animation: none;
+    transition: none;
+  }
+  
+  .feedboard-hover:hover {
+    transform: none;
+  }
+}

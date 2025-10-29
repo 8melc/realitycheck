@@ -1,0 +1,311 @@
+/* User Dashboard Styles */
+
+:root {
+  --fyf-mint: #4ecdc4;
+  --fyf-coral: #ff6b6b;
+  --fyf-cream: #f3efe8;
+  --fyf-noir: #06090b;
+  --fyf-steel: #9ca3af;
+  --fyf-mint-glow: rgba(78, 205, 196, 0.1);
+}
+
+.userdashboard-shell {
+  min-height: 100vh;
+  background: var(--fyf-noir);
+  color: var(--fyf-cream);
+  display: flex;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Left Sidebar - Credits, Goals, Quick Actions */
+.userdashboard-sidebar-left {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 340px;
+  height: 100vh;
+  background: #161a1e;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 100;
+  padding: 2rem 2rem;
+  overflow-y: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Main Content - Full Width (no right sidebar) */
+.userdashboard-main {
+  margin-left: 340px;
+  max-width: 1080px;
+  margin-right: auto;
+  padding: 2rem 3rem;
+}
+
+/* Section Styles */
+.guide-section {
+  padding: 4rem 0;
+  scroll-margin-top: 2rem;
+}
+
+.guide-section-header {
+  margin-bottom: 3rem;
+}
+
+.guide-kicker {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fyf-mint);
+  margin-bottom: 1rem;
+}
+
+.guide-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--fyf-cream);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.guide-subtitle {
+  font-size: 1.125rem;
+  color: var(--fyf-steel);
+  line-height: 1.6;
+}
+
+/* Sidebar Component Styles */
+.sidebar-goal {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.sidebar-goal-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--fyf-steel);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-goal-text {
+  font-size: 1rem;
+  color: var(--fyf-cream);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.sidebar-progress {
+  margin-bottom: 1rem;
+}
+
+.sidebar-progress-label {
+  font-size: 0.75rem;
+  color: var(--fyf-steel);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.sidebar-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sidebar-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--fyf-mint), var(--fyf-coral));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: var(--fyf-steel);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.sidebar-menu-item:hover {
+  color: var(--fyf-cream);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-menu-item.active {
+  color: var(--fyf-mint);
+  background: var(--fyf-mint-glow);
+}
+
+.sidebar-menu-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Guide Settings Container */
+.guide-settings-container {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Life Weeks Preview Styles */
+.life-weeks-preview {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.life-weeks-preview-header {
+  margin-bottom: 2rem;
+}
+
+.life-weeks-preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.life-weeks-mini-grid {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.weeks-grid-preview {
+  display: grid;
+  gap: 2px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.week-dot-preview {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  transition: all 0.2s ease;
+}
+
+.week-past {
+  background: var(--fyf-mint);
+}
+
+.week-current {
+  background: var(--fyf-coral);
+  box-shadow: 0 0 4px var(--fyf-coral);
+}
+
+.week-future {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.week-empty {
+  background: transparent;
+}
+
+.life-weeks-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--fyf-mint);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--fyf-steel);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.life-weeks-action {
+  display: flex;
+  justify-content: center;
+}
+
+/* Common Button Styles */
+.guide-btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.guide-btn-primary {
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
+}
+
+.guide-btn-primary:hover {
+  background: #3bb8b1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--fyf-mint-glow);
+}
+
+/* Mobile Responsive - 768px breakpoint */
+@media (max-width: 768px) {
+  .userdashboard-main {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: none;
+    width: 100%;
+    padding: 1rem 2rem;
+  }
+
+  .userdashboard-sidebar-left {
+    display: none;
+  }
+
+  .guide-section {
+    padding: 2rem 0;
+  }
+
+  .guide-title {
+    font-size: 1.875rem;
+  }
+
+  .life-weeks-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
