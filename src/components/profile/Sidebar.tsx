@@ -53,9 +53,9 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
 
   return (
     <aside className={`rc-floating-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* Credits Widget - Compact for Sidebar */}
+      {/* Credits Widget - Full for Sidebar */}
       <div className="rc-credits-widget">
-        <CreditsWidget userId={profile.id} hideCTA={true} compact={true} />
+        <CreditsWidget userId={profile.id} hideCTA={true} />
       </div>
 
       {/* Profile & Ziel-Block - Lebendiges Dashboard */}

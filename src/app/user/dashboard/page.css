@@ -824,13 +824,26 @@
   color: var(--rc-steel);
 }
 
-/* Compact Credits Widget for Sidebar */
+/* Credits Widget for Sidebar */
 .rc-credits-widget {
   background: var(--rc-noir);
   border: 2px solid var(--rc-mint);
   border-radius: 8px;
   padding: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.rc-credits-widget .rc-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.rc-credits-widget .rc-card:hover {
+  transform: none;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .rc-credits-compact {
