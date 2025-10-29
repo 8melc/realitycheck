@@ -149,7 +149,7 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
             </button>
             <button
               type="button"
-              className="fyf-btn inline-flex items-center gap-2"
+              className="fyf-btn fyf-btn--primary inline-flex items-center gap-2"
               onClick={handleSave}
               disabled={goalValue.trim().length === 0}
             >

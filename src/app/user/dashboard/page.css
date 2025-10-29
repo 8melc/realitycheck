@@ -558,6 +558,88 @@ select.fyf-select {
   box-shadow: 0 0 0 2px var(--fyf-mint-glow);
 }
 
+/* Modal/Popup Styles - Guide-Präferenzen Look */
+.fyf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.fyf-modal {
+  background: var(--fyf-noir);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Input Styles */
+.fyf-input {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border-radius: 8px;
+  border: 1px solid var(--fyf-steel);
+  background: var(--fyf-noir);
+  color: var(--fyf-cream);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.fyf-input:focus {
+  outline: none;
+  border-color: var(--fyf-mint);
+  box-shadow: 0 0 0 2px var(--fyf-mint-glow);
+}
+
+.fyf-input::placeholder {
+  color: var(--fyf-steel);
+}
+
+/* Chip Buttons */
+.fyf-chip-button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: var(--fyf-steel);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fyf-chip-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--fyf-cream);
+  border-color: var(--fyf-steel);
+}
+
+.fyf-chip-button.active {
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
+  border-color: var(--fyf-mint);
+}
+
+.fyf-chip-button--outline {
+  border-color: var(--fyf-mint);
+  color: var(--fyf-mint);
+}
+
+.fyf-chip-button--outline:hover {
+  background: var(--fyf-mint);
+  color: var(--fyf-noir);
+}
+
 /* Voices Grid */
 .guide-voices-grid {
   display: grid;
