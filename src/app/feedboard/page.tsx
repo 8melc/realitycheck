@@ -8,7 +8,6 @@ import { FeedItem, GuideItem, GuideConversationTurn } from '@/types/feedboard';
 import { feedItems as FEED_ITEMS } from '@/data/feedItems';
 import { handlePrompt, resetConversationContext } from '@/lib/guideChatEngine';
 import GuideChatSidebar from '@/components/feedboard/GuideChatSidebar';
-import FeedNoticeBanner from '@/components/feedboard/FeedNoticeBanner';
 import './feedboard.css';
 
 type ModeKey = 'focus' | 'explore' | 'pulse';
@@ -25,10 +24,9 @@ type QuickStat = {
   note: string;
 };
 
-const DAILY_LIMIT_MIN = 45;
 const TIMER_INTERVAL_MS = 30_000;
-const MVP_AUTO_LOGOUT_MS = 30_000;
 const INITIAL_CONSUMED_MINUTES = 37;
+const STOPPSCHILD_TRIGGER_MINUTES = 1; // Show overlay after 1 minute
 
 const MODE_CONFIG: Record<
   ModeKey,
@@ -79,7 +77,9 @@ export default function FeedboardPage() {
     () => Date.now() - INITIAL_CONSUMED_MINUTES * 60 * 1000,
   );
   const [consumedMinutes, setConsumedMinutes] = useState(INITIAL_CONSUMED_MINUTES);
-  const [isLimitReached, setIsLimitReached] = useState(false);
+  const [showStoppschildOverlay, setShowStoppschildOverlay] = useState(false);
+  const [sessionExtended, setSessionExtended] = useState(false);
+  const [extensionStartTime, setExtensionStartTime] = useState<number | null>(null);
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const [activeMode, setActiveMode] = useState<ModeKey>('focus');
   const [activeCluster, setActiveCluster] = useState<string | null>(null);
@@ -89,10 +89,9 @@ export default function FeedboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [conversationTurns, setConversationTurns] = useState<GuideConversationTurn[]>([]);
   const [activeTurn, setActiveTurn] = useState<GuideConversationTurn | null>(null);
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState('Wie baue ich eine neue Routine?');
   const [isGuideLoading, setIsGuideLoading] = useState(false);
   const [overrideItems, setOverrideItems] = useState<FeedItem[] | null>(null);
-  const [showBanner, setShowBanner] = useState(false);
   
   const [isPersonalityOpen, setIsPersonalityOpen] = useState(false);
   const [activeFormat, setActiveFormat] = useState<string>('Alle');
@@ -130,32 +129,34 @@ export default function FeedboardPage() {
   }, []);
 
   useEffect(() => {
-    if (isLimitReached) return;
-
     const tick = () => {
       const elapsedMs = Date.now() - sessionStart;
       const minutes = Math.floor(elapsedMs / 1000 / 60);
       setConsumedMinutes(minutes);
-      if (minutes >= DAILY_LIMIT_MIN) {
-        setIsLimitReached(true);
+      
+      // Show Stoppschild overlay after 1 minute (only if not extended)
+      if (minutes >= STOPPSCHILD_TRIGGER_MINUTES && !showStoppschildOverlay && !sessionExtended) {
+        setShowStoppschildOverlay(true);
+      }
+      
+      // Check if extension period is over (20 minutes)
+      if (sessionExtended && extensionStartTime) {
+        const extensionElapsedMs = Date.now() - extensionStartTime;
+        const extensionMinutes = Math.floor(extensionElapsedMs / 1000 / 60);
+        if (extensionMinutes >= 20) {
+          // Extension period over, show overlay again
+          setShowStoppschildOverlay(true);
+          setSessionExtended(false);
+          setExtensionStartTime(null);
+        }
       }
     };
 
     tick();
     const interval = window.setInterval(tick, TIMER_INTERVAL_MS);
     return () => window.clearInterval(interval);
-  }, [sessionStart, isLimitReached]);
+  }, [sessionStart, showStoppschildOverlay, sessionExtended, extensionStartTime]);
 
-  useEffect(() => {
-    if (isLimitReached) return;
-
-    const timeout = window.setTimeout(() => {
-      setConsumedMinutes(prev => (prev < DAILY_LIMIT_MIN ? DAILY_LIMIT_MIN : prev));
-      setIsLimitReached(true);
-    }, MVP_AUTO_LOGOUT_MS);
-
-    return () => window.clearTimeout(timeout);
-  }, [sessionStart, isLimitReached]);
 
   const formatOptions = useMemo(() => {
     const formats = Array.from(new Set(standardItems.map(item => item.format))).sort();
@@ -163,39 +164,42 @@ export default function FeedboardPage() {
   }, [standardItems]);
 
   const quickStats: QuickStat[] = useMemo(() => {
-    const remainingMinutes = Math.max(DAILY_LIMIT_MIN - consumedMinutes, 0);
-    const focusSpentPercentage = Math.min(
-      100,
-      Math.round((consumedMinutes / DAILY_LIMIT_MIN) * 100),
-    );
-    const focusRemainingPercentage = Math.max(0, 100 - focusSpentPercentage);
+    const getTimeDisplay = () => {
+      if (sessionExtended && extensionStartTime) {
+        const extensionElapsedMs = Date.now() - extensionStartTime;
+        const extensionMinutes = Math.floor(extensionElapsedMs / 1000 / 60);
+        const remainingMinutes = Math.max(20 - extensionMinutes, 0);
+        return {
+          value: `„Verlängert: ${remainingMinutes} Minuten bis zum nächsten Limit (2 Credits eingesetzt)."`,
+          note: 'Verlängerung (2 Credits) aktiv. Fokus wird weiter gezählt.'
+        };
+      }
+      return {
+        value: `${consumedMinutes} Min`,
+        note: 'Stoppschild nach 1 Minute'
+      };
+    };
+
+    const timeDisplay = getTimeDisplay();
 
     return [
       {
-        label: 'Zeit heute',
-        value: `${consumedMinutes} Min`,
-        note:
-          remainingMinutes > 0
-            ? `Du hast noch ${remainingMinutes} Min bis du ausgeloggt wirst.`
-            : 'Limit erreicht – Logout steht an.',
+        label: 'ZEIT HEUTE',
+        value: timeDisplay.value,
+        note: timeDisplay.note,
       },
       {
-        label: 'Fokus-Level',
-        value: `${focusSpentPercentage}% verbraucht`,
-        note: `${focusRemainingPercentage}% übrig`,
+        label: 'FOKUS',
+        value: sessionExtended ? '„Deine Zeit läuft weiter. Limit aktiv nach Ablauf der Verlängerung."' : `„${activeIntent.today}"`,
+        note: sessionExtended ? 'Extension aktiv' : 'Guide Statement',
       },
       {
-        label: 'Intent heute',
-        value: `„${activeIntent.today}“`,
-        note: 'Guide Statement',
-      },
-      {
-        label: 'Pulse',
+        label: 'PULSE',
         value: String(silenceCards.length),
         note: 'Statements in deiner Stille',
       },
     ];
-  }, [activeIntent, silenceCards.length, consumedMinutes]);
+  }, [activeIntent, silenceCards.length, consumedMinutes, sessionExtended, extensionStartTime]);
 
   const modeItems = useMemo(() => {
     const clusters = MODE_CONFIG[activeMode].clusters;
@@ -206,7 +210,6 @@ export default function FeedboardPage() {
   useEffect(() => {
     if (overrideItems) {
       setOverrideItems(null);
-      setShowBanner(false); // Hide banner when filters change
     }
   }, [activeMode, activeCluster, activeFormat]);
 
@@ -230,12 +233,33 @@ export default function FeedboardPage() {
     // Add partner items back to the filtered results
     const itemsWithPartners = [...clusterFiltered, ...partnerItems];
 
+    let result: FeedItem[];
+    
     if (activeFormat === 'Alle') {
-      return itemsWithPartners;
+      result = itemsWithPartners;
+    } else {
+      // Apply format filter to both regular items and partner items
+      result = itemsWithPartners.filter(item => item.format === activeFormat);
     }
 
-    return itemsWithPartners.filter(item => item.format === activeFormat);
-  }, [overrideItems, modeItems, activeCluster, activeFormat]);
+    // Special editorial logic for "Fokus & Flow": limit to max 1 item per format type
+    if (activeCluster === 'Fokus & Flow' && activeFormat === 'Alle') {
+      const formatGroups: Record<string, FeedItem[]> = {};
+      
+      // Group items by format
+      result.forEach(item => {
+        if (!formatGroups[item.format]) {
+          formatGroups[item.format] = [];
+        }
+        formatGroups[item.format].push(item);
+      });
+      
+      // Limit to 1 item per format type (stable selection: first item based on existing sort order)
+      result = Object.values(formatGroups).map(items => items[0]).filter(Boolean);
+    }
+    
+    return result;
+  }, [overrideItems, modeItems, activeCluster, activeFormat, FEED_ITEMS]);
 
   const gridItems: GridItem[] = useMemo(() => {
     const result: GridItem[] = [];
@@ -272,11 +296,11 @@ export default function FeedboardPage() {
         silenceCursor += 1;
       }
 
-      // Add the item
+      // Add the item with unique key
       result.push({
         item,
         variant: item.isHero ? 'hero' : 'standard',
-        key: item.id,
+        key: `${item.id}-${index}-${item.isPartner ? 'partner' : 'regular'}`,
       });
     });
 
@@ -327,12 +351,6 @@ export default function FeedboardPage() {
       
       setOverrideItems(feedItems);
       setPrompt('');
-      
-      // Show banner temporarily
-      setShowBanner(true);
-      setTimeout(() => {
-        setShowBanner(false);
-      }, 5000); // Hide after 5 seconds
     } catch (error) {
       console.error('Guide prompt error:', error);
     } finally {
@@ -351,7 +369,18 @@ export default function FeedboardPage() {
     setActiveTurn(null);
     setOverrideItems(null);
     setPrompt('');
-    setShowBanner(false); // Hide banner when resetting
+  };
+
+  // Stoppschild Overlay Handlers
+  const handleStoppschildLogout = () => {
+    window.location.assign('/logout-placeholder');
+  };
+
+  const handleStoppschildContinue = () => {
+    // Hide the overlay and start 20-minute extension
+    setShowStoppschildOverlay(false);
+    setSessionExtended(true);
+    setExtensionStartTime(Date.now());
   };
 
   return (
@@ -368,17 +397,14 @@ export default function FeedboardPage() {
         onSetFocus={() => setActiveMode('focus')}
       />
 
-      {isLimitReached && (
-        <SessionLimitBanner
-          limitMinutes={DAILY_LIMIT_MIN}
+      {showStoppschildOverlay && (
+        <SessionLimitOverlay
+          onLogout={handleStoppschildLogout}
+          onContinue={handleStoppschildContinue}
           consumedMinutes={consumedMinutes}
-          onReset={() => {
-            setIsLimitReached(false);
-            setConsumedMinutes(0);
-            setSessionStart(Date.now());
-          }}
         />
       )}
+
 
 {/* PersonalitySection temporarily disabled */}
 
@@ -386,12 +412,6 @@ export default function FeedboardPage() {
         <div className="feedboard-shell__background" aria-hidden="true" />
 
         <section className="feedboard-controls">
-          {showBanner && activeTurn && (
-            <FeedNoticeBanner 
-              activeTurn={activeTurn}
-            />
-          )}
-          
           <div className="feedboard-controls__mode">
             <span className="feedboard-controls__mode-label">
               {MODE_CONFIG[activeMode].emoji} {MODE_CONFIG[activeMode].label}
@@ -712,7 +732,7 @@ function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardP
             {item.chips.map(chip => (
               <span 
                 key={chip}
-                className={chip === "Partner Supported" ? "partner-chip" : ""}
+                className={chip === "Partner Supported" ? "partner-chip" : chip === "Featured Event" ? "featured-event-chip" : ""}
               >
                 {chip}
               </span>
@@ -756,46 +776,93 @@ function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardP
   );
 }
 
-type SessionLimitBannerProps = {
-  limitMinutes: number;
+type SessionLimitOverlayProps = {
+  onLogout: () => void;
+  onContinue: () => void;
   consumedMinutes: number;
-  onReset: () => void;
 };
 
-function SessionLimitBanner({ limitMinutes, consumedMinutes, onReset }: SessionLimitBannerProps) {
+
+function SessionLimitOverlay({ onLogout, onContinue, consumedMinutes }: SessionLimitOverlayProps) {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const handleContinue = () => {
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmContinue = () => {
+    onContinue();
+    setShowConfirmation(false);
+  };
+
+  const handleCancelContinue = () => {
+    setShowConfirmation(false);
+  };
+
   return (
-    <div className="session-limit-banner" role="alert">
-      <div className="session-limit-banner__badge">Dein Limit. Deine Grenze. Dein Move.</div>
-      <div className="session-limit-banner__content">
-        <h3>Du hast dir das Stoppschild selbst gesetzt.</h3>
-        <p>
-          Du warst {consumedMinutes} Minuten im Feedboard. FYF hält dich an deiner Grenze fest.
-          Heute Pause. Morgen wieder rein.
-        </p>
-        <div className="session-limit-banner__actions">
-          <button
-            type="button"
-            className="ttg-button ttg-button--solid"
-            onClick={() => window.location.assign('/logout-placeholder')}
-          >
-            Schmeiß mich raus.
-          </button>
-          <button
-            type="button"
-            className="ttg-button ttg-button--ghost"
-            onClick={onReset}
-          >
-            Grenze lockern, neue Session
-          </button>
+    <>
+      {/* Main Overlay */}
+      <div className="session-limit-overlay" role="dialog" aria-modal="true">
+        <div className="session-limit-overlay__backdrop" />
+        <div className="session-limit-overlay__content">
+          <div className="session-limit-overlay__badge">Dein Limit. Deine Grenze. Dein Move.</div>
+          <h2 className="session-limit-overlay__title">Du hast dir das Stoppschild selbst gesetzt.</h2>
+          <p className="session-limit-overlay__description">
+            Du warst {consumedMinutes} Minuten im Feedboard. RealityCheck hält dich an deiner Grenze fest.
+            Heute Pause. Morgen wieder rein.
+          </p>
+          
+          <div className="session-limit-overlay__actions">
+            <button
+              type="button"
+              className="session-limit-overlay__btn session-limit-overlay__btn--logout"
+              onClick={onLogout}
+            >
+              Schmeiß mich raus.
+            </button>
+            <button
+              type="button"
+              className="session-limit-overlay__btn session-limit-overlay__btn--continue"
+              onClick={handleContinue}
+            >
+              Grenze lockern, neue Session
+            </button>
+          </div>
         </div>
-        <p className="session-limit-banner__note session-limit-banner__note--secondary">
-          Änderung der Grenze? Nur nach Re-Login – Client und Server blocken impulsives Lockern.
-          Du wirst ausgeloggt und musst neu einsteigen, bevor du die Einstellungen anfasst.
-        </p>
       </div>
-    </div>
+
+      {/* Confirmation Dialog */}
+      {showConfirmation && (
+        <div className="session-limit-confirmation" role="dialog" aria-modal="true">
+          <div className="session-limit-confirmation__backdrop" />
+          <div className="session-limit-confirmation__content">
+            <h3 className="session-limit-confirmation__title">Du hast festgelegt, dass jede Verlängerung deiner Session 2 Credits kostet.</h3>
+            <p className="session-limit-confirmation__description">
+              Willst du wirklich weitermachen und dafür 2 Credits einsetzen?
+            </p>
+            <div className="session-limit-confirmation__actions">
+              <button
+                type="button"
+                className="session-limit-confirmation__btn session-limit-confirmation__btn--cancel"
+                onClick={handleCancelContinue}
+              >
+                Ne. Ich hör doch lieber auf.
+              </button>
+              <button
+                type="button"
+                className="session-limit-confirmation__btn session-limit-confirmation__btn--confirm"
+                onClick={handleConfirmContinue}
+              >
+                Ja, 2 Credits zahlen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
+
 
 type PersonalitySectionProps = {
   isOpen: boolean;

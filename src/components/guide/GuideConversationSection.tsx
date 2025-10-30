@@ -46,25 +46,25 @@ export default function GuideConversationSection({ prompts }: GuideConversationS
 
   if (prompts.length === 0) {
     return (
-      <section className="rc-card" id="guide">
-        <div className="rc-card-header">
-          <span className="rc-kicker">Guide Gespräche</span>
-          <h2 className="rc-subheading">{getGuideText('conversationTitle', tone)}</h2>
-          <p className="rc-microcopy">{getGuideText('conversationSubtitle', tone)}</p>
+      <section className="guide-section" id="guide">
+        <div className="guide-section-header">
+          <span className="guide-kicker">Guide Gespräche</span>
+          <h2 className="guide-title">{getGuideText('conversationTitle', tone)}</h2>
+          <p className="guide-subtitle">{getGuideText('conversationSubtitle', tone)}</p>
         </div>
-        <div className="rc-subcard">
-          <p className="rc-subcard__body">Noch keine Gespräche mit dem Guide geführt.</p>
+        <div className="guide-empty-state">
+          <p>Noch keine Gespräche mit dem Guide geführt.</p>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="rc-card" id="guide">
-      <div className="rc-card-header">
-        <span className="rc-kicker">Guide Gespräche</span>
-        <h2 className="rc-subheading">{getGuideText('conversationTitle', tone)}</h2>
-        <p className="rc-microcopy">{getGuideText('conversationSubtitle', tone)}</p>
+    <section className="guide-section" id="guide">
+      <div className="guide-section-header">
+        <span className="guide-kicker">Guide Gespräche</span>
+        <h2 className="guide-title">{getGuideText('conversationTitle', tone)}</h2>
+        <p className="guide-subtitle">{getGuideText('conversationSubtitle', tone)}</p>
       </div>
       
       <div className="guide-conversation-list">

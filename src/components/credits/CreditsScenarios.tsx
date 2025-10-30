@@ -45,8 +45,8 @@ export default function CreditsScenarios() {
       <style jsx>{`
         .credits-scenarios {
           padding: 80px 0;
-          background: var(--fyf-noir);
-          color: var(--fyf-cream);
+          background: var(--rc-noir);
+          color: var(--rc-cream);
         }
 
         .credits-scenarios-container {
@@ -56,14 +56,14 @@ export default function CreditsScenarios() {
         }
 
         .credits-scenarios h2 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: clamp(2rem, 5vw, 3rem);
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.02em;
           text-align: center;
           margin-bottom: 60px;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
         }
 
         .scenarios-grid {
@@ -107,19 +107,19 @@ export default function CreditsScenarios() {
         }
 
         .scenario-card h3 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 1.5rem;
           font-weight: 700;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           margin-bottom: 12px;
           position: relative;
           z-index: 1;
         }
 
         .scenario-description {
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 0.95rem;
-          color: var(--fyf-steel);
+          color: var(--rc-steel);
           margin-bottom: 20px;
           line-height: 1.5;
           position: relative;
@@ -132,9 +132,9 @@ export default function CreditsScenarios() {
           border-radius: 12px;
           padding: 16px 20px;
           margin-bottom: 16px;
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 0.9rem;
-          color: var(--fyf-mint);
+          color: var(--rc-mint);
           font-weight: 500;
           line-height: 1.4;
           position: relative;
@@ -142,9 +142,9 @@ export default function CreditsScenarios() {
         }
 
         .scenario-concept {
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 0.85rem;
-          color: var(--fyf-steel);
+          color: var(--rc-steel);
           font-style: italic;
           margin: 0;
           position: relative;

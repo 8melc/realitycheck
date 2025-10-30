@@ -34,7 +34,14 @@ export default function EventCard({ event, variant }: EventCardProps) {
 
       <div className="event-card__body">
         <div className="event-card__format-badge">
-          {event.format[0]}
+          {event.format.map((format, index) => (
+            <span 
+              key={index} 
+              className={format === "Featured Event" ? "featured-event-chip" : ""}
+            >
+              {format}
+            </span>
+          ))}
         </div>
 
         <div className="event-card__meta">

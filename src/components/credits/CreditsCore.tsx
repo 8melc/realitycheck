@@ -39,7 +39,7 @@ export default function CreditsCore() {
       <style jsx>{`
         .credits-cards {
           padding: 4rem 2rem;
-          background: var(--fyf-bg);
+          background: var(--rc-bg);
           position: relative;
         }
         
@@ -47,7 +47,7 @@ export default function CreditsCore() {
           content: '';
           position: absolute;
           inset: 0;
-          background: var(--fyf-noise);
+          background: var(--rc-noise);
           opacity: 0.12;
           pointer-events: none;
         }
@@ -70,7 +70,7 @@ export default function CreditsCore() {
           overflow: hidden;
           min-height: 280px;
           background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           padding: 50px 40px;
           text-align: center;
           display: flex;
@@ -102,18 +102,18 @@ export default function CreditsCore() {
         }
         
         .feed-card h3 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 22px;
           font-weight: 500;
-          color: var(--fyf-mint);
+          color: var(--rc-mint);
           margin: 0;
           letter-spacing: -0.01em;
         }
         
         .feed-card p {
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 16px;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
           line-height: 1.6;
           margin: 0;
           opacity: 0.82;
@@ -124,16 +124,16 @@ export default function CreditsCore() {
           z-index: 1;
           text-align: center;
           font-style: italic;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           margin-top: 3rem;
           padding: 1.5rem;
           background: rgba(255, 255, 255, 0.05);
           border-radius: 18px;
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           max-width: 800px;
           margin-left: auto;
           margin-right: auto;
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 16px;
         }
         

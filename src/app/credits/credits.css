@@ -4,10 +4,10 @@
 @import url('../components/credits/credits-variables.css');
 
 /* Global Page Styles */
-#fyf-credits-page {
-  background: var(--fyf-bg);
-  color: var(--fyf-cream);
-  font-family: var(--fyf-font-sans);
+#realitycheck-credits-page {
+  background: var(--rc-bg);
+  color: var(--rc-cream);
+  font-family: var(--rc-font-sans);
   min-height: 100vh;
 }
 
@@ -55,7 +55,7 @@ html {
 
 .feedboard-hover:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: var(--fyf-shadow);
+  box-shadow: var(--rc-shadow);
   border-color: rgba(78, 205, 196, 0.32);
 }
 
@@ -80,7 +80,7 @@ html {
 
 /* Print styles */
 @media print {
-  #fyf-credits-page {
+  #realitycheck-credits-page {
     background: white;
     color: black;
   }
@@ -95,7 +95,7 @@ html {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .feedboard-hover:hover {
-    border-color: var(--fyf-mint);
+    border-color: var(--rc-mint);
   }
 }
 

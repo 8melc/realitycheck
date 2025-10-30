@@ -31,7 +31,6 @@ export const realitycheckEvents: RealityCheckEvent[] = [
       limit: 100,
       application_hint: 'Bewerbung mit 1 Satz: Was treibt dich nachts an?',
     },
-    image: '/images/event-rave.jpg',
   },
   {
     id: 'uhrwerk-zukunft',
@@ -40,14 +39,13 @@ export const realitycheckEvents: RealityCheckEvent[] = [
     location: 'Leipzig, Alte Uhrenfabrik',
     pitch: 'Du baust mit eigenen Händen Zeit. 80-jähriger Uhrmacher, Zukunftsforscherin: schrauben, denken, machen.',
     why_now: 'Noch 1000 Arbeitswochen im Leben. Baust du was Echtes?',
-    format: ['Werkstatt', 'Experiment'],
+    format: ['Featured Event', 'Werkstatt', 'Experiment'],
     people: ['Uhrmacher (80)', 'Zukunftsforscherin'],
     restzeit_info: 'Noch 365 Tage bis 2026.',
     rsvp: {
       limit: 15,
       application_hint: 'Bewerbung mit 1 Satz: Was möchtest du unbedingt noch bauen?',
     },
-    image: '/images/event-workshop.jpg',
   },
   {
     id: 'weisheit-wein',

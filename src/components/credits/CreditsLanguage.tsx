@@ -33,7 +33,7 @@ export default function CreditsLanguage() {
       <style jsx>{`
         .credits-language {
           padding: 4rem 2rem;
-          background: var(--fyf-bg);
+          background: var(--rc-bg);
           position: relative;
         }
         
@@ -41,7 +41,7 @@ export default function CreditsLanguage() {
           content: '';
           position: absolute;
           inset: 0;
-          background: var(--fyf-noise);
+          background: var(--rc-noise);
           opacity: 0.08;
           pointer-events: none;
         }
@@ -55,19 +55,19 @@ export default function CreditsLanguage() {
         }
         
         .credits-language h2 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: clamp(26px, 3vw, 30px);
           font-weight: 500;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           margin-bottom: 2rem;
           letter-spacing: -0.01em;
           text-transform: uppercase;
         }
         
         .language-content p {
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 15px;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
           line-height: 1.6;
           margin-bottom: 3rem;
           max-width: 480px;
@@ -85,11 +85,11 @@ export default function CreditsLanguage() {
           background: linear-gradient(180deg, rgba(7, 9, 11, 0.96), rgba(7, 9, 11, 0.82));
           padding: 2rem;
           border-radius: 22px;
-          border-left: 4px solid var(--fyf-mint);
+          border-left: 4px solid var(--rc-mint);
           border: 1px solid rgba(78, 205, 196, 0.45);
           font-family: 'Monaco', 'Menlo', monospace;
           font-size: 14px;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
           font-style: italic;
           margin: 0;
           text-align: left;

@@ -12,8 +12,8 @@ export default function CreditsFooter() {
       
       <style jsx>{`
         .credits-footer {
-          background: var(--fyf-bg);
-          color: var(--fyf-cream);
+          background: var(--rc-bg);
+          color: var(--rc-cream);
           padding: 120px 0;
           text-align: center;
           position: relative;
@@ -28,14 +28,14 @@ export default function CreditsFooter() {
           transform: translateX(-50%);
           width: 100px;
           height: 0.5px;
-          background: var(--fyf-mint);
+          background: var(--rc-mint);
         }
         
         .credits-footer::after {
           content: '';
           position: absolute;
           inset: 0;
-          background: var(--fyf-noise);
+          background: var(--rc-noise);
           opacity: 0.08;
           pointer-events: none;
         }
@@ -49,12 +49,12 @@ export default function CreditsFooter() {
         }
         
         .credits-footer p {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: 18px;
           font-style: italic;
           line-height: 1.6;
           margin: 0;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
         

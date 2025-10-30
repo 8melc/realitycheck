@@ -15,8 +15,8 @@ export default function CreditsIntro() {
           position: relative;
           padding: 40px 0 20px;
           background: radial-gradient(circle at top right, rgba(78, 205, 196, 0.08), transparent 60%);
-          color: var(--fyf-cream);
-          font-family: var(--fyf-font-display);
+          color: var(--rc-cream);
+          font-family: var(--rc-font-display);
           min-height: auto;
           display: flex;
           align-items: center;
@@ -29,7 +29,7 @@ export default function CreditsIntro() {
           inset: 0;
           background: 
             linear-gradient(135deg, rgba(6, 8, 10, 0.82), rgba(6, 8, 10, 0.95)),
-            var(--fyf-noise);
+            var(--rc-noise);
           background-size: auto, 120px;
           opacity: 0.9;
           z-index: -1;

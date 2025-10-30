@@ -11,18 +11,18 @@ const MusicDNA = ({ musicDNA, onConnect }: MusicDNAProps) => {
 
   if (!spotifyLinked) {
     return (
-      <article className="rc-subcard rc-subcard--accent">
-        <div className="rc-subcard__icon">
+      <article className="fyf-subcard fyf-subcard--accent">
+        <div className="fyf-subcard__icon">
           <MusicIcon className="h-5 w-5" />
         </div>
         <div className="flex flex-col gap-4">
           <div>
-            <h3 className="rc-subcard__title">Musik-DNA</h3>
-            <p className="rc-subcard__body">
-              Verbinde dein Spotify, damit RealityCheck Soundscapes kuratiert, die deinen Fokus tragen.
+            <h3 className="fyf-subcard__title">Musik-DNA</h3>
+            <p className="fyf-subcard__body">
+              Verbinde dein Spotify, damit FYF Soundscapes kuratiert, die deinen Fokus tragen.
             </p>
           </div>
-          <button type="button" onClick={onConnect} className="rc-btn rc-btn--ghost inline-flex items-center gap-2">
+          <button type="button" onClick={onConnect} className="fyf-btn fyf-btn--ghost inline-flex items-center gap-2">
             <LinkIcon className="h-4 w-4" />
             Verbinde dein Spotify
           </button>
@@ -32,31 +32,31 @@ const MusicDNA = ({ musicDNA, onConnect }: MusicDNAProps) => {
   }
 
   return (
-    <article className="rc-subcard rc-subcard--accent">
-      <div className="rc-subcard__icon">
+    <article className="fyf-subcard fyf-subcard--accent">
+      <div className="fyf-subcard__icon">
         <MusicIcon className="h-5 w-5" />
       </div>
       <div className="flex flex-col gap-4">
         <div>
-          <h3 className="rc-subcard__title">Musik-DNA</h3>
-          <p className="rc-subcard__body">
+          <h3 className="fyf-subcard__title">Musik-DNA</h3>
+          <p className="fyf-subcard__body">
             Verbunden seit{' '}
             {spotifyData?.linkedAt
               ? new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeZone: 'UTC' }).format(
                   new Date(spotifyData.linkedAt)
                 )
               : 'kürzlich'}
-            . RealityCheck nimmt deine Top-Genres in jeden Guide auf.
+            . FYF nimmt deine Top-Genres in jeden Guide auf.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {(spotifyData?.topGenres ?? genres).slice(0, 3).map((genre) => (
-            <span key={genre} className="rc-chip rc-chip--light">
+            <span key={genre} className="fyf-chip fyf-chip--light">
               {genre}
             </span>
           ))}
         </div>
-        <button type="button" className="rc-link inline-flex items-center gap-2" onClick={onConnect}>
+        <button type="button" className="fyf-link inline-flex items-center gap-2" onClick={onConnect}>
           Spotify verwalten
           <ArrowUpRightIcon className="h-4 w-4" />
         </button>

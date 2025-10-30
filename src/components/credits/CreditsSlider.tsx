@@ -47,7 +47,7 @@ export default function CreditsSlider() {
       <style jsx>{`
         .credits-slider {
           padding: 4rem 2rem;
-          background: var(--fyf-bg);
+          background: var(--rc-bg);
           position: relative;
         }
         
@@ -55,7 +55,7 @@ export default function CreditsSlider() {
           content: '';
           position: absolute;
           inset: 0;
-          background: var(--fyf-noise);
+          background: var(--rc-noise);
           opacity: 0.08;
           pointer-events: none;
         }
@@ -69,10 +69,10 @@ export default function CreditsSlider() {
         }
         
         .credits-slider h2 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: clamp(26px, 3vw, 30px);
           font-weight: 500;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           margin-bottom: 3rem;
           letter-spacing: -0.01em;
           text-transform: uppercase;
@@ -92,7 +92,7 @@ export default function CreditsSlider() {
           width: 100%;
           height: 8px;
           border-radius: 4px;
-          background: var(--fyf-subtle);
+          background: var(--rc-subtle);
           outline: none;
           -webkit-appearance: none;
           appearance: none;
@@ -106,7 +106,7 @@ export default function CreditsSlider() {
           width: 24px;
           height: 24px;
           border-radius: 50%;
-          background: var(--fyf-mint);
+          background: var(--rc-mint);
           cursor: pointer;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
           transition: all 220ms ease;
@@ -121,7 +121,7 @@ export default function CreditsSlider() {
           width: 24px;
           height: 24px;
           border-radius: 50%;
-          background: var(--fyf-mint);
+          background: var(--rc-mint);
           cursor: pointer;
           border: none;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -130,9 +130,9 @@ export default function CreditsSlider() {
         .slider-labels {
           display: flex;
           justify-content: space-between;
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 14px;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           margin-top: 0.5rem;
         }
         
@@ -144,18 +144,18 @@ export default function CreditsSlider() {
           font-family: 'Monaco', 'Menlo', monospace;
           font-size: 24px;
           font-weight: 500;
-          color: var(--fyf-mint);
+          color: var(--rc-mint);
           background: rgba(255, 255, 255, 0.05);
           padding: 1rem 2rem;
           border-radius: 18px;
-          border: 1px solid var(--fyf-border);
+          border: 1px solid var(--rc-border);
           display: inline-block;
           box-shadow: 0 12px 32px rgba(78, 205, 196, 0.28);
         }
         
         .privacy-note {
-          color: var(--fyf-muted);
-          font-family: var(--fyf-font-sans);
+          color: var(--rc-muted);
+          font-family: var(--rc-font-sans);
           font-size: 14px;
           font-style: italic;
         }

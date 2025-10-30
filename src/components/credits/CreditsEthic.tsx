@@ -11,31 +11,46 @@ export default function CreditsEthic() {
           <div className="ethic-text">
             <h2>Transparenz und Ethik</h2>
             <p>
-              FYF arbeitet mit psychologischer Integrität. Jede Transaktion ist lesbar und verständlich.<br />
+              RealityCheck arbeitet mit psychologischer Integrität. Jede Transaktion ist lesbar und verständlich.<br />
               Kein Rabatt, keine Verknappung, kein Druck. Nur Vertrauen.
             </p>
           </div>
           
           <div className="ethic-principles">
             <ul className="principles-list">
-              <li>✓ Keine Abos</li>
-              <li>✓ Keine versteckten Kosten</li>
-              <li>✓ Keine Dringlichkeitstricks</li>
-              <li>✓ Keine Rabatte</li>
-              <li>✓ Kein Tracking deiner Käufe</li>
+              <li>
+                <span className="checkmark">✓</span>
+                <span className="principle-text">Keine Abos</span>
+              </li>
+              <li>
+                <span className="checkmark">✓</span>
+                <span className="principle-text">Keine versteckten<br />Kosten</span>
+              </li>
+              <li>
+                <span className="checkmark">✓</span>
+                <span className="principle-text">Keine Dringlichkeits-<br />tricks</span>
+              </li>
+              <li>
+                <span className="checkmark">✓</span>
+                <span className="principle-text">Keine Rabatte</span>
+              </li>
+              <li>
+                <span className="checkmark">✓</span>
+                <span className="principle-text">Kein Kauf-Tracking</span>
+              </li>
             </ul>
           </div>
         </div>
         
         <div className="ethic-info-box">
-          FYF nutzt keine psychologischen Verkaufsmechanismen. Du entscheidest. FYF stellt nur die Frage.
+          <p>RealityCheck nutzt keine psychologischen Verkaufsmechanismen. Du entscheidest. RealityCheck stellt nur die Frage.</p>
         </div>
       </div>
       
       <style jsx>{`
         .credits-ethic {
           padding: 4rem 2rem;
-          background: var(--fyf-bg);
+          background: var(--rc-bg);
           position: relative;
         }
         
@@ -43,7 +58,7 @@ export default function CreditsEthic() {
           content: '';
           position: absolute;
           inset: 0;
-          background: var(--fyf-noise);
+          background: var(--rc-noise);
           opacity: 0.08;
           pointer-events: none;
         }
@@ -67,19 +82,19 @@ export default function CreditsEthic() {
         }
         
         .ethic-text h2 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: clamp(26px, 3vw, 30px);
           font-weight: 500;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           margin-bottom: 1.5rem;
           letter-spacing: -0.01em;
           text-transform: uppercase;
         }
         
         .ethic-text p {
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 15px;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
           line-height: 1.6;
           max-width: 600px;
           margin: 0 auto;
@@ -95,81 +110,89 @@ export default function CreditsEthic() {
           padding: 0;
           margin: 0;
           display: grid;
-          gap: 16px;
+          gap: 1.2rem;
           grid-template-columns: repeat(5, 1fr);
+          width: 100%;
         }
         
         .principles-list li {
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 14px;
-          color: var(--fyf-offwhite);
-          padding: 18px 20px 20px;
-          border: 1px solid var(--fyf-border);
+          color: var(--rc-offwhite);
+          padding: 1.25rem;
+          border: 1px solid var(--rc-border);
           border-radius: 18px;
           background: rgba(255, 255, 255, 0.05);
           display: flex;
-          flex-direction: column;
-          gap: 6px;
-          min-height: 114px;
-          position: relative;
-          padding-left: 3rem;
+          align-items: flex-start;
+          gap: 0.875rem;
+          min-height: 90px;
+          height: 100%;
         }
         
-        .principles-list li::before {
-          content: '';
-          position: absolute;
-          left: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 16px;
-          height: 16px;
-          background: var(--fyf-mint);
-          border-radius: 50%;
-          display: flex;
+        .checkmark {
+          flex-shrink: 0;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
+          width: 20px;
+          height: 20px;
+          background: var(--rc-mint);
+          border-radius: 50%;
+          color: var(--rc-bg);
+          font-size: 11px;
+          font-weight: bold;
+          line-height: 1;
         }
         
-        .principles-list li::after {
-          content: '✓';
-          position: absolute;
-          left: 1.2rem;
-          top: 50%;
-          transform: translateY(-50%);
-          color: var(--fyf-bg);
-          font-size: 10px;
-          font-weight: bold;
+        .principle-text {
+          flex: 1;
+          line-height: 1.4;
+          text-align: left;
         }
         
         .ethic-info-box {
-          background: linear-gradient(180deg, rgba(7, 9, 11, 0.96), rgba(7, 9, 11, 0.82));
-          padding: 2rem;
+          background: rgba(78, 205, 196, 0.08);
+          padding: 2rem 2.5rem;
           border-radius: 22px;
           text-align: center;
-          color: var(--fyf-offwhite);
+          color: var(--rc-offwhite);
           font-style: italic;
-          border-left: 4px solid var(--fyf-mint);
-          border: 1px solid rgba(78, 205, 196, 0.45);
-          font-family: var(--fyf-font-sans);
+          border: 1px solid rgba(78, 205, 196, 0.35);
+          font-family: var(--rc-font-sans);
           font-size: 16px;
-          line-height: 1.6;
+          line-height: 1.65;
           backdrop-filter: blur(4px);
           box-shadow: 0 14px 60px rgba(0, 0, 0, 0.45);
+          max-width: 100%;
         }
         
+        .ethic-info-box p {
+          margin: 0;
+          padding: 0;
+          color: var(--rc-offwhite);
+        }
+        
+        /* Tablet - 2 columns */
         @media (max-width: 1280px) {
-          .ethic-content {
-            gap: 30px;
+          .principles-list {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+          }
+          
+          .principles-list li {
+            min-height: 95px;
           }
         }
         
+        /* Mobile - 3 columns */
         @media (max-width: 900px) {
           .credits-ethic {
-            padding: 3rem 1rem;
+            padding: 3rem 1.5rem;
           }
           
           .ethic-content {
-            gap: 25px;
+            gap: 30px;
           }
           
           .ethic-text h2 {
@@ -178,22 +201,41 @@ export default function CreditsEthic() {
           
           .principles-list {
             grid-template-columns: repeat(3, 1fr);
-          }
-        }
-        
-        @media (max-width: 620px) {
-          .principles-list {
-            grid-template-columns: 1fr;
+            gap: 0.875rem;
           }
           
           .principles-list li {
+            min-height: 85px;
+            padding: 1rem 0.875rem;
             font-size: 13px;
-            padding: 16px 18px 18px;
-            min-height: 100px;
+          }
+          
+          .checkmark {
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+          }
+        }
+        
+        /* Small Mobile - Single column */
+        @media (max-width: 620px) {
+          .credits-ethic {
+            padding: 2.5rem 1rem;
+          }
+          
+          .principles-list {
+            grid-template-columns: 1fr;
+            gap: 0.875rem;
+          }
+          
+          .principles-list li {
+            min-height: 80px;
+            padding: 1rem 1rem;
+            font-size: 13px;
           }
           
           .ethic-info-box {
-            padding: 1.5rem;
+            padding: 1.5rem 1.5rem;
             font-size: 15px;
           }
         }

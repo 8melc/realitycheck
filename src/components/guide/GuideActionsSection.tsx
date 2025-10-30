@@ -15,14 +15,14 @@ export default function GuideActionsSection({ items, onToggle, onReminder }: Gui
 
   if (items.length === 0) {
     return (
-      <section className="rc-card" id="aktionen">
-        <div className="rc-card-header">
-          <span className="rc-kicker">Aktionen</span>
-          <h2 className="rc-subheading">{getGuideText('actionsTitle', tone)}</h2>
-          <p className="rc-microcopy">{getGuideText('actionsSubtitle', tone)}</p>
+      <section className="guide-section" id="aktionen">
+        <div className="guide-section-header">
+          <span className="guide-kicker">Aktionen</span>
+          <h2 className="guide-title">{getGuideText('actionsTitle', tone)}</h2>
+          <p className="guide-subtitle">{getGuideText('actionsSubtitle', tone)}</p>
         </div>
-        <div className="rc-subcard">
-          <p className="rc-subcard__body">Noch keine Aktionen hinzugefügt.</p>
+        <div className="guide-empty-state">
+          <p>Noch keine Aktionen hinzugefügt.</p>
         </div>
       </section>
     );
@@ -49,11 +49,11 @@ export default function GuideActionsSection({ items, onToggle, onReminder }: Gui
   };
 
   return (
-    <section className="rc-card" id="aktionen">
-      <div className="rc-card-header">
-        <span className="rc-kicker">Aktionen</span>
-        <h2 className="rc-subheading">{getGuideText('actionsTitle', tone)}</h2>
-        <p className="rc-microcopy">{getGuideText('actionsSubtitle', tone)}</p>
+    <section className="guide-section" id="aktionen">
+      <div className="guide-section-header">
+        <span className="guide-kicker">Aktionen</span>
+        <h2 className="guide-title">{getGuideText('actionsTitle', tone)}</h2>
+        <p className="guide-subtitle">{getGuideText('actionsSubtitle', tone)}</p>
       </div>
       
       <div className="guide-actions-list">

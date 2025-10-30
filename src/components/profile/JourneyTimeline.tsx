@@ -35,19 +35,19 @@ const JourneyTimeline = ({ journey, onEdit }: JourneyTimelineProps) => {
   const items = [...journey].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return (
-    <section id="journey" className="rc-card motion-fade-up" aria-labelledby="journey-heading">
+    <section id="journey" className="fyf-card motion-fade-up" aria-labelledby="journey-heading">
       <header className="flex items-center justify-between gap-4">
         <div>
-          <h2 id="journey-heading" className="rc-subheading">
+          <h2 id="journey-heading" className="fyf-subheading">
             {getGuideText('journeyTitle', tone)}
           </h2>
-          <p className="rc-microcopy">{getGuideText('journeySubtitle', tone)}</p>
+          <p className="fyf-microcopy">{getGuideText('journeySubtitle', tone)}</p>
         </div>
         {onEdit && (
           <button
             type="button"
             onClick={onEdit}
-            className="rc-btn rc-btn--ghost inline-flex items-center gap-2"
+            className="fyf-btn fyf-btn--ghost inline-flex items-center gap-2"
           >
             <PenSquareIcon className="h-4 w-4" aria-hidden="true" />
             Bearbeiten
@@ -56,10 +56,8 @@ const JourneyTimeline = ({ journey, onEdit }: JourneyTimelineProps) => {
       </header>
 
       {items.length === 0 ? (
-        <div className="mt-8 rc-subcard">
-          <p className="rc-subcard__body">
-            Noch keine Journey-Einträge. Dein erstes Kapitel startet, sobald du deinen ersten Fokus-Block setzt.
-          </p>
+        <div className="mt-8 rounded-lg border border-white/10 bg-white/5 p-6 text-sm text-fyf-steel">
+          Noch keine Journey-Einträge. Dein erstes Kapitel startet, sobald du deinen ersten Fokus-Block setzt.
         </div>
       ) : (
         <ol className="mt-8 relative space-y-6">
@@ -69,12 +67,12 @@ const JourneyTimeline = ({ journey, onEdit }: JourneyTimelineProps) => {
           />
           {items.map((item) => (
             <li key={item.id} className="relative pl-12">
-              <span className="absolute left-2 top-1 flex h-5 w-5 items-center justify-center rounded-full border border-rc-mint/60 bg-rc-noir text-rc-mint shadow shadow-rc-mint/10">
+              <span className="absolute left-2 top-1 flex h-5 w-5 items-center justify-center rounded-full border border-fyf-mint/60 bg-fyf-noir text-fyf-mint shadow shadow-fyf-mint/10">
                 {typeIconMap[item.type]}
               </span>
               <div className="flex flex-col gap-1">
-                <p className="text-sm text-rc-cream">{item.description}</p>
-                <span className="text-xs uppercase tracking-wide text-rc-steel">
+                <p className="text-sm text-fyf-cream">{item.description}</p>
+                <span className="text-xs uppercase tracking-wide text-fyf-steel">
                   {isClient ? formatTimestamp(item.timestamp) : 'Lade...'}
                 </span>
               </div>

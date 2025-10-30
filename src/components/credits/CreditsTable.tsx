@@ -46,7 +46,7 @@ export default function CreditsTable() {
       <style jsx>{`
         .credits-table {
           padding: 4rem 2rem;
-          background: var(--fyf-bg);
+          background: var(--rc-bg);
           position: relative;
         }
         
@@ -54,7 +54,7 @@ export default function CreditsTable() {
           content: '';
           position: absolute;
           inset: 0;
-          background: var(--fyf-noise);
+          background: var(--rc-noise);
           opacity: 0.08;
           pointer-events: none;
         }
@@ -67,10 +67,10 @@ export default function CreditsTable() {
         }
         
         .credits-table h2 {
-          font-family: var(--fyf-font-display);
+          font-family: var(--rc-font-display);
           font-size: clamp(26px, 3vw, 30px);
           font-weight: 500;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           margin-bottom: 2rem;
           text-align: center;
           letter-spacing: -0.01em;
@@ -81,8 +81,8 @@ export default function CreditsTable() {
           background: rgba(255, 255, 255, 0.05);
           border-radius: 26px;
           overflow: hidden;
-          border: 1px solid var(--fyf-border);
-          box-shadow: var(--fyf-shadow);
+          border: 1px solid var(--rc-border);
+          box-shadow: var(--rc-shadow);
           margin-bottom: 1.5rem;
         }
         
@@ -94,49 +94,49 @@ export default function CreditsTable() {
         th, td {
           padding: 1.5rem;
           text-align: left;
-          border-bottom: 1px solid var(--fyf-border);
+          border-bottom: 1px solid var(--rc-border);
         }
         
         th {
           background: rgba(12, 14, 16, 0.68);
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-weight: 600;
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           font-size: 16px;
           letter-spacing: 0.18em;
           text-transform: uppercase;
         }
         
         td {
-          font-family: var(--fyf-font-sans);
-          color: var(--fyf-offwhite);
+          font-family: var(--rc-font-sans);
+          color: var(--rc-offwhite);
           font-size: 16px;
           line-height: 1.5;
         }
         
         td strong {
-          color: var(--fyf-cream);
+          color: var(--rc-cream);
           font-weight: 600;
         }
         
         .example-text {
           font-family: 'Monaco', 'Menlo', monospace;
           font-size: 14px;
-          color: var(--fyf-mint);
+          color: var(--rc-mint);
           font-weight: 500;
         }
         
         .table-note {
           text-align: center;
-          color: var(--fyf-muted);
+          color: var(--rc-muted);
           font-style: italic;
-          font-family: var(--fyf-font-sans);
+          font-family: var(--rc-font-sans);
           font-size: 15px;
           padding: 1rem;
           background: rgba(255, 255, 255, 0.05);
           border-radius: 18px;
-          border-left: 4px solid var(--fyf-mint);
-          border: 1px solid var(--fyf-border);
+          border-left: 4px solid var(--rc-mint);
+          border: 1px solid var(--rc-border);
         }
         
         @media (max-width: 768px) {
