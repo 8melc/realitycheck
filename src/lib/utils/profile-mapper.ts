@@ -1,0 +1,29 @@
+import type { UserProfile } from '@/lib/types/database.types';
+import type { Profile } from '@/types/profile';
+
+/**
+ * Maps Supabase UserProfile to legacy Profile type for backward compatibility
+ */
+export function mapUserProfileToLegacyProfile(
+  supabaseProfile: UserProfile,
+  goalText?: string | null
+): Partial<Profile> {
+  return {
+    id: supabaseProfile.id,
+    identity: {
+      name: supabaseProfile.display_name || 'User',
+      email: '', // Not in user_profiles table
+      birthdate: supabaseProfile.birth_date || '',
+      targetAge: supabaseProfile.target_age || 80,
+    },
+    goal: {
+      text: goalText || 'Noch keines gesetzt',
+      source: 'custom',
+      createdAt: supabaseProfile.created_at,
+      updatedAt: supabaseProfile.updated_at,
+    },
+    createdAt: supabaseProfile.created_at,
+    updatedAt: supabaseProfile.updated_at,
+  };
+}
+

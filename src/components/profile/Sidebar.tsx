@@ -92,10 +92,10 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
       <div className="rc-profile-block">
         <div className="rc-profile-header">
           <div className="rc-profile-avatar">
-            <img src={profile.identity.avatarUrl} alt={profile.identity.name} />
+            <img src={profile.identity.avatarUrl} alt={profile.identity.name || 'User'} />
           </div>
           <div className="rc-profile-info">
-            <div className="rc-profile-name">{profile.identity.name}</div>
+            <div className="rc-profile-name">{profile.identity.name || 'User'}</div>
             <div className="rc-profile-status">On Fire</div>
           </div>
         </div>

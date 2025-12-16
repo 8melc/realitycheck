@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getLifeInWeeksDataForUser } from '@/lib/domain/lifeInWeeks';
+import type { UserProfile } from '@/lib/types/database.types';
 
 /**
  * GET /api/profile
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
       .from('user_profiles')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .single<UserProfile>();
 
     if (profileError) {
       if (profileError.code === 'PGRST116') {

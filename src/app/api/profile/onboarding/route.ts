@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import type { Database, UserProfile, UserGoal } from '@/lib/types/database.types';
+
+type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert'];
+type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update'];
+type UserGoalInsert = Database['public']['Tables']['user_goals']['Insert'];
+type UserGoalUpdate = Database['public']['Tables']['user_goals']['Update'];
 
 /**
  * POST /api/profile/onboarding
@@ -7,7 +13,7 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -50,25 +56,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Create or update user profile
-    const { data: profile, error: profileError } = await supabase
+    const profileData: UserProfileInsert = {
+      user_id: user.id,
+      display_name: name || null,
+      birth_date: birthDate,
+      target_age: targetAgeNum,
+      guide_personality: guidePersonality || timePhilosophy || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const profileResult = await supabase
       .from('user_profiles')
-      .upsert({
-        user_id: user.id,
-        display_name: name || null,
-        birth_date: birthDate,
-        target_age: targetAgeNum,
-        guide_personality: guidePersonality || timePhilosophy || null,
-        updated_at: new Date().toISOString(),
-      }, {
+      .upsert(profileData as any, {
         onConflict: 'user_id',
       })
       .select()
       .single();
+    
+    const { data: profile, error: profileError } = profileResult as { data: UserProfile | null; error: any };
 
-    if (profileError) {
+    if (profileError || !profile) {
       console.error('Error upserting profile:', profileError);
       return NextResponse.json(
-        { error: 'Failed to save profile', details: profileError.message },
+        { error: 'Failed to save profile', details: profileError?.message || 'Profile is null' },
         { status: 500 }
       );
     }
@@ -84,36 +94,44 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('user_id', user.id)
         .eq('is_primary', true)
-        .single();
+        .maybeSingle<UserGoal>();
 
       if (existingGoal) {
         // Update existing primary goal
-        const { data: updatedGoal, error: goalUpdateError } = await supabase
-          .from('user_goals')
-          .update({
-            title: goalText,
-            is_primary: true,
-            updated_at: new Date().toISOString(),
-          })
+        const goalUpdateData: UserGoalUpdate = {
+          title: goalText,
+          is_primary: true,
+          updated_at: new Date().toISOString(),
+        };
+
+        const goalUpdateResult = await (supabase
+          .from('user_goals') as any)
+          .update(goalUpdateData)
           .eq('id', existingGoal.id)
           .select()
           .single();
+        
+        const { data: updatedGoal, error: goalUpdateError } = goalUpdateResult as { data: UserGoal | null; error: any };
 
         if (!goalUpdateError && updatedGoal) {
           goalId = updatedGoal.id;
         }
       } else {
         // Create new primary goal
-        const { data: newGoal, error: goalCreateError } = await supabase
-          .from('user_goals')
-          .insert({
-            user_id: user.id,
-            title: goalText,
-            is_primary: true,
-            status: 'active',
-          })
+        const goalInsertData: UserGoalInsert = {
+          user_id: user.id,
+          title: goalText,
+          is_primary: true,
+          status: 'active',
+        };
+
+        const goalInsertResult = await (supabase
+          .from('user_goals') as any)
+          .insert(goalInsertData)
           .select()
           .single();
+        
+        const { data: newGoal, error: goalCreateError } = goalInsertResult as { data: UserGoal | null; error: any };
 
         if (!goalCreateError && newGoal) {
           goalId = newGoal.id;
@@ -122,9 +140,13 @@ export async function POST(request: NextRequest) {
 
       // Update profile with main_goal_id if we have one
       if (goalId) {
-        await supabase
-          .from('user_profiles')
-          .update({ main_goal_id: goalId })
+        const profileUpdateData: UserProfileUpdate = {
+          main_goal_id: goalId,
+        };
+
+        await (supabase
+          .from('user_profiles') as any)
+          .update(profileUpdateData)
           .eq('user_id', user.id);
       }
     }
