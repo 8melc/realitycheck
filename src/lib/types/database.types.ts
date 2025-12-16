@@ -101,9 +101,8 @@ export interface Database {
           title: string | null
           description: string | null
           url: string | null
-          image_url: string | null
           author: string | null
-          published_at: string | null
+          is_published: boolean | null
           created_at: string
           updated_at: string
         }
@@ -116,9 +115,8 @@ export interface Database {
           title?: string | null
           description?: string | null
           url?: string | null
-          image_url?: string | null
           author?: string | null
-          published_at?: string | null
+          is_published?: boolean | null
           created_at?: string
           updated_at?: string
         }
@@ -131,9 +129,8 @@ export interface Database {
           title?: string | null
           description?: string | null
           url?: string | null
-          image_url?: string | null
           author?: string | null
-          published_at?: string | null
+          is_published?: boolean | null
           created_at?: string
           updated_at?: string
         }

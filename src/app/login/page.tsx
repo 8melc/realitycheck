@@ -4,8 +4,8 @@ import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 export default function Login() {
-  const [email, setEmail] = useState('test@test.com')
-  const [password, setPassword] = useState('test123')
+  const [email, setEmail] = useState('test2@test.com')
+  const [password, setPassword] = useState('password123')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -24,14 +24,13 @@ export default function Login() {
       setError(error.message)
     } else if (data.user) {
       router.push('/dashboard')
-      router.refresh()
     }
     
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
+    <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 space-y-6">
         <h1 className="text-3xl font-bold text-center text-gray-900">RealityCheck</h1>
         
@@ -47,14 +46,14 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
-            placeholder="test@test.com"
+            placeholder="test2@test.com"
           />
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
-            placeholder="test123"
+            placeholder="password123"
           />
         </div>
         
@@ -67,7 +66,7 @@ export default function Login() {
         </button>
         
         <div className="text-xs text-gray-500 text-center p-4 bg-gray-50 rounded-xl">
-          Demo: test@test.com / test123
+          test2@test.com / password123
         </div>
       </div>
     </div>

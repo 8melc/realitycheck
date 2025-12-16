@@ -44,7 +44,7 @@ function mapContentItemToFeedItem(item: ContentItem): FeedItem {
     theme,
     perma,
     link: item.url || '#',
-    image: item.image_url || '',
+    image: '', // Image field not in schema - set to empty string
     guideWhy: item.description || '', // Fallback to description if why_this_item doesn't exist
     source: 'feedboard',
     chips: [],
