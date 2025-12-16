@@ -1,19 +1,53 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 function LoginForm() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const limitReached = searchParams.get('limitReached') === '1'
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (signInError) {
+        setError(signInError.message)
+        setLoading(false)
+        return
+      }
+      
+      if (data.user) {
+        router.push('/dashboard')
+        router.refresh()
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
+      setLoading(false)
+    }
+  }
   
   return (
     <main className="min-h-screen bg-fyf-noir flex items-center justify-center">
       <div className="max-w-md w-full mx-4">
         <div className="text-center mb-8">
           <Link href="/" className="font-display text-4xl font-bold text-fyf-coral">
-            FYF
+            RealityCheck
           </Link>
           <p className="text-fyf-steel mt-2">Welcome back</p>
         </div>
@@ -42,39 +76,43 @@ function LoginForm() {
             Sign In
           </h1>
           
-          <p className="text-fyf-steel text-sm mb-6">
-            No traditional account needed. Just enter your birth date.
-          </p>
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-fyf-coral/10 border border-fyf-coral text-fyf-coral text-sm">
+              {error}
+            </div>
+          )}
           
-          <form className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-fyf-steel mb-2">Birth Date</label>
+              <label className="block text-fyf-steel mb-2">Email</label>
               <input
-                type="date"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-fyf-carbon border border-fyf-smoke text-fyf-cream px-4 py-3 rounded-lg focus:border-fyf-coral focus:outline-none"
+                placeholder="test@test.com"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-fyf-steel mb-2">Life Expectancy (optional)</label>
+              <label className="block text-fyf-steel mb-2">Password</label>
               <input
-                type="number"
-                min="18"
-                max="120"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-fyf-carbon border border-fyf-smoke text-fyf-cream px-4 py-3 rounded-lg focus:border-fyf-coral focus:outline-none"
-                placeholder="e.g. 80"
+                placeholder="••••••••"
+                required
               />
-              <p className="text-fyf-steel text-xs mt-1">
-                Default: 80 years
-              </p>
             </div>
             
             <button
               type="submit"
-              className="w-full bg-fyf-coral hover:bg-fyf-coral-dark text-white font-semibold py-3 rounded-lg transition-colors"
+              disabled={loading}
+              className="w-full bg-fyf-coral hover:bg-fyf-coral-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
             >
-              Visualize Time
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
           
