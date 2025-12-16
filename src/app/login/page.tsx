@@ -4,8 +4,8 @@ import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 export default function Login() {
-  const [email, setEmail] = useState('test2@test.com')
-  const [password, setPassword] = useState('password123')
+  const [email, setEmail] = useState('testdemo@test.com')
+  const [password, setPassword] = useState('demo123!')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -22,8 +22,23 @@ export default function Login() {
     if (error) {
       console.error('Auth Error:', error)
       setError(error.message)
-    } else if (data.user) {
-      router.push('/dashboard')
+      setLoading(false)
+      return
+    }
+    
+    if (data.user) {
+      // Check ob user_profile existiert
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .single()
+      
+      if (profile) {
+        router.push('/user/dashboard')  // Profil existiert → Dashboard
+      } else {
+        router.push('/onboarding')      // Kein Profil → Onboarding
+      }
     }
     
     setLoading(false)
@@ -46,14 +61,14 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
-            placeholder="test2@test.com"
+            placeholder="testdemo@test.com"
           />
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
-            placeholder="password123"
+            placeholder="demo123!"
           />
         </div>
         
@@ -66,7 +81,7 @@ export default function Login() {
         </button>
         
         <div className="text-xs text-gray-500 text-center p-4 bg-gray-50 rounded-xl">
-          test2@test.com / password123
+          testdemo@test.com / demo123!
         </div>
       </div>
     </div>
