@@ -254,33 +254,63 @@ export default function LifeWeeksPage() {
 
   useEffect(() => {
     if (sessionLoadedRef.current) return;
-    if (consentStatus !== 'accepted') {
-      sessionLoadedRef.current = true;
-      return;
-    }
-
-    const stored = readCookie(COOKIE_NAME);
-
-    if (stored) {
+    
+    // Try to load from Supabase first
+    const loadFromSupabase = async () => {
       try {
-        const parsed = JSON.parse(stored) as Partial<{
-          birthdate: string;
-          targetAge: string;
-        }>;
-
-        if (parsed.birthdate) {
-          setBirthdate(parsed.birthdate);
-        }
-
-        if (parsed.targetAge) {
-          setTargetAge(parsed.targetAge);
+        const response = await fetch('/api/life-weeks');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.birthDate && data.targetAge) {
+            setBirthdate(data.birthDate);
+            setTargetAge(data.targetAge.toString());
+            sessionLoadedRef.current = true;
+            return true;
+          }
         }
       } catch (error) {
-        console.warn('Failed to parse life-weeks session cookie', error);
+        console.warn('Failed to load from Supabase, falling back to cookies:', error);
       }
-    }
+      return false;
+    };
 
-    sessionLoadedRef.current = true;
+    // Fallback to cookies if Supabase fails or user not authenticated
+    const loadFromCookies = () => {
+      if (consentStatus !== 'accepted') {
+        sessionLoadedRef.current = true;
+        return;
+      }
+
+      const stored = readCookie(COOKIE_NAME);
+
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as Partial<{
+            birthdate: string;
+            targetAge: string;
+          }>;
+
+          if (parsed.birthdate) {
+            setBirthdate(parsed.birthdate);
+          }
+
+          if (parsed.targetAge) {
+            setTargetAge(parsed.targetAge);
+          }
+        } catch (error) {
+          console.warn('Failed to parse life-weeks session cookie', error);
+        }
+      }
+
+      sessionLoadedRef.current = true;
+    };
+
+    // Try Supabase first, then fallback to cookies
+    loadFromSupabase().then((loaded) => {
+      if (!loaded) {
+        loadFromCookies();
+      }
+    });
   }, [consentStatus]);
 
   useEffect(() => {

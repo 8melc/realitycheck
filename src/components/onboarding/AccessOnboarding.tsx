@@ -107,10 +107,40 @@ export default function AccessOnboarding() {
     setFormData(prev => ({ ...prev, ...updates }))
   }
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (validateCurrentStep()) {
-      // Step 7 (interests) ist der letzte Schritt - leite zu onboardingdone weiter
+      // Step 7 (interests) ist der letzte Schritt - speichere Profil und leite weiter
       if (currentStep === 6) { // Step 7 ist Index 6 (0-basiert)
+        try {
+          // Save profile to Supabase
+          const response = await fetch('/api/profile/onboarding', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              email: formData.email,
+              birthDate: formData.birthDate,
+              targetAge: formData.targetAge || '80',
+              goal: formData.goal,
+              goals: formData.goals,
+              timePhilosophy: formData.timePhilosophy,
+              lifestyle: formData.lifestyle,
+              guidePersonality: formData.timePhilosophy, // Use timePhilosophy as guide personality for now
+            }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            console.error('Failed to save profile:', error);
+            // Still redirect even if save fails (graceful degradation)
+          }
+        } catch (error) {
+          console.error('Error saving profile:', error);
+          // Still redirect even if save fails (graceful degradation)
+        }
+        
         router.push('/onboardingdone')
       } else if (currentStep < steps.length - 1) {
         setCurrentStep(prev => prev + 1)
