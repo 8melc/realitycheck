@@ -5,7 +5,6 @@ import type { CSSProperties, FormEvent } from 'react';
 import { feedboardService } from '@/lib/feedboardService';
 import { CLUSTER_CONFIG } from '@/lib/clusterConfig';
 import { FeedItem, GuideItem, GuideConversationTurn } from '@/types/feedboard';
-import { feedItems as FEED_ITEMS } from '@/data/feedItems';
 import { handlePrompt, resetConversationContext } from '@/lib/guideChatEngine';
 import GuideChatSidebar from '@/components/feedboard/GuideChatSidebar';
 import './feedboard.css';
@@ -95,8 +94,36 @@ export default function FeedboardPage() {
   
   const [isPersonalityOpen, setIsPersonalityOpen] = useState(false);
   const [activeFormat, setActiveFormat] = useState<string>('Alle');
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
 
-  const allItems = useMemo(() => feedboardService.getAllItems(), []);
+  // Fetch feed items from Supabase API
+  useEffect(() => {
+    async function fetchFeedItems() {
+      try {
+        setIsLoadingItems(true);
+        const response = await fetch('/api/feedboard/items');
+        if (!response.ok) {
+          console.error('Failed to fetch feed items');
+          // Fallback to mock data on error
+          setFeedItems(feedboardService.getAllItems());
+          return;
+        }
+        const data = await response.json();
+        setFeedItems(data.items || []);
+      } catch (error) {
+        console.error('Error fetching feed items:', error);
+        // Fallback to mock data on error
+        setFeedItems(feedboardService.getAllItems());
+      } finally {
+        setIsLoadingItems(false);
+      }
+    }
+
+    fetchFeedItems();
+  }, []);
+
+  const allItems = useMemo(() => feedItems, [feedItems]);
   const silenceCards = useMemo(() => allItems.filter(item => item.isSilence), [allItems]);
   const standardItems = useMemo(() => allItems.filter(item => !item.isSilence), [allItems]);
 
@@ -223,8 +250,8 @@ export default function FeedboardPage() {
     // Use override items if available, otherwise use normal filtering
     const sourceItems = overrideItems || modeItems;
     
-    // Always include partner items regardless of cluster filter
-    const partnerItems = FEED_ITEMS.filter(item => item.isPartner);
+    // Always include partner items regardless of cluster filter (from Supabase data)
+    const partnerItems = allItems.filter(item => item.isPartner);
     
     const clusterFiltered = activeCluster
       ? sourceItems.filter(item => !item.isPartner && item.theme === activeCluster)
@@ -259,7 +286,7 @@ export default function FeedboardPage() {
     }
     
     return result;
-  }, [overrideItems, modeItems, activeCluster, activeFormat, FEED_ITEMS]);
+  }, [overrideItems, modeItems, activeCluster, activeFormat, allItems]);
 
   const gridItems: GridItem[] = useMemo(() => {
     const result: GridItem[] = [];
