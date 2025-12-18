@@ -1,87 +1,146 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import './login.css'
 
 export default function Login() {
-  const [email, setEmail] = useState('testdemo@test.com')
-  const [password, setPassword] = useState('demo123!')
+  const [email, setEmail] = useState('melissa@test.com')
+  const [password, setPassword] = useState('RealityCheck123')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
 
+  // Falls schon eingeloggt, direkt zum Feedboard
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        console.log('Session aktiv, leite weiter...');
+        router.push('/feedboard')
+      }
+    }
+    checkSession()
+  }, [router])
+
   const handleLogin = async () => {
+    console.log('--- LOGIN START ---');
+    console.log('Email:', email);
     setLoading(true)
     setError('')
     
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    
-    if (error) {
-      console.error('Auth Error:', error)
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-    
-    if (data.user) {
-      // Check ob user_profile existiert
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .single()
+    try {
+      console.log('Rufe Supabase Auth auf...');
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
       
-      if (profile) {
-        router.push('/user/dashboard')  // Profil existiert → Dashboard
-      } else {
-        router.push('/onboarding')      // Kein Profil → Onboarding
+      if (authError) {
+        console.error('Auth Error Details:', authError);
+        setError(authError.message)
+        setLoading(false)
+        return
       }
+      
+      if (data.user) {
+        console.log('User ID:', data.user.id);
+        
+        // Profil-Check
+        console.log('Prüfe Profil in DB...');
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .maybeSingle()
+        
+        if (profileError) console.error('Profil-Fehler:', profileError);
+
+        const target = profile ? '/feedboard' : '/onboarding'
+        console.log('ZIEL-URL:', target);
+        
+        // Harte Weiterleitung
+        router.refresh();
+        setTimeout(() => {
+          console.log('Führe harten Redirect aus...');
+          window.location.href = target;
+        }, 500);
+      } else {
+        console.warn('Kein User-Objekt zurückgegeben');
+        setError('Login fehlgeschlagen: Kein User gefunden.');
+        setLoading(false);
+      }
+    } catch (err: any) {
+      console.error('CRITICAL LOGIN ERROR:', err);
+      setError('Systemfehler: ' + (err.message || 'Unbekannter Fehler'))
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 space-y-6">
-        <h1 className="text-3xl font-bold text-center text-gray-900">RealityCheck</h1>
+    <div className="login-container">
+      <div className="login-card">
+        <h1 className="login-title">RealityCheck</h1>
         
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+          <div className="login-error">
             {error}
           </div>
         )}
+
+        {loading && (
+          <div className="login-hints" style={{ border: '1px solid var(--realitycheck-mint)', color: 'var(--realitycheck-mint)' }}>
+            <p>Verbindung wird hergestellt...</p>
+            <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', opacity: 0.8 }}>
+              Falls keine automatische Weiterleitung erfolgt: 
+              <a href="/feedboard" style={{ textDecoration: 'underline', marginLeft: '5px', cursor: 'pointer' }}>Hier klicken</a>
+            </p>
+          </div>
+        )}
         
-        <div className="space-y-4">
+        <div className="login-form-group">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
-            placeholder="testdemo@test.com"
+            className="login-input"
+            placeholder="Email Adresse"
           />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
-            placeholder="demo123!"
-          />
+          <div className="login-password-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-input"
+              placeholder="Passwort"
+            />
+            <button 
+              type="button" 
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+            >
+              {showPassword ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              )}
+            </button>
+          </div>
         </div>
         
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50"
+          className="login-button"
         >
-          {loading ? 'Loading...' : 'Login'}
+          {loading ? 'Verarbeite...' : 'Einloggen'}
         </button>
         
-        <div className="text-xs text-gray-500 text-center p-4 bg-gray-50 rounded-xl">
-          testdemo@test.com / demo123!
+        <div className="login-hints">
+          <p><strong>Melissa:</strong> melissa@test.com / RealityCheck123</p>
+          <p><strong>Demo:</strong> melissa.conrads@realitycheck.com / demo123!</p>
         </div>
       </div>
     </div>

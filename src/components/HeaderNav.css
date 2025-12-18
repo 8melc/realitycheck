@@ -82,6 +82,11 @@
 /* CTA Button - Rechts */
 .header-nav-cta {
   flex-shrink: 0;
+  display: flex !important;
+  align-items: center;
+  gap: 1rem;
+  min-width: 200px;
+  justify-content: flex-end;
 }
 
 .cta-button {

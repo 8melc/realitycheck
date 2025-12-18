@@ -30,55 +30,69 @@ export async function POST(request: NextRequest) {
       name,
       email,
       birthDate,
+      birth_date,
       targetAge,
+      target_age,
       goal,
       goals,
       timePhilosophy,
       lifestyle,
       guidePersonality,
+      focusTopic,
+      focus_topic,
+      bio,
+      will_learn,
+      will_share,
     } = body;
 
-    // Validate required fields
-    if (!birthDate || !targetAge) {
-      return NextResponse.json(
-        { error: 'birthDate and targetAge are required' },
-        { status: 400 }
-      );
-    }
+    const final_birth_date = birthDate || birth_date;
+    const final_target_age = targetAge || target_age;
+    const final_focus_topic = focusTopic || focus_topic;
 
     // Parse target age to number
-    const targetAgeNum = parseInt(targetAge, 10);
-    if (isNaN(targetAgeNum) || targetAgeNum < 18 || targetAgeNum > 120) {
+    const targetAgeNum = typeof final_target_age === 'string' ? parseInt(final_target_age, 10) : final_target_age;
+
+    // 4. VALIDIERUNG
+    if (!final_birth_date) {
       return NextResponse.json(
-        { error: 'targetAge must be between 18 and 120' },
+        { error: 'Geburtsdatum fehlt' }, 
         { status: 400 }
       );
     }
 
-    // Create or update user profile
+    if (!targetAgeNum || targetAgeNum < 18 || targetAgeNum > 120) {
+      return NextResponse.json(
+        { error: 'Zielalter muss zwischen 18 und 120 liegen' }, 
+        { status: 400 }
+      );
+    }
+
+    // 6. Profile-Daten
     const profileData: UserProfileInsert = {
       user_id: user.id,
-      display_name: name || null,
-      birth_date: birthDate,
+      display_name: name || 'FYF User',
+      birth_date: final_birth_date,
       target_age: targetAgeNum,
       guide_personality: guidePersonality || timePhilosophy || null,
+      bio: bio || null,
+      focus_topic: final_focus_topic || null,
+      will_learn: Array.isArray(will_learn) ? will_learn : [],
+      will_share: Array.isArray(will_share) ? will_share : [],
+      is_public: true,
       updated_at: new Date().toISOString(),
     };
 
-    const profileResult = await supabase
+    // 7. DB-Write mit Error-Handling
+    const { data: profile, error: profileError } = await (supabase
       .from('user_profiles')
-      .upsert(profileData as any, {
-        onConflict: 'user_id',
-      })
+      .upsert(profileData as any, { onConflict: 'user_id' })
       .select()
-      .single();
-    
-    const { data: profile, error: profileError } = profileResult as { data: UserProfile | null; error: any };
+      .single() as any);
 
     if (profileError || !profile) {
-      console.error('Error upserting profile:', profileError);
+      console.error('Profile Error:', profileError);
       return NextResponse.json(
-        { error: 'Failed to save profile', details: profileError?.message || 'Profile is null' },
+        { error: `Profil-Fehler: ${profileError?.message || 'Profil konnte nicht geladen werden'}` }, 
         { status: 500 }
       );
     }
