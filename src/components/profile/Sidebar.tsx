@@ -120,7 +120,7 @@ const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsa
 
         <div className="rc-goal-section">
           <div className="rc-goal-question">Was willst du wirklich?</div>
-          <div className="rc-goal-text">{profile.goal.text}</div>
+          <div className="rc-goal-text">{profile.primaryGoalTitle || 'Noch kein Ziel gesetzt'}</div>
           <div className="rc-goal-progress">
             <div className="rc-progress-bar">
               <div className="rc-progress-fill" style={{ width: '32%' }} />

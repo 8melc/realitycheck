@@ -4,6 +4,7 @@ A modern web application for life visualization, goal setting, and personal deve
 
 ## 🚀 Features
 
+- **[📋 LAUNCH CHECKLIST](./LAUNCH_CHECKLIST.md) - CRITICAL FOR RELEASE**
 - **Life in Weeks Visualization** - See your life in a powerful grid format
 - **Goal Setting & Tracking** - Set and monitor your personal goals
 - **Content Feed** - Curated resources for personal growth

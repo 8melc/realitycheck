@@ -156,8 +156,13 @@ export default function GuideChatSidebar({
 
               {/* Bot Response */}
               <div className="guidechat-sidebar__bot">
-                <blockquote className="guidechat-sidebar__comment">
+                <blockquote className={`guidechat-sidebar__comment ${turn.isFallback ? 'guidechat-sidebar__comment--fallback' : ''}`}>
                   {turn.comment}
+                  {turn.isFallback && (
+                    <div className="guidechat-sidebar__fallback-badge">
+                      Offline-Modus aktiv
+                    </div>
+                  )}
                 </blockquote>
 
                 {/* Follow-up Question */}

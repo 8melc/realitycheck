@@ -118,6 +118,7 @@ export interface GuideConversationTurn {
   matchReasons: GuideMatchReason[];
   items: GuideItem[];
   createdAt: string;
+  isFallback?: boolean;
 }
 
 export interface GuideChatResponse {

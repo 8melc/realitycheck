@@ -27,6 +27,7 @@ export function mapUserProfileToLegacyProfile(
     willLearn: supabaseProfile.will_learn || undefined,
     willShare: supabaseProfile.will_share || undefined,
     isPublic: supabaseProfile.is_public ?? true,
+    primaryGoalTitle: goalText || undefined,
     createdAt: supabaseProfile.created_at,
     updatedAt: supabaseProfile.updated_at,
   };

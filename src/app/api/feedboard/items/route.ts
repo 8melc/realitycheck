@@ -4,10 +4,24 @@ import type { ContentItem } from '@/lib/types/database.types';
 import type { FeedItem } from '@/types/feedboard';
 
 /**
+ * Map cluster slugs from database to frontend display names
+ */
+const CLUSTER_NAME_MAP: Record<string, string> = {
+  'time_focus': 'Zeit & Endlichkeit',
+  'focus_flow': 'Fokus & Flow',
+  'freedom': 'Freiheit & Orte',
+  'growth': 'Wachstum',
+  'meaning': 'Sinn & Bedeutung',
+  'culture': 'Kultur & Stimmen',
+  'relationships': 'Beziehungen',
+  'self_knowledge': 'Selbsterkenntnis',
+  'money_value': 'Geld & Wert'
+};
+
+/**
  * Map content_type and format to FeedItem format
  */
 function mapFormat(contentType: string | null, format: string | null): FeedItem['format'] {
-  // If format field exists and matches FeedItem format, use it directly
   if (format) {
     const normalizedFormat = format.trim();
     if (['Zitat', 'Artikel', 'Event', 'People', 'Podcast', 'Song'].includes(normalizedFormat)) {
@@ -15,13 +29,13 @@ function mapFormat(contentType: string | null, format: string | null): FeedItem[
     }
   }
 
-  // Map content_type to format
   const formatMap: Record<string, FeedItem['format']> = {
     'article': 'Artikel',
     'podcast': 'Podcast',
     'quote': 'Zitat',
     'event': 'Event',
     'person': 'People',
+    'person_profile': 'People',
   };
 
   return formatMap[contentType || ''] || 'Artikel';
@@ -31,17 +45,12 @@ function mapFormat(contentType: string | null, format: string | null): FeedItem[
  * Map ContentItem from database to FeedItem for the feedboard UI
  */
 function mapContentItemToFeedItem(item: ContentItem): FeedItem {
-  // Use subtitle, fallback to quote_text for quotes, otherwise empty string
   const description = item.subtitle ?? item.quote_text ?? '';
-
-  // Map format using content_type and format fields
   const format = mapFormat(item.content_type, item.format);
-
-  // Map cluster to theme (cluster values should match theme values)
-  const theme = (item.cluster || 'Zeit & Endlichkeit') as FeedItem['theme'];
-
-  // Default PERMA value - can be enhanced later if PERMA is stored in DB
-  const perma: FeedItem['perma'] = 'Meaning';
+  
+  // Map cluster slug to display name if needed
+  const rawCluster = item.cluster || 'Zeit & Endlichkeit';
+  const theme = (CLUSTER_NAME_MAP[rawCluster] || rawCluster) as FeedItem['theme'];
 
   return {
     id: item.id,
@@ -49,13 +58,13 @@ function mapContentItemToFeedItem(item: ContentItem): FeedItem {
     description,
     format,
     theme,
-    perma,
+    perma: 'Meaning', // Default
     link: item.url || '#',
-    image: '', // Image field not in schema - set to empty string
-    guideWhy: description, // Use description/quote_text for guideWhy
+    image: '', 
+    guideWhy: description,
     source: (item.source || 'feedboard') as 'feedboard' | 'guide' | 'manual',
     chips: [],
-    guideComment: description, // Use subtitle/quote_text for guideComment
+    guideComment: item.subtitle || item.quote_text || '',
     isHero: false,
     isSilence: false,
     hasGlitch: false,
@@ -65,69 +74,50 @@ function mapContentItemToFeedItem(item: ContentItem): FeedItem {
 
 /**
  * GET /api/feedboard/items
- * Get all published content items from Supabase
  */
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const clusterParam = searchParams.get('cluster');
+    const limit = parseInt(searchParams.get('limit') || '50');
+
     const supabase = await createSupabaseServerClient();
     
-    // Fetch all content_items where is_published = true
-    // Sort by cluster and title as requested
-    const { data: contentItems, error } = await supabase
+    let query = supabase
       .from('content_items')
       .select('*')
-      .eq('is_published', true)
-      .order('cluster', { ascending: true })
-      .order('title', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    // If cluster is provided, filter by it
+    if (clusterParam && clusterParam !== 'all') {
+      query = query.eq('cluster', clusterParam);
+    }
+
+    const { data: contentItems, error } = await query;
 
     if (error) {
       console.error('Error fetching content items:', error);
-      return NextResponse.json(
-        { error: 'Failed to load content items' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to load content items' }, { status: 500 });
     }
 
-    // Map ContentItems to FeedItems
-    // Set first item as hero (large display)
+    // Map to FeedItems
     const feedItems: FeedItem[] = (contentItems || []).map((item, index) => {
       const feedItem = mapContentItemToFeedItem(item);
-      // Mark first item as hero to display it large
-      if (index === 0) {
+      if (index === 0 && !clusterParam) {
         feedItem.isHero = true;
       }
       return feedItem;
     });
 
-    // Debug: Log cluster values from database (server-side)
-    if (contentItems && contentItems.length > 0) {
-      console.log('Feedboard API - Cluster values from DB:', {
-        count: contentItems.length,
-        clusters: contentItems.map(item => ({
-          id: item.id,
-          title: item.title,
-          cluster: item.cluster,
-          mapped_theme: feedItems.find(fi => fi.id === item.id)?.theme
-        }))
-      });
-    }
+    console.log(`API returned ${feedItems.length} items for cluster: ${clusterParam || 'all'}`);
 
     return NextResponse.json({ 
       items: feedItems,
-      // Debug: Include original cluster values for inspection
-      _debug: process.env.NODE_ENV === 'development' ? {
-        originalClusters: contentItems?.map(item => ({
-          id: item.id,
-          title: item.title,
-          cluster: item.cluster
-        })) || []
-      } : undefined
+      _count: feedItems.length
     });
   } catch (error) {
     console.error('Error in feedboard items API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -105,9 +105,9 @@ export default function GuideDashboardPage() {
       console.log('Dashboard - Fetching session...');
       try {
         const {
-          data: { session },
+          data: { user: currentUser },
           error: sessionError,
-        } = await supabase.auth.getSession();
+        } = await supabase.auth.getUser();
 
         if (sessionError) {
           console.error('Dashboard - Session error:', sessionError);
@@ -115,14 +115,14 @@ export default function GuideDashboardPage() {
 
         if (!isMounted) return;
 
-        if (!session || !session.user) {
-          console.log('Dashboard - No user session found (Redirect disabled for testing)');
+        if (!currentUser) {
+          console.log('Dashboard - No user session found');
+          // Wait a bit to see if session is still loading
           setIsLoading(false);
           setIsClient(true);
           return;
         }
         
-        const currentUser = session.user;
         const userId = currentUser.id;
         setUser(currentUser);
         console.log('Dashboard - User found:', currentUser.email);
@@ -143,7 +143,12 @@ export default function GuideDashboardPage() {
         }
         
         if (!userProfile) {
-          console.log('Dashboard - No profile found, using fallback for demo');
+          console.log('Dashboard - No profile found for user:', userId);
+          // If we are authenticated but have no profile, we should probably redirect to onboarding
+          // instead of showing a "demo" fallback that might confuse the user.
+          // But for now, we'll keep the fallback but make it clearer in logs.
+          console.log('Dashboard - Using fallback profile for authenticated user without profile record');
+          
           // Construct fallback profile
           const fallbackProfile: Profile = {
             id: userId,
@@ -195,18 +200,23 @@ export default function GuideDashboardPage() {
           return;
         }
         
-        console.log('Dashboard - Profile found:', userProfile.user_id);
+        console.log('Dashboard - Profile found successfully');
         
-        const { data: primaryGoal } = await supabase
+        const { data: primaryGoal, error: goalError } = await supabase
           .from('user_goals')
           .select('title')
           .eq('user_id', userId)
           .eq('is_primary', true)
           .maybeSingle();
         
+        if (goalError) {
+          console.error('Dashboard - Goal query error:', goalError);
+        }
+
         if (!isMounted) return;
 
-        const goalTitle = (primaryGoal as any)?.title || null;
+        // Fallback to focus_topic from profile if no primary goal found
+        const goalTitle = (primaryGoal as any)?.title || userProfile.focus_topic || null;
         
         let mappedProfile;
         try {
@@ -258,12 +268,26 @@ export default function GuideDashboardPage() {
           journey: [
             { id: 'onboarding-1', type: 'onboarding', description: 'Profil erstellt', timestamp: userProfile.created_at },
           ],
-          feedback: [],
+          feedback: goalTitle ? [
+            {
+              id: 'initial-feedback-1',
+              tone: 'motivating',
+              message: `Starkes Ziel: „${goalTitle}“. Dein Guide wird dich dabei unterstützen, den Fokus zu halten.`,
+              createdAt: new Date().toISOString(),
+            },
+            {
+              id: 'initial-feedback-2',
+              tone: 'reflecting',
+              message: 'Wie viel Zeit hast du heute bereits für dieses Ziel investiert?',
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+            }
+          ] : [],
           bio: userProfile.bio || undefined,
           focusTopic: userProfile.focus_topic || undefined,
           willLearn: userProfile.will_learn || undefined,
           willShare: userProfile.will_share || undefined,
           isPublic: userProfile.is_public ?? true,
+          primaryGoalTitle: goalTitle || undefined,
           createdAt: userProfile.created_at,
           updatedAt: userProfile.updated_at,
         };
@@ -294,17 +318,62 @@ export default function GuideDashboardPage() {
   }, []);
 
   const handleGoalSave = useCallback(
-    (goal: { text: string; source: Profile['goal']['source'] }) => {
-      setProfile((prev) => prev ? ({
-        ...prev,
-        goal: {
-          text: goal.text,
-          source: goal.source,
-          createdAt: prev.goal.createdAt,
-          updatedAt: new Date().toISOString(),
-        },
-      }) : null);
-      setGoalModalOpen(false);
+    async (goal: { text: string; source: Profile['goal']['source'] }) => {
+      console.log('Dashboard - Saving goal:', goal.text);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) throw new Error('Nicht authentifiziert');
+
+        // 1. Suche primäres Ziel
+        const { data: existingGoal } = await supabase
+          .from('user_goals')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .eq('is_primary', true)
+          .maybeSingle();
+
+        if (existingGoal) {
+          // Update
+          await (supabase as any)
+            .from('user_goals')
+            .update({ title: goal.text, updated_at: new Date().toISOString() })
+            .eq('id', (existingGoal as any).id);
+        } else {
+          // Create
+          await (supabase as any)
+            .from('user_goals')
+            .insert({ 
+              user_id: session.user.id, 
+              title: goal.text, 
+              is_primary: true, 
+              status: 'active' 
+            });
+        }
+
+        // State updaten
+        setProfile((prev) => prev ? ({
+          ...prev,
+          primaryGoalTitle: goal.text,
+          focusTopic: goal.text, // Keep in sync
+          goal: {
+            text: goal.text,
+            source: goal.source,
+            createdAt: prev.goal.createdAt,
+            updatedAt: new Date().toISOString(),
+          },
+        }) : null);
+        
+        // Also update rawUserProfile to keep useProfileSettings in sync
+        setRawUserProfile((prev: any) => prev ? ({
+          ...prev,
+          focus_topic: goal.text
+        }) : null);
+        
+        setGoalModalOpen(false);
+      } catch (err) {
+        console.error('Dashboard - Goal Save Error:', err);
+        alert('Ziel konnte nicht gespeichert werden.');
+      }
     },
     []
   );
@@ -379,10 +448,16 @@ export default function GuideDashboardPage() {
       setProfile(prev => prev ? {
         ...prev,
         focusTopic: focusTopic,
+        primaryGoalTitle: focusTopic || prev.primaryGoalTitle, // Update if focusTopic is provided
         willLearn: willLearn,
         willShare: willShare,
         isPublic: isPublic,
-        bio: bio
+        bio: bio,
+        goal: {
+          ...prev.goal,
+          text: focusTopic || prev.goal.text,
+          updatedAt: new Date().toISOString()
+        }
       } : null);
 
       setTimeout(() => {
@@ -485,8 +560,8 @@ export default function GuideDashboardPage() {
 
                 <div className="grid gap-8 md:grid-cols-3">
                   <div className="space-y-2">
-                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Fokus</h4>
-                    <p className="text-sm italic">{profile.focusTopic || 'Kein Fokus gesetzt.'}</p>
+                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Fokus (Ziel)</h4>
+                    <p className="text-sm italic">{profile.primaryGoalTitle || 'Kein Ziel gesetzt.'}</p>
                   </div>
                   <div className="space-y-3">
                     <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Will lernen</h4>
@@ -601,7 +676,7 @@ export default function GuideDashboardPage() {
         )}
       </main>
 
-      <GoalModal open={isGoalModalOpen} initialGoal={profile?.goal?.text || ''} onClose={() => setGoalModalOpen(false)} onSave={handleGoalSave} />
+      <GoalModal open={isGoalModalOpen} initialGoal={profile?.primaryGoalTitle || ''} onClose={() => setGoalModalOpen(false)} onSave={handleGoalSave} />
     </div>
   );
 }

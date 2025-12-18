@@ -90,6 +90,7 @@ export interface Profile {
   willLearn?: string[];
   willShare?: string[];
   isPublic?: boolean;
+  primaryGoalTitle?: string; // Source: user_goals table
   createdAt: string;
   updatedAt: string;
 }

@@ -51,7 +51,7 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
               </h1>
               <p className="text-sm text-rc-steel">{identity.email}</p>
             </div>
-            <GoalBadge goal={`${getGuideText('profileGoal', tone)} ${goal.text}`} />
+            <GoalBadge goal={`${getGuideText('profileGoal', tone)} ${profile.primaryGoalTitle || 'Noch kein Ziel gesetzt'}`} />
           </div>
         </div>
 

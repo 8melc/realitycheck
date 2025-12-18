@@ -256,6 +256,13 @@ export default function FeedboardPage() {
     }
   }, [formatOptions, activeFormat]);
 
+  const resetFilters = () => {
+    setActiveCluster(null);
+    setActiveFormat('Alle');
+    setActiveMode('focus');
+    console.log('Filters reset!');
+  };
+
   const filteredItems = useMemo(() => {
     // Use override items if available, otherwise use normal filtering
     const sourceItems = overrideItems || modeItems;
@@ -362,34 +369,62 @@ export default function FeedboardPage() {
     setIsGuideLoading(true);
 
     try {
-      const result = await handlePrompt(promptText.trim());
+      // Call our new API route
+      const response = await fetch('/api/guide/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: promptText.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const data = await response.json();
       
-      // Update conversation state
-      setConversationTurns(result.turns);
-      setActiveTurn(result.activeTurn);
-      
-      // Convert GuideItems to FeedItems for override
-      const feedItems = result.activeTurn.items.map(item => ({
+      // Map recommendations to GuideItems
+      const recommendedItems: GuideItem[] = (data.recommendations || []).map((item: any) => ({
         id: item.id,
         title: item.title,
-        description: item.guideComment,
-        format: item.format as any,
-        theme: item.clusterId as any,
-        perma: 'Guide' as any,
-        link: item.link,
-        image: '',
-        guideWhy: item.guideWhy,
-        source: 'guide' as any,
-        chips: [],
-        guideComment: item.guideComment,
-        isHero: false,
-        isSilence: false
+        guideComment: '', // We don't have this in the simple recommendation query yet
+        guideWhy: '',
+        link: item.url || '#',
+        clusterId: item.cluster || '',
+        format: item.format || 'Artikel'
       }));
+
+      // Create a new conversation turn
+      const newTurn: GuideConversationTurn = {
+        id: Date.now().toString(),
+        prompt: promptText.trim(),
+        promptEcho: promptText.trim(),
+        comment: data.response,
+        items: recommendedItems,
+        matchReasons: [],
+        followUp: data.fallback ? undefined : "Hast du noch Fragen dazu?",
+        createdAt: new Date().toISOString(),
+        isFallback: !!data.fallback
+      };
       
-      setOverrideItems(feedItems);
+      // Update conversation state
+      setConversationTurns(prev => [...prev, newTurn]);
+      setActiveTurn(newTurn);
+      
       setPrompt('');
     } catch (error) {
       console.error('Guide prompt error:', error);
+      // Fallback in case of error
+      const errorTurn: GuideConversationTurn = {
+        id: Date.now().toString(),
+        prompt: promptText.trim(),
+        comment: "Entschuldige, ich konnte gerade keine Verbindung herstellen. Aber bleib dran – dein Fokus ist heute wichtiger als meine Antwort.",
+        items: [],
+        matchReasons: []
+      };
+      setConversationTurns(prev => [...prev, errorTurn]);
+      setActiveTurn(errorTurn);
     } finally {
       setIsGuideLoading(false);
     }
@@ -499,6 +534,21 @@ export default function FeedboardPage() {
               </button>
             ))}
           </div>
+
+          {(activeCluster !== null || activeFormat !== 'Alle') && (
+            <button
+              type="button"
+              className="feedboard-chip feedboard-chip--reset"
+              onClick={resetFilters}
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                color: 'var(--fyf-muted)',
+                marginLeft: 'auto'
+              }}
+            >
+              Filter zurücksetzen
+            </button>
+          )}
 
           {activeClusterConfig && (
             <p className="feedboard-cluster-intro">
@@ -716,6 +766,39 @@ function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardP
   const accent = cluster?.color ?? '#4ecdc4';
   const icon = cluster?.icon ?? '◯';
 
+  const [showGuideComment, setShowGuideComment] = useState(false);
+  const [guideData, setGuideData] = useState<{ title: string; guide_comment: string; transparency_reason: string } | null>(null);
+  const [isLoadingGuide, setIsLoadingGuide] = useState(false);
+
+  const openGuideComment = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (guideData) {
+      setShowGuideComment(true);
+      return;
+    }
+
+    setIsLoadingGuide(true);
+    try {
+      const res = await fetch(`/api/feedboard/items/${item.id}/guide-comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content_id: item.id })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setGuideData(data);
+        setShowGuideComment(true);
+      }
+    } catch (err) {
+      console.error('Error fetching guide comment:', err);
+    } finally {
+      setIsLoadingGuide(false);
+    }
+  };
+
   const cardClass = [
     'feed-card',
     `feed-card--${variant}`,
@@ -770,13 +853,35 @@ function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardP
         <div className="feed-card__cluster" style={{ color: accent }}>
           <span aria-hidden="true">{icon}</span>
           <span>{item.theme}</span>
-                  </div>
+        </div>
 
         <h3 className="feed-card__title">{item.title}</h3>
 
         {item.guideComment && <p className="feed-card__comment">{item.guideComment}</p>}
 
         {item.guideWhy && <p className="feed-card__why">{item.guideWhy}</p>}
+
+        <div className="feed-card__actions" style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+          <button 
+            className="guide-says-btn"
+            onClick={openGuideComment}
+            disabled={isLoadingGuide}
+            style={{
+              background: 'rgba(78, 205, 196, 0.15)',
+              border: '1px solid rgba(78, 205, 196, 0.3)',
+              borderRadius: '999px',
+              padding: '6px 14px',
+              color: 'var(--fyf-mint)',
+              fontSize: '11px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}
+          >
+            {isLoadingGuide ? 'Lade...' : 'Guide sagt...'}
+          </button>
+        </div>
 
         {item.chips?.length > 0 && (
           <div className="feed-card__chips">
@@ -791,6 +896,30 @@ function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardP
           </div>
         )}
       </div>
+
+      {showGuideComment && guideData && (
+        <div className="guide-overlay" onClick={(e) => e.stopPropagation()}>
+          <div className="guide-overlay__content">
+            <h4 className="guide-overlay__title">Guide zu „{guideData.title}“</h4>
+            <p className="guide-overlay__comment">„{guideData.guide_comment || 'Kein Kommentar vorhanden.'}“</p>
+            {guideData.transparency_reason && (
+              <div className="guide-overlay__transparency">
+                <strong>Warum?</strong> {guideData.transparency_reason}
+              </div>
+            )}
+            <button 
+              className="guide-overlay__close"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowGuideComment(false);
+              }}
+            >
+              Schließen
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 
