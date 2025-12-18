@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { realitycheckEvents } from '../../../data/realitycheckEvents';
 import type { RealityCheckEvent } from '../../../data/realitycheckEvents';
 import './event-detail.css';
 
-export default function EventDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
-  const { eventId } = use(params);
+export default function EventDetailPage() {
+  const params = useParams();
+  const eventId = params.eventId as string;
   const [event, setEvent] = useState<RealityCheckEvent | null>(null);
   const [birthdate, setBirthdate] = useState<string>('');
   const [targetAge, setTargetAge] = useState<string>('80');

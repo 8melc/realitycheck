@@ -1,6 +1,8 @@
 'use client';
 
 import { useGuideState } from '@/hooks/useGuideState';
+import { useProfileSettings } from '@/hooks/useProfileSettings';
+import { useClickOutside } from '@/hooks/useClickOutside';
 import GuideActionsSection from '@/components/guide/GuideActionsSection';
 import GuideConversationSection from '@/components/guide/GuideConversationSection';
 import GuideSettings from '@/components/guide/GuideSettings';
@@ -15,7 +17,7 @@ import MotivationFeed from '@/components/profile/MotivationFeed';
 import LifeWeeksPreview from '@/components/profile/LifeWeeksPreview';
 import GoalModal from '@/components/profile/GoalModal';
 import { Profile } from '@/types/profile';
-import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUsageStore } from '@/stores/usageStore';
 import { useGuideStore } from '@/stores/guideStore';
@@ -26,133 +28,9 @@ import { mapUserProfileToLegacyProfile } from '@/lib/utils/profile-mapper';
 import LogoutButton from '@/components/LogoutButton';
 import './page.css';
 
-// Mock profile data - Melissa Conrads Demo-Profil (Priorität 2)
-const mockProfile: Profile = {
-  id: 'melissa-conrads-demo',
-  identity: {
-    name: 'Melissa Conrads',
-    email: 'conrads@gannaca.com',
-    avatarUrl: '/MelissaConrads_ProfilePicture.jpeg',
-    birthdate: '1997-08-08T00:00:00.000Z',
-    targetAge: 85,
-  },
-  goal: {
-    text: 'Workation Winter 25/26, RealityCheck-Prototyp-Launch, Studienprojekt',
-    source: 'custom',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  timePhilosophy: {
-    optionId: 'time-investment',
-    label: 'Ich will meine Zeit so investieren, dass sie Dividende für mein Leben zahlt.',
-    selectedAt: new Date().toISOString(),
-  },
-  lifestyle: {
-    optionId: 'digital-nomad',
-    label: 'Digital Nomad – Ich reise und arbeite von überall.',
-    selectedAt: new Date().toISOString(),
-  },
-  interests: [
-    { id: 'interest-1', label: 'Tech & Innovation' },
-    { id: 'interest-2', label: 'Digital Nomad Lifestyle' },
-    { id: 'interest-3', label: 'UX/UI Design' },
-    { id: 'interest-4', label: 'Entrepreneurship' },
-    { id: 'interest-5', label: 'Workation Planning' },
-  ],
-  projects: [
-    {
-      id: 'project-1',
-      title: 'RealityCheck-Prototyp-Launch',
-      status: 'active',
-      description: 'MVP-Entwicklung und Launch-Vorbereitung für RealityCheck.',
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'project-2',
-      title: 'Workation Winter 25/26',
-      status: 'active',
-      description: 'Planung und Organisation der Winter-Workation in Portugal.',
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'project-3',
-      title: 'Studienprojekt',
-      status: 'active',
-      description: 'Forschungsprojekt zu digitalen Lebensstilen und Zeitmanagement.',
-      updatedAt: new Date().toISOString(),
-    },
-  ],
-  musicDNA: {
-    genres: ['Electronic', 'Ambient', 'Indie'],
-    spotifyLinked: false,
-    spotifyData: {
-      topArtists: ['Fred Again', 'Blaze', 'Böhmer'],
-      topGenres: ['Electronic', 'Ambient', 'Indie'],
-      playlistId: 'rc-focus-melissa',
-      linkedAt: new Date().toISOString(),
-    },
-  },
-  progress: {
-    guideStatus: 'warming-up',
-    actionCount: 4,
-    streak: 2,
-    lastAction: new Date().toISOString(),
-  },
-  journey: [
-    {
-      id: 'journey-1',
-      type: 'onboarding',
-      description: 'Melissa Conrads Demo-Profil erstellt – Ready für RealityCheck.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    },
-    {
-      id: 'journey-2',
-      type: 'life-in-weeks',
-      description: 'Life in Weeks visualisiert – 27 Jahre, 1.408 Wochen gelebt.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    },
-    {
-      id: 'journey-3',
-      type: 'goal-setting',
-      description: 'Ziel gesetzt: Workation Winter 25/26, RealityCheck-Prototyp-Launch, Studienprojekt.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    },
-    {
-      id: 'journey-4',
-      type: 'music-dna',
-      description: 'Musik-DNA verknüpft: Fred Again, Blaze, Böhmer als Favoriten.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-    },
-  ],
-  feedback: [
-    {
-      id: 'feedback-1',
-      tone: 'motivating',
-      message:
-        'Deine Ziele sind ambitioniert und konkret. Workation Winter 25/26 + RealityCheck-Launch + Studienprojekt – das ist ein starker Fokus.',
-      createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    },
-    {
-      id: 'feedback-2',
-      tone: 'challenging',
-      message:
-        'Du willst 3 große Projekte parallel. Welches ist dein #1 Priority? RealityCheck-Prototyp braucht wahrscheinlich 80% deiner Energie.',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    },
-    {
-      id: 'feedback-3',
-      tone: 'motivating',
-      message:
-        'Deine Musik-DNA zeigt Fokus: Fred Again, Blaze, Böhmer. Das sind perfekte Workation-Sounds für Portugal.',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-    },
-  ],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
 // Calculate time metrics
 const computeTimeMetrics = (profile: Profile) => {
+  if (!profile?.identity?.birthdate) return { weeksLived: 0, weeksRemaining: 0, daysRemaining: 0 };
   const birthDate = new Date(profile.identity.birthdate);
   const today = new Date();
   const targetAge = profile.identity.targetAge || 80;
@@ -171,7 +49,26 @@ const computeTimeMetrics = (profile: Profile) => {
 
 export default function GuideDashboardPage() {
   const router = useRouter();
+  const profileSectionRef = useRef<HTMLDivElement>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [activeSection, setActiveSection] = useState<'overview' | 'profile'>('overview');
+  const [rawUserProfile, setRawUserProfile] = useState<any>(null);
+  
+  // Profile settings hook
+  const {
+    focusTopic, setFocusTopic,
+    willLearn, setWillLearn,
+    willShare, setWillShare,
+    bio, setBio,
+    isPublic, setIsPublic,
+    isSaving, saveError, saveSuccess,
+    hasChanges,
+    handleSaveProfileSettings: saveSettings,
+  } = useProfileSettings(rawUserProfile);
+
+  const [willLearnInput, setWillLearnInput] = useState('');
+  const [willShareInput, setWillShareInput] = useState('');
+
   const [user, setUser] = useState<any>(null);
   const [isGoalModalOpen, setGoalModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -188,82 +85,139 @@ export default function GuideDashboardPage() {
     return computeTimeMetrics(profile);
   }, [profile, isClient]);
 
+  // Security timeout for loading state
+  useEffect(() => {
+    if (!isLoading) return;
+    const timer = setTimeout(() => {
+      console.warn('Dashboard - Loading timeout reached (10s)');
+      setIsLoading(false);
+      if (!profile) setError('Das Laden dauert ungewöhnlich lange. Bitte versuchen Sie es erneut oder prüfen Sie Ihre Verbindung.');
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [isLoading, profile]);
+
   // Load profile from Supabase
   useEffect(() => {
+    let isMounted = true;
+    setIsClient(true);
+
     async function loadUserProfile() {
+      console.log('Dashboard - Fetching session...');
       try {
-        setIsLoading(true);
-        setError(null);
-        
-        // 1. User Session holen
-        const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
-        
-        if (authError || !currentUser) {
-          console.error('Dashboard - Auth error:', {
-            message: authError?.message,
-            name: authError?.name,
-            status: authError?.status,
-            authError
-          });
-          throw new Error('Not authenticated');
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error('Dashboard - Session error:', sessionError);
         }
-        
-        // Store user for display
-        setUser(currentUser);
-        
-        console.log('Dashboard - Loading profile for user:', currentUser.id, 'Email:', currentUser.email);
-        
-        // 2. User-Profil aus user_profiles laden (ohne .single() - gibt Array zurück)
-        const { data: profiles, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', currentUser.id);
-        
-        // Error checken
-        if (profileError) {
-          console.error('Dashboard - Profile load error:', {
-            message: profileError.message,
-            code: profileError.code,
-            details: profileError.details,
-            hint: profileError.hint,
-            userId: currentUser.id
-          });
-          throw new Error(`Fehler beim Laden: ${profileError.message || profileError.code}`);
-        }
-        
-        // Prüfen ob Profil existiert
-        if (!profiles || profiles.length === 0) {
-          console.warn('Dashboard - No profile found for user:', currentUser.id);
-          
-          // User auf Onboarding umleiten
-          router.push('/onboarding');
+
+        if (!isMounted) return;
+
+        if (!session || !session.user) {
+          console.log('Dashboard - No user session found (Redirect disabled for testing)');
+          setIsLoading(false);
+          setIsClient(true);
           return;
         }
         
-        // Erstes (und einziges) Profil nehmen
-        const userProfile = profiles[0];
-        console.log('Dashboard - Profile loaded:', {
-          user_id: userProfile.user_id,
-          display_name: userProfile.display_name,
-          has_birth_date: !!userProfile.birth_date,
-          has_target_age: userProfile.target_age !== null
-        });
+        const currentUser = session.user;
+        const userId = currentUser.id;
+        setUser(currentUser);
+        console.log('Dashboard - User found:', currentUser.email);
         
-        // 3. Primary Goal laden
+        const { data, error: profileError, status } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        const userProfile = data as UserProfile | null;
+        
+        if (!isMounted) return;
+
+        if (profileError && status !== 406) {
+          console.error('Dashboard - Profile query error:', profileError);
+          throw new Error(`DB Fehler: ${profileError.message}`);
+        }
+        
+        if (!userProfile) {
+          console.log('Dashboard - No profile found, using fallback for demo');
+          // Construct fallback profile
+          const fallbackProfile: Profile = {
+            id: userId,
+            identity: {
+              name: currentUser.email?.split('@')[0] || 'Reality Check User',
+              email: currentUser.email || '',
+              birthdate: '',
+              targetAge: 80,
+            },
+            goal: {
+              text: 'Noch kein Ziel gesetzt',
+              source: 'custom',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            timePhilosophy: {
+              optionId: 'time-investment',
+              label: 'Zeit als Investition',
+              selectedAt: new Date().toISOString(),
+            },
+            lifestyle: {
+              optionId: 'default',
+              label: 'Standard',
+              selectedAt: new Date().toISOString(),
+            },
+            interests: [],
+            projects: [],
+            musicDNA: {
+              genres: [],
+              spotifyLinked: false,
+            },
+            progress: {
+              guideStatus: 'warming-up',
+              actionCount: 0,
+              streak: 0,
+              lastAction: new Date().toISOString(),
+            },
+            journey: [
+              { id: 'start', type: 'onboarding', description: 'Willkommen bei RealityCheck', timestamp: new Date().toISOString() },
+            ],
+            feedback: [],
+            isPublic: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          setProfile(fallbackProfile);
+          setRawUserProfile(null);
+          setError(null);
+          return;
+        }
+        
+        console.log('Dashboard - Profile found:', userProfile.user_id);
+        
         const { data: primaryGoal } = await supabase
           .from('user_goals')
           .select('title')
-          .eq('user_id', currentUser.id)
+          .eq('user_id', userId)
           .eq('is_primary', true)
           .maybeSingle();
         
-        // Extract goal title safely
-        const goalTitle = primaryGoal && 'title' in primaryGoal ? (primaryGoal as { title: string }).title : null;
+        if (!isMounted) return;
+
+        const goalTitle = (primaryGoal as any)?.title || null;
         
-        // 4. Map to Profile format
-        const mappedProfile = mapUserProfileToLegacyProfile(userProfile, goalTitle);
+        let mappedProfile;
+        try {
+          mappedProfile = mapUserProfileToLegacyProfile(userProfile, goalTitle);
+        } catch (mapErr) {
+          console.error('Dashboard - Mapper Error:', mapErr);
+          // Fallback mapper logic
+          mappedProfile = { identity: { name: userProfile.display_name || 'User' } };
+        }
         
-        // 5. Create full Profile object with defaults
+        // Final State Update
         const fullProfile: Profile = {
           id: userProfile.user_id,
           identity: {
@@ -302,46 +256,32 @@ export default function GuideDashboardPage() {
             lastAction: userProfile.updated_at,
           },
           journey: [
-            {
-              id: 'onboarding-1',
-              type: 'onboarding',
-              description: 'Profil erstellt',
-              timestamp: userProfile.created_at,
-            },
+            { id: 'onboarding-1', type: 'onboarding', description: 'Profil erstellt', timestamp: userProfile.created_at },
           ],
           feedback: [],
+          bio: userProfile.bio || undefined,
+          focusTopic: userProfile.focus_topic || undefined,
+          willLearn: userProfile.will_learn || undefined,
+          willShare: userProfile.will_share || undefined,
+          isPublic: userProfile.is_public ?? true,
           createdAt: userProfile.created_at,
           updatedAt: userProfile.updated_at,
         };
         
         setProfile(fullProfile);
+        setRawUserProfile(userProfile);
+        setError(null);
       } catch (err: any) {
-        console.error('Dashboard - Error:', {
-          message: err.message,
-          name: err.name,
-          stack: err.stack,
-          error: err
-        });
-        
-        // Extract error message from various possible formats
-        let errorMessage = 'Fehler beim Laden des Profils';
-        if (err.message) {
-          errorMessage = err.message;
-        } else if (typeof err === 'string') {
-          errorMessage = err;
-        } else if (err.error?.message) {
-          errorMessage = err.error.message;
-        }
-        
-        setError(errorMessage);
+        console.error('Dashboard - Global Load Error:', err);
+        setError(err.message || 'Fehler beim Laden des Profils');
       } finally {
-        setIsLoading(false);
-        setIsClient(true);
+        if (isMounted) setIsLoading(false);
       }
     }
     
     loadUserProfile();
-  }, []);
+    return () => { isMounted = false; };
+  }, [router]);
   
   const {
     state,
@@ -355,7 +295,7 @@ export default function GuideDashboardPage() {
 
   const handleGoalSave = useCallback(
     (goal: { text: string; source: Profile['goal']['source'] }) => {
-      setProfile((prev) => ({
+      setProfile((prev) => prev ? ({
         ...prev,
         goal: {
           text: goal.text,
@@ -363,14 +303,14 @@ export default function GuideDashboardPage() {
           createdAt: prev.goal.createdAt,
           updatedAt: new Date().toISOString(),
         },
-      }));
+      }) : null);
       setGoalModalOpen(false);
     },
     []
   );
 
   const handleConnectSpotify = useCallback(() => {
-    setProfile((prev) => ({
+    setProfile((prev) => prev ? ({
       ...prev,
       musicDNA: {
         spotifyLinked: true,
@@ -382,8 +322,82 @@ export default function GuideDashboardPage() {
           linkedAt: new Date().toISOString(),
         },
       },
-    }));
+    }) : null);
   }, []);
+
+  // Tag management
+  const handleWillLearnKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && willLearnInput.trim()) {
+      e.preventDefault();
+      const newTag = willLearnInput.trim().toLowerCase();
+      if (!willLearn.includes(newTag)) {
+        setWillLearn([...willLearn, newTag]);
+      }
+      setWillLearnInput('');
+    }
+  };
+
+  const removeWillLearn = (tag: string) => {
+    setWillLearn(willLearn.filter(t => t !== tag));
+  };
+
+  const handleWillShareKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && willShareInput.trim()) {
+      e.preventDefault();
+      const newTag = willShareInput.trim().toLowerCase();
+      if (!willShare.includes(newTag)) {
+        setWillShare([...willShare, newTag]);
+      }
+      setWillShareInput('');
+    }
+  };
+
+  const removeWillShare = (tag: string) => {
+    setWillShare(willShare.filter(t => t !== tag));
+  };
+
+  const handleBackToOverview = useCallback(() => {
+    if (hasChanges) {
+      const confirm = window.confirm('Bist du sicher? Deine Zeit ist zu wertvoll, um sie mit ungespeicherten Daten zu verschwenden. Willst du wirklich einfach so weggehen?');
+      if (!confirm) return;
+    }
+    setActiveSection('overview');
+  }, [hasChanges]);
+
+  const handleSaveProfileSettings = async () => {
+    const result = await saveSettings();
+    if (result?.success) {
+      setRawUserProfile((prev: any) => ({
+        ...prev,
+        focus_topic: focusTopic,
+        will_learn: willLearn,
+        will_share: willShare,
+        bio: bio,
+        is_public: isPublic
+      }));
+
+      setProfile(prev => prev ? {
+        ...prev,
+        focusTopic: focusTopic,
+        willLearn: willLearn,
+        willShare: willShare,
+        isPublic: isPublic,
+        bio: bio
+      } : null);
+
+      setTimeout(() => {
+        setActiveSection('overview');
+      }, 1000);
+    }
+  };
+
+  // Click outside to close profile section
+  useClickOutside(
+    profileSectionRef,
+    handleBackToOverview,
+    activeSection === 'profile',
+    ['.rc-floating-sidebar']
+  );
 
   // Load usage data on mount
   useEffect(() => {
@@ -391,10 +405,16 @@ export default function GuideDashboardPage() {
   }, [fetchUsageData]);
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading && !profile) {
     return (
-      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <p style={{ color: '#B8BCC8' }}>Lädt dein Profil...</p>
+      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', zIndex: 1000 }}>
+          <p style={{ color: '#B8BCC8', marginBottom: '10px' }}>Dashboard wird geladen...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--fyf-mint)] mx-auto"></div>
+          <p style={{ fontSize: '0.7rem', marginTop: '20px', opacity: 0.5 }}>
+            Dauert es zu lange? <button onClick={() => window.location.reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>Neu laden</button> oder <button onClick={() => router.push('/login')} style={{ textDecoration: 'underline', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>Logout</button>
+          </p>
+        </div>
       </div>
     );
   }
@@ -402,155 +422,186 @@ export default function GuideDashboardPage() {
   // Show error state
   if (error) {
     return (
-      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center' }}>
+      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div>
           <p style={{ color: '#F08A8F', marginBottom: '20px' }}>Fehler beim Laden: {error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '12px 24px',
-              background: '#70B1AF',
-              color: '#0A0A0A',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            Neu laden
-          </button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button onClick={() => window.location.reload()} className="guide-btn guide-btn-primary">Neu laden</button>
+            <button onClick={() => router.push('/login')} className="guide-btn" style={{ border: '1px solid #70B1AF', color: '#70B1AF' }}>Zum Login</button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Show no profile state
+  // Show no profile state (Disabled for demo - fallback profile used instead)
+  /*
   if (!profile) {
     return (
-      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <p style={{ color: '#B8BCC8' }}>Kein Profil gefunden. Bitte Onboarding abschließen.</p>
+      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div>
+          <p style={{ color: '#B8BCC8', marginBottom: '20px' }}>Kein Profil gefunden.</p>
+          <button onClick={() => router.push('/onboarding')} className="guide-btn guide-btn-primary">Onboarding starten</button>
+        </div>
       </div>
     );
   }
+  */
+
+  if (!profile) return null; // Safety check, though profile should be set by now
 
   return (
     <div className="guide-dashboard-shell">
-      {/* Nav Bar mit User Info und Logout */}
-      {user && profile && (
-        <div style={{
-          padding: '12px 20px',
-          background: 'rgba(112, 177, 175, 0.1)',
-          borderBottom: '1px solid rgba(112, 177, 175, 0.2)',
-          fontSize: '0.875rem',
-          color: '#B8BCC8',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div>
-            <span style={{ fontWeight: '600', color: '#70B1AF' }}>Eingeloggt als:</span>{' '}
-            <span style={{ color: '#FFF8E7' }}>{profile.identity.name}</span>
-            {' • '}
-            <span style={{ color: '#B8BCC8' }}>{user.email}</span>
-          </div>
-          <LogoutButton />
-        </div>
-      )}
-
-      {/* Left Sidebar - Credits, Goals, Quick Actions */}
       <Sidebar 
         profile={profile} 
         onEditGoal={() => setGoalModalOpen(true)} 
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        hasUnsavedChanges={hasChanges}
       />
 
       <main className="guide-dashboard-main-full">
-      {/* Hero Summary Section */}
-      <section className="guide-section" id="intro">
-        <div className="guide-hero-summary">
-          <ProfileSummary
-            profile={profile}
-            timeMetrics={timeMetrics}
-            onEditGoal={() => setGoalModalOpen(true)}
-          />
-        </div>
-      </section>
+        {activeSection === 'overview' ? (
+          <>
+            <section className="guide-section" id="intro">
+              <div className="guide-hero-summary">
+                <ProfileSummary
+                  profile={profile}
+                  timeMetrics={timeMetrics}
+                  onEditGoal={() => setGoalModalOpen(true)}
+                />
+              </div>
+            </section>
 
+            <section className="guide-section" id="guide-futter">
+              <div className="rc-card rc-card--hero p-8">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <span className="guide-kicker">Guide-Futter</span>
+                    <h3 className="rc-heading text-2xl">Was dein Guide aktuell weiß</h3>
+                  </div>
+                  <button onClick={() => setActiveSection('profile')} className="text-[var(--fyf-mint)] hover:underline text-xs uppercase font-bold">Bearbeiten →</button>
+                </div>
 
-        {/* 1. Life Weeks Preview */}
-        <section className="guide-section" id="life-weeks">
-          <LifeWeeksPreview profile={profile} />
-        </section>
+                <div className="grid gap-8 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Fokus</h4>
+                    <p className="text-sm italic">{profile.focusTopic || 'Kein Fokus gesetzt.'}</p>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Will lernen</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.willLearn?.slice(0, 4).map(tag => (
+                        <span key={tag} className="rc-chip text-[10px] px-2 py-0.5 bg-[var(--fyf-mint)]/10 text-[var(--fyf-mint)] rounded border border-[var(--fyf-mint)]/20">{tag}</span>
+                      )) || <span className="text-xs italic opacity-50">Keine Themen.</span>}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Will teilen</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.willShare?.slice(0, 4).map(tag => (
+                        <span key={tag} className="rc-chip text-[10px] px-2 py-0.5 bg-[var(--fyf-coral)]/10 text-[var(--fyf-coral)] rounded border border-[var(--fyf-coral)]/20">{tag}</span>
+                      )) || <span className="text-xs italic opacity-50">Keine Skills.</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        {/* 2. Feedback Section */}
-        <section className="guide-section" id="feedback">
-          <MotivationFeed 
-            profile={profile} 
-            onEdit={() => handleEditSection('Feedback & Impulse')} 
-          />
-        </section>
+            <section className="guide-section" id="life-weeks">
+              <LifeWeeksPreview profile={profile} />
+            </section>
 
-        {/* 3. Zeit-Profil Section */}
-        <section className="guide-section" id="zeit-profil">
-          <TimeStyleCard 
-            profile={profile} 
-            onEdit={() => handleEditSection('Zeit-Profil')} 
-          />
-        </section>
+            <section className="guide-section" id="feedback">
+              <MotivationFeed profile={profile} onEdit={() => handleEditSection('Feedback & Impulse')} />
+            </section>
 
-        {/* 4. Energie-Feeds Section */}
-        <section className="guide-section" id="energie-feeds">
-          <EnergyFeeds
-            profile={profile}
-            onConnectSpotify={handleConnectSpotify}
-            onEdit={() => handleEditSection('Energie-Feeds')}
-          />
-        </section>
+            <section className="guide-section" id="zeit-profil">
+              <TimeStyleCard profile={profile} onEdit={() => handleEditSection('Zeit-Profil')} />
+            </section>
 
-        {/* 5. Guide Settings */}
-        <section className="guide-section" id="guide-settings">
-          <GuideSettings />
-        </section>
+            <section className="guide-section" id="energie-feeds">
+              <EnergyFeeds profile={profile} onConnectSpotify={handleConnectSpotify} onEdit={() => handleEditSection('Energie-Feeds')} />
+            </section>
 
-        {/* 6. Tageslimit Section */}
-        <section className="guide-section" id="tageslimit">
-          <UsageLimitSettings onEdit={() => handleEditSection('Tageslimit')} />
-        </section>
+            <section className="guide-section" id="guide-settings">
+              <GuideSettings />
+            </section>
 
-        {/* 7. Filter Section */}
-        <section className="guide-section" id="filter">
-          <FilterTodoCard onEdit={() => handleEditSection('Filter-Funktion')} />
-        </section>
+            <section className="guide-section" id="tageslimit">
+              <UsageLimitSettings onEdit={() => handleEditSection('Tageslimit')} />
+            </section>
 
-        {/* 8. Conversation Section */}
-        <section className="guide-section" id="conversation">
-          <GuideConversationSection prompts={state.guidePrompts} />
-        </section>
+            <section className="guide-section" id="filter">
+              <FilterTodoCard onEdit={() => handleEditSection('Filter-Funktion')} />
+            </section>
 
-        {/* 9. Journey Section */}
-        <section className="guide-section" id="journey">
-          <JourneyTimeline 
-            journey={profile.journey} 
-            onEdit={() => handleEditSection('Journey')} 
-          />
-        </section>
+            <section className="guide-section" id="conversation">
+              <GuideConversationSection prompts={state.guidePrompts} />
+            </section>
 
-        {/* 10. Actions Section */}
-        <section className="guide-section" id="actions">
-          <GuideActionsSection
-            items={state.actionItems}
-            onToggle={(id) => console.log('Toggle action:', id)}
-            onReminder={(id) => console.log('Reminder for:', id)}
-          />
-        </section>
+            <section className="guide-section" id="journey">
+              <JourneyTimeline journey={profile.journey} onEdit={() => handleEditSection('Journey')} />
+            </section>
+
+            <section className="guide-section" id="actions">
+              <GuideActionsSection items={state.actionItems} onToggle={(id) => console.log('Toggle:', id)} onReminder={(id) => console.log('Reminder:', id)} />
+            </section>
+          </>
+        ) : (
+          <section id="profile" className="guide-section" ref={profileSectionRef}>
+            <div className="guide-section-header mb-8">
+              <span className="guide-kicker">Mein Profil & Guide</span>
+              <h2 className="guide-title">Was soll dein Guide wissen?</h2>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold uppercase text-[var(--fyf-steel)]">Fokus</label>
+                <textarea value={focusTopic} onChange={e => setFocusTopic(e.target.value)} className="w-full bg-[#111418] border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--fyf-cream)] focus:border-[var(--fyf-mint)]" rows={4} placeholder="Worum geht es gerade?" />
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold uppercase text-[var(--fyf-steel)]">Will lernen</label>
+                <input value={willLearnInput} onChange={e => setWillLearnInput(e.target.value)} onKeyDown={handleWillLearnKeyDown} className="w-full bg-[#111418] border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--fyf-cream)]" placeholder="Enter zum Hinzufügen" />
+                <div className="flex flex-wrap gap-2">
+                  {willLearn.map(tag => (
+                    <span key={tag} className="px-3 py-1.5 rounded-full bg-white/5 text-xs border border-white/10 flex items-center gap-2" onClick={() => removeWillLearn(tag)}>{tag} ✕</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold uppercase text-[var(--fyf-steel)]">Will teilen</label>
+                <input value={willShareInput} onChange={e => setWillShareInput(e.target.value)} onKeyDown={handleWillShareKeyDown} className="w-full bg-[#111418] border border-white/10 rounded-xl px-4 py-3 text-sm text-[var(--fyf-cream)]" placeholder="Enter zum Hinzufügen" />
+                <div className="flex flex-wrap gap-2">
+                  {willShare.map(tag => (
+                    <span key={tag} className="px-3 py-1.5 rounded-full bg-white/5 text-xs border border-white/10 flex items-center gap-2" onClick={() => removeWillShare(tag)}>{tag} ✕</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold uppercase text-[var(--fyf-steel)]">Sichtbarkeit</label>
+                <div className="flex items-center gap-3 p-4 bg-[#111418] border border-white/10 rounded-xl">
+                  <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="w-4 h-4" />
+                  <span className="text-sm">Öffentliches Profil</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-12 flex justify-between items-center border-t border-white/10 pt-8">
+              <button onClick={handleBackToOverview} className="text-sm text-[var(--fyf-steel)]">← Zurück</button>
+              <div className="flex items-center gap-4">
+                {saveSuccess && <span className="text-[var(--fyf-mint)]">✓ Gespeichert</span>}
+                <button onClick={handleSaveProfileSettings} disabled={isSaving} className="guide-btn guide-btn-primary">{isSaving ? 'Speichert...' : 'Speichern'}</button>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
-      {/* Goal Modal */}
-      <GoalModal
-        open={isGoalModalOpen}
-        initialGoal={profile.goal.text}
-        onClose={() => setGoalModalOpen(false)}
-        onSave={handleGoalSave}
-      />
+      <GoalModal open={isGoalModalOpen} initialGoal={profile?.goal?.text || ''} onClose={() => setGoalModalOpen(false)} onSave={handleGoalSave} />
     </div>
   );
 }

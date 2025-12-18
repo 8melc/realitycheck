@@ -10,7 +10,19 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showManualLink, setShowManualLink] = useState(false)
   const router = useRouter()
+
+  // Timer für manuellen Link-Fallback
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (loading) {
+      timer = setTimeout(() => setShowManualLink(true), 3000);
+    } else {
+      setShowManualLink(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   // Falls schon eingeloggt, direkt zum Feedboard
   useEffect(() => {
@@ -18,7 +30,7 @@ export default function Login() {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         console.log('Session aktiv, leite weiter...');
-        router.push('/feedboard')
+        router.push('/user/dashboard')
       }
     }
     checkSession()
@@ -37,6 +49,8 @@ export default function Login() {
         password,
       })
       
+      console.log('Supabase Login Response:', { data, authError });
+      
       if (authError) {
         console.error('Auth Error Details:', authError);
         setError(authError.message)
@@ -46,26 +60,11 @@ export default function Login() {
       
       if (data.user) {
         console.log('User ID:', data.user.id);
+        console.log('Login erfolgreich - leite direkt weiter');
         
-        // Profil-Check
-        console.log('Prüfe Profil in DB...');
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('id')
-          .eq('user_id', data.user.id)
-          .maybeSingle()
-        
-        if (profileError) console.error('Profil-Fehler:', profileError);
-
-        const target = profile ? '/feedboard' : '/onboarding'
-        console.log('ZIEL-URL:', target);
-        
-        // Harte Weiterleitung
+        // Direkter Redirect ohne Umwege
+        router.push('/user/dashboard');
         router.refresh();
-        setTimeout(() => {
-          console.log('Führe harten Redirect aus...');
-          window.location.href = target;
-        }, 500);
       } else {
         console.warn('Kein User-Objekt zurückgegeben');
         setError('Login fehlgeschlagen: Kein User gefunden.');
@@ -92,10 +91,16 @@ export default function Login() {
         {loading && (
           <div className="login-hints" style={{ border: '1px solid var(--realitycheck-mint)', color: 'var(--realitycheck-mint)' }}>
             <p>Verbindung wird hergestellt...</p>
-            <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', opacity: 0.8 }}>
-              Falls keine automatische Weiterleitung erfolgt: 
-              <a href="/feedboard" style={{ textDecoration: 'underline', marginLeft: '5px', cursor: 'pointer' }}>Hier klicken</a>
-            </p>
+            {showManualLink && (
+              <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', opacity: 0.8 }}>
+                Falls keine automatische Weiterleitung erfolgt: 
+                <a onClick={() => {
+                  const target = '/feedboard';
+                  router.push(target);
+                  router.refresh();
+                }} style={{ textDecoration: 'underline', marginLeft: '5px', cursor: 'pointer' }}>Hier klicken</a>
+              </p>
+            )}
           </div>
         )}
         
@@ -106,6 +111,7 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             className="login-input"
             placeholder="Email Adresse"
+            disabled={loading}
           />
           <div className="login-password-wrapper">
             <input
@@ -114,6 +120,7 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               className="login-input"
               placeholder="Passwort"
+              disabled={loading}
             />
             <button 
               type="button" 

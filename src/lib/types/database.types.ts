@@ -19,6 +19,11 @@ export interface Database {
           guide_personality: string | null
           daily_time_limit_minutes: number | null
           main_goal_id: string | null
+          bio: string | null
+          focus_topic: string | null
+          will_learn: string[] | null
+          will_share: string[] | null
+          is_public: boolean
           created_at: string
           updated_at: string
         }
@@ -31,6 +36,11 @@ export interface Database {
           guide_personality?: string | null
           daily_time_limit_minutes?: number | null
           main_goal_id?: string | null
+          bio?: string | null
+          focus_topic?: string | null
+          will_learn?: string[] | null
+          will_share?: string[] | null
+          is_public?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -43,6 +53,11 @@ export interface Database {
           guide_personality?: string | null
           daily_time_limit_minutes?: number | null
           main_goal_id?: string | null
+          bio?: string | null
+          focus_topic?: string | null
+          will_learn?: string[] | null
+          will_share?: string[] | null
+          is_public?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -94,45 +109,63 @@ export interface Database {
       content_items: {
         Row: {
           id: string
-          content_type: 'article' | 'podcast' | 'quote' | 'event' | 'person'
+          slug: string | null
+          title: string
+          subtitle: string | null
+          content_type: string
+          url: string | null
+          author: string | null
+          source: string | null
           cluster: string | null
           format: string | null
           read_time_minutes: number | null
-          title: string | null
-          description: string | null
-          url: string | null
-          author: string | null
+          quote_text: string | null
+          person_role: string | null
+          event_location: string | null
+          event_date: string | null
           is_published: boolean | null
-          created_at: string
-          updated_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          content_type: 'article' | 'podcast' | 'quote' | 'event' | 'person'
+          slug?: string | null
+          title: string
+          subtitle?: string | null
+          content_type: string
+          url?: string | null
+          author?: string | null
+          source?: string | null
           cluster?: string | null
           format?: string | null
           read_time_minutes?: number | null
-          title?: string | null
-          description?: string | null
-          url?: string | null
-          author?: string | null
+          quote_text?: string | null
+          person_role?: string | null
+          event_location?: string | null
+          event_date?: string | null
           is_published?: boolean | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          content_type?: 'article' | 'podcast' | 'quote' | 'event' | 'person'
+          slug?: string | null
+          title?: string
+          subtitle?: string | null
+          content_type?: string
+          url?: string | null
+          author?: string | null
+          source?: string | null
           cluster?: string | null
           format?: string | null
           read_time_minutes?: number | null
-          title?: string | null
-          description?: string | null
-          url?: string | null
-          author?: string | null
+          quote_text?: string | null
+          person_role?: string | null
+          event_location?: string | null
+          event_date?: string | null
           is_published?: boolean | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       content_preferences: {

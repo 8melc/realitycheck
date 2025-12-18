@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import type { CSSProperties, FormEvent } from 'react';
+import { useClickOutside } from '@/hooks/useClickOutside';
 import { feedboardService } from '@/lib/feedboardService';
 import { CLUSTER_CONFIG } from '@/lib/clusterConfig';
 import { FeedItem, GuideItem, GuideConversationTurn } from '@/types/feedboard';
@@ -96,6 +97,14 @@ export default function FeedboardPage() {
   const [activeFormat, setActiveFormat] = useState<string>('Alle');
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
+  const [activePartner, setActivePartner] = useState<FeedItem | null>(null);
+  
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const partnerModalRef = useRef<HTMLDivElement>(null);
+
+  // Click outside handlers
+  useClickOutside(sidebarRef, () => setIsSidebarOpen(false), isSidebarOpen, ['.ticktock-header__toggle']);
+  useClickOutside(partnerModalRef, () => setActivePartner(null), !!activePartner);
 
   // Fetch feed items from Supabase API
   useEffect(() => {
@@ -155,34 +164,35 @@ export default function FeedboardPage() {
     };
   }, []);
 
-  useEffect(() => {
-    const tick = () => {
-      const elapsedMs = Date.now() - sessionStart;
-      const minutes = Math.floor(elapsedMs / 1000 / 60);
-      setConsumedMinutes(minutes);
-      
-      // Show Stoppschild overlay after 1 minute (only if not extended)
-      if (minutes >= STOPPSCHILD_TRIGGER_MINUTES && !showStoppschildOverlay && !sessionExtended) {
-        setShowStoppschildOverlay(true);
-      }
-      
-      // Check if extension period is over (20 minutes)
-      if (sessionExtended && extensionStartTime) {
-        const extensionElapsedMs = Date.now() - extensionStartTime;
-        const extensionMinutes = Math.floor(extensionElapsedMs / 1000 / 60);
-        if (extensionMinutes >= 20) {
-          // Extension period over, show overlay again
-          setShowStoppschildOverlay(true);
-          setSessionExtended(false);
-          setExtensionStartTime(null);
-        }
-      }
-    };
+  // DISABLED: Session limit overlay logic (commented out, not deleted)
+  // useEffect(() => {
+  //   const tick = () => {
+  //     const elapsedMs = Date.now() - sessionStart;
+  //     const minutes = Math.floor(elapsedMs / 1000 / 60);
+  //     setConsumedMinutes(minutes);
+  //     
+  //     // Show Stoppschild overlay after 1 minute (only if not extended)
+  //     if (minutes >= STOPPSCHILD_TRIGGER_MINUTES && !showStoppschildOverlay && !sessionExtended) {
+  //       setShowStoppschildOverlay(true);
+  //     }
+  //     
+  //     // Check if extension period is over (20 minutes)
+  //     if (sessionExtended && extensionStartTime) {
+  //       const extensionElapsedMs = Date.now() - extensionStartTime;
+  //       const extensionMinutes = Math.floor(extensionElapsedMs / 1000 / 60);
+  //       if (extensionMinutes >= 20) {
+  //         // Extension period over, show overlay again
+  //         setShowStoppschildOverlay(true);
+  //         setSessionExtended(false);
+  //         setExtensionStartTime(null);
+  //       }
+  //     }
+  //   };
 
-    tick();
-    const interval = window.setInterval(tick, TIMER_INTERVAL_MS);
-    return () => window.clearInterval(interval);
-  }, [sessionStart, showStoppschildOverlay, sessionExtended, extensionStartTime]);
+  //   tick();
+  //   const interval = window.setInterval(tick, TIMER_INTERVAL_MS);
+  //   return () => window.clearInterval(interval);
+  // }, [sessionStart, showStoppschildOverlay, sessionExtended, extensionStartTime]);
 
 
   const formatOptions = useMemo(() => {
@@ -424,7 +434,8 @@ export default function FeedboardPage() {
         onSetFocus={() => setActiveMode('focus')}
       />
 
-      {showStoppschildOverlay && (
+      {/* DISABLED: Session limit overlay (commented out, not deleted) */}
+      {false && showStoppschildOverlay && (
         <SessionLimitOverlay
           onLogout={handleStoppschildLogout}
           onContinue={handleStoppschildContinue}
@@ -523,17 +534,30 @@ export default function FeedboardPage() {
         )}
       </div>
 
-      <GuideChatSidebar
-        isOpen={isSidebarOpen}
-        turns={conversationTurns}
-        activeTurn={activeTurn}
-        prompt={prompt}
-        isLoading={isGuideLoading}
-        onPromptChange={setPrompt}
-        onSubmit={handleGuidePromptSubmit}
-        onFollowUpSelect={handleFollowUpSelect}
-        onReset={handleResetGuide}
-      />
+      <div ref={sidebarRef}>
+        <GuideChatSidebar
+          isOpen={isSidebarOpen}
+          turns={conversationTurns}
+          activeTurn={activeTurn}
+          prompt={prompt}
+          isLoading={isGuideLoading}
+          onPromptChange={setPrompt}
+          onSubmit={handleGuidePromptSubmit}
+          onFollowUpSelect={handleFollowUpSelect}
+          onReset={handleResetGuide}
+        />
+      </div>
+
+      <div ref={partnerModalRef}>
+        <PartnerModal 
+          partner={activePartner} 
+          onClose={() => setActivePartner(null)} 
+          onHidePartner={(id) => {
+            setFeedItems(prev => prev.filter(item => item.id !== id));
+            setActivePartner(null);
+          }}
+        />
+      </div>
     </>
   );
 }

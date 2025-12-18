@@ -6,6 +6,8 @@ import ProgressBar from './ProgressBar'
 import StepHeader from './StepHeader'
 import IntroStep from './steps/IntroStep'
 import BasicsStep from './steps/BasicsStep'
+import FocusStep from './steps/FocusStep'
+import BioStep from './steps/BioStep'
 import ZeitPhilosophyStep from './steps/ZeitPhilosophyStep'
 import GoalStep from './steps/GoalStep'
 import MusicStep from './steps/MusicStep'
@@ -24,6 +26,8 @@ export interface AccessFormData {
   musicTaste: string
   lifestyle: string
   interests: string[]
+  focusTopic: string
+  bio: string
 }
 
 const steps = [
@@ -40,6 +44,20 @@ const steps = [
     heading: 'Wer bist du?',
     microcopy: 'Die Basis für dein Profil – kurz, klar, ohne Schnickschnack.',
     content: 'basics'
+  },
+  {
+    id: 'focus',
+    navLabel: 'Fokus',
+    heading: 'Was ist dein Fokus?',
+    microcopy: 'Ein Satz, der beschreibt, was dich aktuell antreibt.',
+    content: 'focus'
+  },
+  {
+    id: 'bio',
+    navLabel: 'Bio',
+    heading: 'Über dich',
+    microcopy: 'Kurzer Steckbrief – max. 280 Zeichen für die People-Liste.',
+    content: 'bio'
   },
   {
     id: 'zeit',
@@ -98,7 +116,9 @@ export default function AccessOnboarding() {
     timePhilosophy: '',
     musicTaste: '',
     lifestyle: '',
-    interests: []
+    interests: [],
+    focusTopic: '',
+    bio: ''
   })
 
   const step = steps[currentStep]
@@ -109,8 +129,8 @@ export default function AccessOnboarding() {
 
   const nextStep = async () => {
     if (validateCurrentStep()) {
-      // Step 7 (interests) ist der letzte Schritt - speichere Profil und leite weiter
-      if (currentStep === 6) { // Step 7 ist Index 6 (0-basiert)
+      // Step 9 (interests) ist der letzte Schritt - speichere Profil und leite weiter
+      if (currentStep === 8) { // Step 9 ist Index 8 (0-basiert)
         try {
           // Save profile to Supabase
           const response = await fetch('/api/profile/onboarding', {
@@ -128,6 +148,8 @@ export default function AccessOnboarding() {
               timePhilosophy: formData.timePhilosophy,
               lifestyle: formData.lifestyle,
               guidePersonality: formData.timePhilosophy, // Use timePhilosophy as guide personality for now
+              focusTopic: formData.focusTopic,
+              bio: formData.bio,
             }),
           });
 
@@ -158,6 +180,10 @@ export default function AccessOnboarding() {
     switch (step.id) {
       case 'basics':
         return !!(formData.name && formData.email && formData.birthDate)
+      case 'focus':
+        return !!formData.focusTopic
+      case 'bio':
+        return !!formData.bio
       case 'zeit':
         return !!formData.timePhilosophy
       case 'goal':
@@ -177,6 +203,10 @@ export default function AccessOnboarding() {
         return <IntroStep />
       case 'basics':
         return <BasicsStep formData={formData} updateFormData={updateFormData} />
+      case 'focus':
+        return <FocusStep formData={formData} updateFormData={updateFormData} />
+      case 'bio':
+        return <BioStep formData={formData} updateFormData={updateFormData} />
       case 'zeit':
         return <ZeitPhilosophyStep formData={formData} updateFormData={updateFormData} />
       case 'goal':
@@ -212,7 +242,7 @@ export default function AccessOnboarding() {
         </div>
       </div>
 
-      {(currentStep < steps.length - 1 || currentStep === 6) && (
+      {(currentStep < steps.length - 1 || currentStep === 8) && (
         <div className="navigation-buttons">
           {currentStep === 0 ? (
             <button className="nav-button next" onClick={nextStep}>
@@ -228,7 +258,7 @@ export default function AccessOnboarding() {
                 onClick={nextStep}
                 disabled={!validateCurrentStep()}
               >
-                {currentStep === 6 ? 'Abschließen →' : 'Weiter →'}
+                {currentStep === 8 ? 'Abschließen →' : 'Weiter →'}
               </button>
             </>
           )}

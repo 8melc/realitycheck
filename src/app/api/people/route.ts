@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Get all user profiles that have the required fields
+    // Get all user profiles that have the required fields and are public
     console.log('People API - Querying user_profiles with filters...');
     const { data: profiles, error } = await supabase
       .from('user_profiles')
@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
       .not('display_name', 'is', null)
       .not('birth_date', 'is', null)
       .not('target_age', 'is', null)
+      .eq('is_public', true)
       .order('created_at', { ascending: false });
     
     if (error) {

@@ -185,6 +185,35 @@ export default function ProfilePage() {
               </section>
             )}
 
+            {/* Will Learn & Will Share */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {profileData.will_learn && profileData.will_learn.length > 0 && (
+                <section className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                  <h2 className="text-xs uppercase tracking-[0.15em] text-gray-500 mb-4">Investiert Zeit in</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {profileData.will_learn.map(tag => (
+                      <span key={tag} className="px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-sm border border-teal-500/20">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {profileData.will_share && profileData.will_share.length > 0 && (
+                <section className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                  <h2 className="text-xs uppercase tracking-[0.15em] text-gray-500 mb-4">Teilt Erfahrungen in</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {profileData.will_share.map(tag => (
+                      <span key={tag} className="px-3 py-1 rounded-full bg-coral-500/10 text-orange-400 text-sm border border-orange-500/20">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+
             {/* Primary Goal */}
             {profileData.primary_goal && (
               <section>

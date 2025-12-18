@@ -85,6 +85,11 @@ export interface Profile {
     lastLimitUpdateAt: string | null;
     limitReached: boolean;
   };
+  bio?: string;
+  focusTopic?: string;
+  willLearn?: string[];
+  willShare?: string[];
+  isPublic?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -100,8 +105,10 @@ export interface UserProfile {
   guide_personality: string;
   bio?: string;
   focus_topic?: string;
-  avatar_url?: string;
+  will_learn?: string[];
+  will_share?: string[];
   is_public: boolean;
+  avatar_url?: string;
   created_at?: string;
 }
 

@@ -4,9 +4,17 @@ import type { ContentItem } from '@/lib/types/database.types';
 import type { FeedItem } from '@/types/feedboard';
 
 /**
- * Map ContentItem from database to FeedItem for the feedboard UI
+ * Map content_type and format to FeedItem format
  */
-function mapContentItemToFeedItem(item: ContentItem): FeedItem {
+function mapFormat(contentType: string | null, format: string | null): FeedItem['format'] {
+  // If format field exists and matches FeedItem format, use it directly
+  if (format) {
+    const normalizedFormat = format.trim();
+    if (['Zitat', 'Artikel', 'Event', 'People', 'Podcast', 'Song'].includes(normalizedFormat)) {
+      return normalizedFormat as FeedItem['format'];
+    }
+  }
+
   // Map content_type to format
   const formatMap: Record<string, FeedItem['format']> = {
     'article': 'Artikel',
@@ -16,21 +24,20 @@ function mapContentItemToFeedItem(item: ContentItem): FeedItem {
     'person': 'People',
   };
 
-  // Use format from DB if available, otherwise map from content_type
-  let format: FeedItem['format'] = 'Artikel'; // default
-  if (item.format) {
-    // Try to match format string directly
-    const normalizedFormat = item.format.trim();
-    if (['Zitat', 'Artikel', 'Event', 'People', 'Podcast', 'Song'].includes(normalizedFormat)) {
-      format = normalizedFormat as FeedItem['format'];
-    } else {
-      format = formatMap[item.content_type] || 'Artikel';
-    }
-  } else {
-    format = formatMap[item.content_type] || 'Artikel';
-  }
+  return formatMap[contentType || ''] || 'Artikel';
+}
 
-  // Map cluster to theme (assuming cluster values match theme values)
+/**
+ * Map ContentItem from database to FeedItem for the feedboard UI
+ */
+function mapContentItemToFeedItem(item: ContentItem): FeedItem {
+  // Use subtitle, fallback to quote_text for quotes, otherwise empty string
+  const description = item.subtitle ?? item.quote_text ?? '';
+
+  // Map format using content_type and format fields
+  const format = mapFormat(item.content_type, item.format);
+
+  // Map cluster to theme (cluster values should match theme values)
   const theme = (item.cluster || 'Zeit & Endlichkeit') as FeedItem['theme'];
 
   // Default PERMA value - can be enhanced later if PERMA is stored in DB
@@ -39,16 +46,16 @@ function mapContentItemToFeedItem(item: ContentItem): FeedItem {
   return {
     id: item.id,
     title: item.title || '',
-    description: item.description || '',
+    description,
     format,
     theme,
     perma,
     link: item.url || '#',
     image: '', // Image field not in schema - set to empty string
-    guideWhy: item.description || '', // Fallback to description if why_this_item doesn't exist
-    source: 'feedboard',
+    guideWhy: description, // Use description/quote_text for guideWhy
+    source: (item.source || 'feedboard') as 'feedboard' | 'guide' | 'manual',
     chips: [],
-    guideComment: item.description || '', // Use description as comment for now
+    guideComment: description, // Use subtitle/quote_text for guideComment
     isHero: false,
     isSilence: false,
     hasGlitch: false,
@@ -82,9 +89,40 @@ export async function GET(request: NextRequest) {
     }
 
     // Map ContentItems to FeedItems
-    const feedItems: FeedItem[] = (contentItems || []).map(mapContentItemToFeedItem);
+    // Set first item as hero (large display)
+    const feedItems: FeedItem[] = (contentItems || []).map((item, index) => {
+      const feedItem = mapContentItemToFeedItem(item);
+      // Mark first item as hero to display it large
+      if (index === 0) {
+        feedItem.isHero = true;
+      }
+      return feedItem;
+    });
 
-    return NextResponse.json({ items: feedItems });
+    // Debug: Log cluster values from database (server-side)
+    if (contentItems && contentItems.length > 0) {
+      console.log('Feedboard API - Cluster values from DB:', {
+        count: contentItems.length,
+        clusters: contentItems.map(item => ({
+          id: item.id,
+          title: item.title,
+          cluster: item.cluster,
+          mapped_theme: feedItems.find(fi => fi.id === item.id)?.theme
+        }))
+      });
+    }
+
+    return NextResponse.json({ 
+      items: feedItems,
+      // Debug: Include original cluster values for inspection
+      _debug: process.env.NODE_ENV === 'development' ? {
+        originalClusters: contentItems?.map(item => ({
+          id: item.id,
+          title: item.title,
+          cluster: item.cluster
+        })) || []
+      } : undefined
+    });
   } catch (error) {
     console.error('Error in feedboard items API:', error);
     return NextResponse.json(

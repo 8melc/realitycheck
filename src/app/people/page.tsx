@@ -326,11 +326,41 @@ export default function People() {
                   fontSize: '1.5rem',
                   fontWeight: '700',
                   color: '#FFF8E7',
-                  marginBottom: '16px',
+                  marginBottom: '8px',
                   lineHeight: '1.3'
                 }}>
                   {person.display_name || 'Unbekannt'}
                 </h3>
+
+                {/* Focus Topic */}
+                {person.focus_topic && (
+                  <div style={{
+                    fontSize: '0.9rem',
+                    color: '#70B1AF',
+                    fontWeight: '600',
+                    marginBottom: '12px',
+                    letterSpacing: '0.02em',
+                    textTransform: 'uppercase'
+                  }}>
+                    {person.focus_topic}
+                  </div>
+                )}
+
+                {/* Bio */}
+                {person.bio && (
+                  <p style={{
+                    fontSize: '0.95rem',
+                    color: '#B8BCC8',
+                    lineHeight: '1.5',
+                    marginBottom: '20px',
+                    display: '-webkit-box',
+                    WebkitLineClamp: '3',
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>
+                    {person.bio}
+                  </p>
+                )}
 
               {/* Zeit-Fakten */}
               {person.timeFacts && (

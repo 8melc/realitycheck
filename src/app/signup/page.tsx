@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import './signup.css'
 
 export default function Signup() {
@@ -15,24 +16,30 @@ export default function Signup() {
     setLoading(true)
     setError('')
     
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-    
-    if (error) {
-      console.error('Auth Error:', error)
-      setError(error.message)
+    try {
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      })
+      
+      if (authError) {
+        console.error('Auth Error:', authError)
+        setError(authError.message)
+        setLoading(false)
+        return
+      }
+      
+      if (data.user) {
+        // Nach Signup immer zu Onboarding, da noch kein Profil existiert
+        router.push('/onboarding')
+        router.refresh()
+      }
+    } catch (err: any) {
+      console.error('Signup Error:', err)
+      setError('Systemfehler bei der Registrierung')
+    } finally {
       setLoading(false)
-      return
     }
-    
-    if (data.user) {
-      // Nach Signup immer zu Onboarding, da noch kein Profil existiert
-      router.push('/onboarding')
-    }
-    
-    setLoading(false)
   }
 
   return (
@@ -54,6 +61,7 @@ export default function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             className="signup-input"
             placeholder="deine@email.com"
+            disabled={loading}
           />
           <input
             type="password"
@@ -62,6 +70,7 @@ export default function Signup() {
             className="signup-input"
             placeholder="Passwort"
             minLength={6}
+            disabled={loading}
           />
         </div>
         
@@ -74,7 +83,7 @@ export default function Signup() {
         </button>
         
         <div className="signup-footer">
-          Bereits ein Konto? <a href="/login" className="signup-link">Einloggen</a>
+          Bereits ein Konto? <Link href="/login" className="signup-link">Einloggen</Link>
         </div>
       </div>
     </div>

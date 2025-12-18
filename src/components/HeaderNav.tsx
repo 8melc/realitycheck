@@ -23,49 +23,72 @@ export default function HeaderNav() {
   
   // Check auth status and fetch profile
   useEffect(() => {
-    const checkAuthAndProfile = async () => {
+    let isMounted = true;
+    
+    const fetchProfile = async (userId: string, email: string) => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setIsAuthenticated(!!user)
-        
-        if (user) {
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('display_name')
-            .eq('user_id', user.id)
-            .single()
-            
-          if (profile) {
-            setDisplayName(profile.display_name)
-          }
-        }
-      } catch (error) {
-        setIsAuthenticated(false)
-        setDisplayName(null)
-      }
-    }
-    
-    checkAuthAndProfile()
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setIsAuthenticated(!!session)
-      if (session?.user) {
-        const { data: profile } = await supabase
+        const { data, error, status } = await supabase
           .from('user_profiles')
           .select('display_name')
-          .eq('user_id', session.user.id)
-          .single()
-        setDisplayName(profile?.display_name || null)
-      } else {
-        setDisplayName(null)
+          .eq('user_id', userId)
+          .maybeSingle();
+          
+        if (!isMounted) return;
+
+        if (data?.display_name) {
+          setDisplayName(data.display_name);
+        } else {
+          // Fallback to email prefix if no display name
+          setDisplayName(email.split('@')[0]);
+        }
+      } catch (err) {
+        console.error('HeaderNav - Profile fetch error:', err);
+        if (isMounted) setDisplayName(email.split('@')[0]);
       }
-    })
+    };
+
+    const checkAuth = async () => {
+      console.log('HeaderNav - Checking auth...');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user || null;
+        
+        if (!isMounted) return;
+        setIsAuthenticated(!!currentUser);
+        
+        if (currentUser) {
+          console.log('HeaderNav - User found:', currentUser.email);
+          // Fetch profile in the background, don't block
+          fetchProfile(currentUser.id, currentUser.email || '');
+        }
+      } catch (error) {
+        console.error('HeaderNav Unexpected Error:', error);
+        if (isMounted) setIsAuthenticated(false);
+      }
+    };
+    
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('HeaderNav - Auth change:', event);
+      if (!isMounted) return;
+      
+      const user = session?.user || null;
+      setIsAuthenticated(!!user);
+      
+      if (user) {
+        fetchProfile(user.id, user.email || '');
+      } else {
+        setDisplayName(null);
+      }
+    });
     
     return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -90,11 +113,11 @@ export default function HeaderNav() {
         </nav>
 
         {/* Auth Buttons - Rechts */}
-        <div className="header-nav-cta" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div className="header-nav-cta" style={{ display: 'flex', gap: '16px', alignItems: 'center', minWidth: 'fit-content' }}>
           {isAuthenticated ? (
             <>
               {displayName && (
-                <span style={{ color: '#70B1AF', fontSize: '0.875rem', fontWeight: '500' }}>
+                <span className="desktop-only" style={{ color: '#70B1AF', fontSize: '0.875rem', fontWeight: '500' }}>
                   {displayName}
                 </span>
               )}
@@ -107,21 +130,22 @@ export default function HeaderNav() {
               <LogoutButton />
             </>
           ) : (
-            <>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <Link 
                 href="/login" 
                 className="cta-button"
-                style={{ background: 'transparent', border: '1px solid rgba(78, 205, 196, 0.4)' }}
+                style={{ background: 'transparent', border: '1px solid rgba(78, 205, 196, 0.4)', padding: '0.5rem 1.25rem' }}
               >
                 Login
               </Link>
               <Link 
                 href="/signup" 
                 className="cta-button"
+                style={{ padding: '0.5rem 1.25rem' }}
               >
                 Sign Up
               </Link>
-            </>
+            </div>
           )}
         </div>
 

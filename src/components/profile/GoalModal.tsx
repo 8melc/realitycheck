@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useClickOutside } from '@/hooks/useClickOutside';
 import { Profile } from '@/types/profile';
 import { ChevronRightIcon } from './icons';
 
@@ -22,6 +23,9 @@ const GoalModal = ({ open, initialGoal, onClose, onSave }: GoalModalProps) => {
   const [goalValue, setGoalValue] = useState(initialGoal ?? '');
   const [selectedChip, setSelectedChip] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close
+  useClickOutside(dialogRef, onClose, open);
 
   useEffect(() => {
     setGoalValue(initialGoal ?? '');

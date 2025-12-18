@@ -452,6 +452,51 @@
   transform: scale(1.1);
 }
 
+.rc-mode-card.active {
+  border-color: var(--rc-mint);
+  background: var(--rc-mint-glow);
+  box-shadow: 0 0 15px var(--rc-mint-glow);
+}
+
+.rc-mode-card.active .rc-mode-icon {
+  color: var(--rc-mint);
+}
+
+.rc-mode-card.active .rc-mode-label {
+  color: var(--rc-cream);
+}
+
+/* Profile Form Styles */
+.guide-section textarea.rc-input,
+.guide-section input.rc-input {
+  background: #111418;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.guide-section textarea.rc-input:focus,
+.guide-section input.rc-input:focus {
+  border-color: var(--rc-mint);
+}
+
+/* Success Indicator */
+.save-success-indicator {
+  animation: fadeInOut 3s ease-in-out forwards;
+  background: rgba(78, 205, 196, 0.1);
+  color: var(--rc-mint);
+  border: 1px solid var(--rc-mint);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
 /* Legacy sidebar styles - keep for compatibility */
 .guide-dashboard-sidebar-left {
   position: fixed;

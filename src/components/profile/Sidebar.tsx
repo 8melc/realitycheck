@@ -7,14 +7,32 @@ import { CompassIcon, TargetIcon, PenSquareIcon, ClockIcon, MusicIcon, GaugeIcon
 interface SidebarProps {
   profile: Profile;
   onEditGoal: () => void;
+  activeSection: 'overview' | 'profile';
+  setActiveSection: (section: 'overview' | 'profile') => void;
+  hasUnsavedChanges?: boolean;
 }
 
-const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
+const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsavedChanges }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isClient, setIsClient] = useState(false);
   
   const handleLinkClick = (href: string, isGuidePrefs?: boolean) => {
-    if (href.startsWith('#')) {
+    if (activeSection === 'profile' && hasUnsavedChanges) {
+      const confirm = window.confirm('Bist du sicher? Deine Zeit ist zu wertvoll, um sie mit ungespeicherten Daten zu verschwenden. Willst du wirklich einfach so weggehen?');
+      if (!confirm) return;
+    }
+
+    if (activeSection !== 'overview') {
+      setActiveSection('overview');
+      // Give React time to render the overview sections
+      setTimeout(() => {
+        const elementId = isGuidePrefs ? 'guide-settings' : href.substring(1);
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } else if (href.startsWith('#')) {
       const elementId = isGuidePrefs ? 'guide-settings' : href.substring(1);
       const element = document.getElementById(elementId);
       if (element) {
@@ -139,6 +157,19 @@ const Sidebar = ({ profile, onEditGoal }: SidebarProps) => {
       <div className="rc-mode-section">
         <div className="rc-section-title">Einstellungen</div>
         <div className="rc-mode-grid">
+          <button
+            onClick={() => {
+              if (activeSection === 'profile' && hasUnsavedChanges) {
+                const confirm = window.confirm('Bist du sicher? Deine Zeit ist zu wertvoll, um sie mit ungespeicherten Daten zu verschwenden. Willst du wirklich einfach so weggehen?');
+                if (!confirm) return;
+              }
+              setActiveSection('profile');
+            }}
+            className={`rc-mode-card ${activeSection === 'profile' ? 'active' : ''}`}
+          >
+            <CompassIcon className="rc-mode-icon" />
+            <span className="rc-mode-label">Profil & Guide</span>
+          </button>
           {modeActions.map(({ href, label, icon: Icon, isGuidePrefs, urgent }) => (
             <button
               key={label}

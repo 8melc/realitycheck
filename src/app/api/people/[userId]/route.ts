@@ -15,7 +15,7 @@ export async function GET(
     // 1. Profil laden
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('user_id, display_name, birth_date, target_age, guide_personality, bio, focus_topic, avatar_url, is_public, created_at, updated_at')
+      .select('user_id, display_name, birth_date, target_age, guide_personality, bio, focus_topic, will_learn, will_share, avatar_url, is_public, created_at, updated_at')
       .eq('user_id', userId)
       .single();
 
@@ -40,6 +40,17 @@ export async function GET(
           code: profileError.code 
         },
         { status: 500 }
+      );
+    }
+
+    // Check if profile is public
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const isOwner = currentUser?.id === userId;
+
+    if (!profile.is_public && !isOwner) {
+      return NextResponse.json(
+        { error: 'Profil ist nicht öffentlich', code: 'PRIVATE_PROFILE' },
+        { status: 403 }
       );
     }
 

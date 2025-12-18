@@ -22,6 +22,11 @@ export function mapUserProfileToLegacyProfile(
       createdAt: supabaseProfile.created_at,
       updatedAt: supabaseProfile.updated_at,
     },
+    bio: supabaseProfile.bio || undefined,
+    focusTopic: supabaseProfile.focus_topic || undefined,
+    willLearn: supabaseProfile.will_learn || undefined,
+    willShare: supabaseProfile.will_share || undefined,
+    isPublic: supabaseProfile.is_public ?? true,
     createdAt: supabaseProfile.created_at,
     updatedAt: supabaseProfile.updated_at,
   };
