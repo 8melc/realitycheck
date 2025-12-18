@@ -89,6 +89,68 @@ export interface Profile {
   updatedAt: string;
 }
 
+// --- NEUE TYPEN FÜR PHASE 2 ---
+
+// Komplettes User-Profil mit allen Feldern aus der DB
+export interface UserProfile {
+  user_id: string;
+  display_name: string;
+  birth_date: string;
+  target_age: number;
+  guide_personality: string;
+  bio?: string;
+  focus_topic?: string;
+  avatar_url?: string;
+  is_public: boolean;
+  created_at?: string;
+}
+
+// Profil mit Primary Goal (für Detailseite)
+export interface ProfileWithGoal extends UserProfile {
+  primary_goal?: {
+    id: string;
+    title: string;
+    status: string;
+  } | null;
+}
+
+// Zeit-Berechnungen für Profil
+export interface ProfileTimeStats {
+  weeksLived: number;
+  weeksRemaining: number;
+  percentageLived: number;
+  yearsLived: number;
+  yearsRemaining: number;
+}
+
+// Helper: Berechne Zeit-Stats aus Profil
+export function calculateTimeStats(profile: UserProfile): ProfileTimeStats {
+  const birthDate = new Date(profile.birth_date);
+  const today = new Date();
+  const targetDate = new Date(birthDate);
+  targetDate.setFullYear(birthDate.getFullYear() + profile.target_age);
+
+  const msPerWeek = 1000 * 60 * 60 * 24 * 7;
+  const totalWeeks = Math.floor((targetDate.getTime() - birthDate.getTime()) / msPerWeek);
+  const weeksLived = Math.floor((today.getTime() - birthDate.getTime()) / msPerWeek);
+  const weeksRemaining = Math.max(0, totalWeeks - weeksLived);
+  const percentageLived = Math.min(100, Math.round((weeksLived / totalWeeks) * 100));
+
+  const msPerYear = 1000 * 60 * 60 * 24 * 365.25;
+  const yearsLived = Math.floor((today.getTime() - birthDate.getTime()) / msPerYear);
+  const yearsRemaining = Math.max(0, profile.target_age - yearsLived);
+
+  return {
+    weeksLived,
+    weeksRemaining,
+    percentageLived,
+    yearsLived,
+    yearsRemaining
+  };
+}
+
+// --- EXISTIERENDE HILFSTYPEN ---
+
 export interface SessionUsage {
   id: string;
   userId: string;

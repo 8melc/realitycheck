@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Setup Test User</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #0A0A0A;
+      color: #FFF8E7;
+    }
+    button {
+      background: #70B1AF;
+      color: #0A0A0A;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #5a9a98;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(112, 177, 175, 0.1);
+      border: 1px solid rgba(112, 177, 175, 0.2);
+    }
+    .success {
+      background: rgba(112, 177, 175, 0.1);
+      border-color: #70B1AF;
+    }
+    .error {
+      background: rgba(240, 138, 143, 0.1);
+      border-color: #F08A8F;
+    }
+    pre {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test User Setup</h1>
+  <p>Klicke auf den Button, um den Test-Account automatisch einzurichten:</p>
+  
+  <button id="setupBtn" onclick="setupTestUser()">Test User erstellen</button>
+  
+  <div id="result"></div>
+
+  <script>
+    async function setupTestUser() {
+      const btn = document.getElementById('setupBtn');
+      const result = document.getElementById('result');
+      
+      btn.disabled = true;
+      btn.textContent = 'Erstelle Test User...';
+      result.innerHTML = '<p>Lädt...</p>';
+      
+      try {
+        const response = await fetch('/api/admin/create-test-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          result.className = 'result success';
+          result.innerHTML = `
+            <h3>✅ Test User erfolgreich erstellt!</h3>
+            <p><strong>Login-Daten:</strong></p>
+            <ul>
+              <li>Email: <code>${data.user.email}</code></li>
+              <li>Password: <code>${data.user.password}</code></li>
+            </ul>
+            <p><strong>Profil:</strong></p>
+            <ul>
+              <li>Name: ${data.user.display_name}</li>
+              <li>Geburtsdatum: ${data.user.birth_date}</li>
+              <li>Zielalter: ${data.user.target_age}</li>
+              <li>Guide Personality: ${data.user.guide_personality}</li>
+              <li>Ziel: ${data.user.goal}</li>
+            </ul>
+            <p><a href="/login" style="color: #70B1AF;">→ Jetzt einloggen</a></p>
+          `;
+        } else {
+          result.className = 'result error';
+          result.innerHTML = `
+            <h3>❌ Fehler</h3>
+            <p><strong>${data.error || 'Unknown error'}</strong></p>
+            ${data.details ? `<p>Details: ${data.details}</p>` : ''}
+            ${data.instructions ? `<pre>${data.instructions}</pre>` : ''}
+          `;
+        }
+      } catch (error) {
+        result.className = 'result error';
+        result.innerHTML = `
+          <h3>❌ Fehler</h3>
+          <p>${error.message}</p>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Test User erstellen';
+      }
+    }
+  </script>
+</body>
+</html>

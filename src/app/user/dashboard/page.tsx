@@ -16,9 +16,14 @@ import LifeWeeksPreview from '@/components/profile/LifeWeeksPreview';
 import GoalModal from '@/components/profile/GoalModal';
 import { Profile } from '@/types/profile';
 import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useUsageStore } from '@/stores/usageStore';
 import { useGuideStore } from '@/stores/guideStore';
 import { getGuideText } from '@/lib/guideTone';
+import { supabase } from '@/lib/supabase/client';
+import type { UserProfile } from '@/lib/types/database.types';
+import { mapUserProfileToLegacyProfile } from '@/lib/utils/profile-mapper';
+import LogoutButton from '@/components/LogoutButton';
 import './page.css';
 
 // Mock profile data - Melissa Conrads Demo-Profil (Priorität 2)
@@ -165,22 +170,177 @@ const computeTimeMetrics = (profile: Profile) => {
 };
 
 export default function GuideDashboardPage() {
-  const [profile, setProfile] = useState<Profile>(mockProfile);
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [isGoalModalOpen, setGoalModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { fetchUsageData } = useUsageStore();
   const { guideTone, isGuideMuted } = useGuideStore();
   
   // Calculate time metrics only on client side
   const timeMetrics = useMemo(() => {
-    if (!isClient) {
+    if (!isClient || !profile) {
       return { weeksLived: 0, weeksRemaining: 0, daysRemaining: 0 };
     }
     return computeTimeMetrics(profile);
   }, [profile, isClient]);
 
+  // Load profile from Supabase
   useEffect(() => {
-    setIsClient(true);
+    async function loadUserProfile() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // 1. User Session holen
+        const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !currentUser) {
+          console.error('Dashboard - Auth error:', {
+            message: authError?.message,
+            name: authError?.name,
+            status: authError?.status,
+            authError
+          });
+          throw new Error('Not authenticated');
+        }
+        
+        // Store user for display
+        setUser(currentUser);
+        
+        console.log('Dashboard - Loading profile for user:', currentUser.id, 'Email:', currentUser.email);
+        
+        // 2. User-Profil aus user_profiles laden (ohne .single() - gibt Array zurück)
+        const { data: profiles, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', currentUser.id);
+        
+        // Error checken
+        if (profileError) {
+          console.error('Dashboard - Profile load error:', {
+            message: profileError.message,
+            code: profileError.code,
+            details: profileError.details,
+            hint: profileError.hint,
+            userId: currentUser.id
+          });
+          throw new Error(`Fehler beim Laden: ${profileError.message || profileError.code}`);
+        }
+        
+        // Prüfen ob Profil existiert
+        if (!profiles || profiles.length === 0) {
+          console.warn('Dashboard - No profile found for user:', currentUser.id);
+          
+          // User auf Onboarding umleiten
+          router.push('/onboarding');
+          return;
+        }
+        
+        // Erstes (und einziges) Profil nehmen
+        const userProfile = profiles[0];
+        console.log('Dashboard - Profile loaded:', {
+          user_id: userProfile.user_id,
+          display_name: userProfile.display_name,
+          has_birth_date: !!userProfile.birth_date,
+          has_target_age: userProfile.target_age !== null
+        });
+        
+        // 3. Primary Goal laden
+        const { data: primaryGoal } = await supabase
+          .from('user_goals')
+          .select('title')
+          .eq('user_id', currentUser.id)
+          .eq('is_primary', true)
+          .maybeSingle();
+        
+        // Extract goal title safely
+        const goalTitle = primaryGoal && 'title' in primaryGoal ? (primaryGoal as { title: string }).title : null;
+        
+        // 4. Map to Profile format
+        const mappedProfile = mapUserProfileToLegacyProfile(userProfile, goalTitle);
+        
+        // 5. Create full Profile object with defaults
+        const fullProfile: Profile = {
+          id: userProfile.user_id,
+          identity: {
+            name: userProfile.display_name || 'User',
+            email: currentUser.email || '',
+            avatarUrl: undefined,
+            birthdate: userProfile.birth_date || '',
+            targetAge: userProfile.target_age || 80,
+          },
+          goal: {
+            text: goalTitle || 'Noch keines gesetzt',
+            source: 'custom',
+            createdAt: userProfile.created_at,
+            updatedAt: userProfile.updated_at,
+          },
+          timePhilosophy: {
+            optionId: userProfile.guide_personality || 'time-investment',
+            label: userProfile.guide_personality || 'Zeit als Investition',
+            selectedAt: userProfile.created_at,
+          },
+          lifestyle: {
+            optionId: 'default',
+            label: 'Standard',
+            selectedAt: userProfile.created_at,
+          },
+          interests: [],
+          projects: [],
+          musicDNA: {
+            genres: [],
+            spotifyLinked: false,
+          },
+          progress: {
+            guideStatus: 'warming-up',
+            actionCount: 0,
+            streak: 0,
+            lastAction: userProfile.updated_at,
+          },
+          journey: [
+            {
+              id: 'onboarding-1',
+              type: 'onboarding',
+              description: 'Profil erstellt',
+              timestamp: userProfile.created_at,
+            },
+          ],
+          feedback: [],
+          createdAt: userProfile.created_at,
+          updatedAt: userProfile.updated_at,
+        };
+        
+        setProfile(fullProfile);
+      } catch (err: any) {
+        console.error('Dashboard - Error:', {
+          message: err.message,
+          name: err.name,
+          stack: err.stack,
+          error: err
+        });
+        
+        // Extract error message from various possible formats
+        let errorMessage = 'Fehler beim Laden des Profils';
+        if (err.message) {
+          errorMessage = err.message;
+        } else if (typeof err === 'string') {
+          errorMessage = err;
+        } else if (err.error?.message) {
+          errorMessage = err.error.message;
+        }
+        
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+        setIsClient(true);
+      }
+    }
+    
+    loadUserProfile();
   }, []);
   
   const {
@@ -230,8 +390,73 @@ export default function GuideDashboardPage() {
     fetchUsageData();
   }, [fetchUsageData]);
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <p style={{ color: '#B8BCC8' }}>Lädt dein Profil...</p>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <div>
+          <p style={{ color: '#F08A8F', marginBottom: '20px' }}>Fehler beim Laden: {error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              background: '#70B1AF',
+              color: '#0A0A0A',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            Neu laden
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no profile state
+  if (!profile) {
+    return (
+      <div className="guide-dashboard-shell" style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <p style={{ color: '#B8BCC8' }}>Kein Profil gefunden. Bitte Onboarding abschließen.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="guide-dashboard-shell">
+      {/* Nav Bar mit User Info und Logout */}
+      {user && profile && (
+        <div style={{
+          padding: '12px 20px',
+          background: 'rgba(112, 177, 175, 0.1)',
+          borderBottom: '1px solid rgba(112, 177, 175, 0.2)',
+          fontSize: '0.875rem',
+          color: '#B8BCC8',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <span style={{ fontWeight: '600', color: '#70B1AF' }}>Eingeloggt als:</span>{' '}
+            <span style={{ color: '#FFF8E7' }}>{profile.identity.name}</span>
+            {' • '}
+            <span style={{ color: '#B8BCC8' }}>{user.email}</span>
+          </div>
+          <LogoutButton />
+        </div>
+      )}
+
       {/* Left Sidebar - Credits, Goals, Quick Actions */}
       <Sidebar 
         profile={profile} 

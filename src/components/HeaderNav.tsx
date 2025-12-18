@@ -1,15 +1,44 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
+import LogoutButton from '@/components/LogoutButton'
 
 export default function HeaderNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
   
   // Check if we're on the home page
   const isHomePage = pathname === '/'
+  
+  // Check auth status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setIsAuthenticated(!!user)
+      } catch (error) {
+        setIsAuthenticated(false)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkAuth()
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session)
+    })
+    
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -33,14 +62,30 @@ export default function HeaderNav() {
           <Link href="/transparenz" className="nav-link">About us</Link>
         </nav>
 
-        {/* CTA Button - Rechts */}
-        <div className="header-nav-cta">
-          <Link 
-            href={isHomePage ? "/life-weeks" : "/user/dashboard"} 
-            className="cta-button"
-          >
-            {isHomePage ? "Start" : "Dashboard"}
-          </Link>
+        {/* Auth Buttons - Rechts */}
+        <div className="header-nav-cta" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {!isLoading && (
+            <>
+              {isAuthenticated ? (
+                <>
+                  <Link 
+                    href="/user/dashboard" 
+                    className="cta-button"
+                  >
+                    Dashboard
+                  </Link>
+                  <LogoutButton />
+                </>
+              ) : (
+                <Link 
+                  href="/login" 
+                  className="cta-button"
+                >
+                  Login
+                </Link>
+              )}
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -72,13 +117,32 @@ export default function HeaderNav() {
             <Link href="/transparenz" className="mobile-nav-link" onClick={toggleMobileMenu}>About us</Link>
           </nav>
           <div className="mobile-cta">
-            <Link 
-              href={isHomePage ? "/life-weeks" : "/user/dashboard"} 
-              className="mobile-cta-button" 
-              onClick={toggleMobileMenu}
-            >
-              {isHomePage ? "Start" : "Dashboard"}
-            </Link>
+            {!isLoading && (
+              <>
+                {isAuthenticated ? (
+                  <>
+                    <Link 
+                      href="/user/dashboard" 
+                      className="mobile-cta-button" 
+                      onClick={toggleMobileMenu}
+                    >
+                      Dashboard
+                    </Link>
+                    <div style={{ marginTop: '12px' }}>
+                      <LogoutButton />
+                    </div>
+                  </>
+                ) : (
+                  <Link 
+                    href="/login" 
+                    className="mobile-cta-button" 
+                    onClick={toggleMobileMenu}
+                  >
+                    Login
+                  </Link>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ export function mapUserProfileToLegacyProfile(
   goalText?: string | null
 ): Partial<Profile> {
   return {
-    id: supabaseProfile.id,
+    id: supabaseProfile.user_id || supabaseProfile.id, // Use user_id as primary identifier
     identity: {
       name: supabaseProfile.display_name || 'User',
       email: '', // Not in user_profiles table

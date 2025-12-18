@@ -141,7 +141,7 @@ export default function AccessOnboarding() {
           // Still redirect even if save fails (graceful degradation)
         }
         
-        router.push('/onboardingdone')
+        router.push('/user/dashboard')
       } else if (currentStep < steps.length - 1) {
         setCurrentStep(prev => prev + 1)
       }
