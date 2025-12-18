@@ -11,7 +11,7 @@ import Sidebar from '@/components/profile/Sidebar';
 import TimeStyleCard from '@/components/profile/TimeStyleCard';
 import EnergyFeeds from '@/components/profile/EnergyFeeds';
 import UsageLimitSettings from '@/components/profile/UsageLimitSettings';
-import FilterTodoCard from '@/components/profile/FilterTodoCard';
+import { SlotManager } from '@/components/profile/SlotManager';
 import JourneyTimeline from '@/components/profile/JourneyTimeline';
 import MotivationFeed from '@/components/profile/MotivationFeed';
 import LifeWeeksPreview from '@/components/profile/LifeWeeksPreview';
@@ -608,7 +608,7 @@ export default function GuideDashboardPage() {
             </section>
 
             <section className="guide-section" id="filter">
-              <FilterTodoCard onEdit={() => handleEditSection('Filter-Funktion')} />
+              <SlotManager />
             </section>
 
             <section className="guide-section" id="conversation">
