@@ -4,7 +4,6 @@ import { useGuideState } from '@/hooks/useGuideState';
 import { useProfileSettings } from '@/hooks/useProfileSettings';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import GuideActionsSection from '@/components/guide/GuideActionsSection';
-import GuideConversationSection from '@/components/guide/GuideConversationSection';
 import GuideSettings from '@/components/guide/GuideSettings';
 import ProfileSummary from '@/components/profile/ProfileSummary';
 import Sidebar from '@/components/profile/Sidebar';
@@ -16,6 +15,7 @@ import JourneyTimeline from '@/components/profile/JourneyTimeline';
 import MotivationFeed from '@/components/profile/MotivationFeed';
 import LifeWeeksPreview from '@/components/profile/LifeWeeksPreview';
 import GoalModal from '@/components/profile/GoalModal';
+import GuideHistory from '@/components/guide/GuideHistory';
 import { Profile } from '@/types/profile';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -102,11 +102,12 @@ export default function GuideDashboardPage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [guideConversations, setGuideConversations] = useState<Array<{ prompt: string; response: string; createdAt: string }>>([]);
   const [userActions, setUserActions] = useState<Array<{ id: string; title: string; category: string | null; is_done: boolean; due_date: string | null; created_at: string }>>([]);
   const [journeyEvents, setJourneyEvents] = useState<Array<{ id: string; type: string; description: string; timestamp: string }>>([]);
   const [guideFeedback, setGuideFeedback] = useState<Array<{ id: string; tone: 'motivating' | 'challenging' | 'reflecting'; message: string; createdAt: string }>>([]);
   const [creditsBalance, setCreditsBalance] = useState<number>(0);
+  const [creditsValue, setCreditsValue] = useState<number>(0);
+  const [creditsConsumedThisWeek, setCreditsConsumedThisWeek] = useState<number>(0);
   const [userInterests, setUserInterests] = useState<Array<{ id: string; label: string; created_at: string }>>([]);
   const [userProjects, setUserProjects] = useState<Array<{ id: string; title: string; status: string; priority: number; created_at: string; updated_at: string }>>([]);
   const { fetchUsageData } = useUsageStore();
@@ -117,77 +118,6 @@ export default function GuideDashboardPage() {
     initializeFromAPI();
   }, [initializeFromAPI]);
   
-  // Load guide conversations from API
-  useEffect(() => {
-    const loadConversations = async () => {
-      try {
-        const response = await fetch('/api/profile/guide-conversations');
-        if (response.ok) {
-          const data = await response.json();
-          // Transform API data to GuidePromptHistory format
-          // Group by conversation pairs (user message + guide response)
-          const conversations: Array<{ prompt: string; response: string; createdAt: string }> = [];
-          let currentPrompt = '';
-          let currentResponse = '';
-          let currentTimestamp = '';
-          
-          for (const msg of data) {
-            if (msg.role === 'user') {
-              // If we have a previous conversation, save it
-              if (currentPrompt && currentResponse) {
-                conversations.push({
-                  prompt: currentPrompt,
-                  response: currentResponse,
-                  createdAt: currentTimestamp,
-                });
-              }
-              currentPrompt = msg.message;
-              currentTimestamp = msg.created_at;
-              currentResponse = '';
-            } else if (msg.role === 'guide' && currentPrompt) {
-              currentResponse = msg.message;
-            }
-          }
-          
-          // Save last conversation if exists
-          if (currentPrompt && currentResponse) {
-            conversations.push({
-              prompt: currentPrompt,
-              response: currentResponse,
-              createdAt: currentTimestamp,
-            });
-          }
-          
-          setGuideConversations(conversations);
-        } else {
-          // Fallback: Try localStorage
-          try {
-            const stored = localStorage.getItem('rc-guide-dashboard');
-            if (stored) {
-              const parsed = JSON.parse(stored);
-              setGuideConversations(parsed.guidePrompts || []);
-            }
-          } catch (e) {
-            console.error('[Dashboard] Error loading conversations from localStorage:', e);
-          }
-        }
-      } catch (error) {
-        console.error('[Dashboard] Error loading conversations:', error);
-        // Fallback: Try localStorage
-        try {
-          const stored = localStorage.getItem('rc-guide-dashboard');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            setGuideConversations(parsed.guidePrompts || []);
-          }
-        } catch (e) {
-          console.error('[Dashboard] Error loading conversations from localStorage:', e);
-        }
-      }
-    };
-    
-    loadConversations();
-  }, []);
   
   // Load user actions from API
   useEffect(() => {
@@ -269,6 +199,8 @@ export default function GuideDashboardPage() {
         if (response.ok) {
           const data = await response.json();
           setCreditsBalance(data.balance || 0);
+          setCreditsValue(data.value || 0);
+          setCreditsConsumedThisWeek(data.consumedThisWeek || 0);
         } else {
           console.error('[Dashboard] Failed to load credits');
         }
@@ -890,6 +822,8 @@ export default function GuideDashboardPage() {
         setActiveSection={setActiveSection}
         hasUnsavedChanges={hasChanges}
         creditsBalance={creditsBalance}
+        creditsValue={creditsValue}
+        creditsConsumedThisWeek={creditsConsumedThisWeek}
       />
 
       <main className="guide-dashboard-main-full">
@@ -974,7 +908,7 @@ export default function GuideDashboardPage() {
                   projects: userProjects.map(p => ({ id: p.id, title: p.title, status: p.status as 'active' | 'paused' | 'completed', description: undefined, updatedAt: p.updated_at })),
                 }} 
                 onConnectSpotify={handleConnectSpotify} 
-                onEdit={() => handleEditSection('Energie-Feeds')} 
+                onEdit={() => handleEditSection('Energie-Feeds')}
               />
             </section>
 
@@ -990,8 +924,8 @@ export default function GuideDashboardPage() {
               <SlotManager />
             </section>
 
-            <section className="guide-section" id="conversation">
-              <GuideConversationSection prompts={guideConversations.length > 0 ? guideConversations : state.guidePrompts} />
+            <section className="guide-section" id="guide-history">
+              <GuideHistory />
             </section>
 
             <section className="guide-section" id="journey">

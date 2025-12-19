@@ -135,60 +135,50 @@
 
 /* Main Content - Full Width with Floating Sidebar */
 .guide-dashboard-main-full {
-  margin-left: 0; /* No fixed margin for floating sidebar */
+  margin-left: 320px; /* Account for fixed sidebar width */
   max-width: 1200px; /* Increased width for better use of space */
   margin-right: auto; /* Center content */
-  padding: 2rem 3rem 2rem 22rem; /* Left padding for floating sidebar space */
+  padding: 2rem 3rem; /* Standard padding */
   min-height: 100vh; /* Ensure full height */
   padding-bottom: 4rem; /* Extra bottom padding to prevent cutoff */
 }
 
-/* Responsive adjustments for floating sidebar */
-@media (max-width: 1400px) {
+/* Responsive adjustments for sidebar */
+@media (max-width: 1200px) {
+  .rc-floating-sidebar {
+    width: 280px;
+  }
   .guide-dashboard-main-full {
-    padding-left: 20rem; /* Adjust for smaller screens */
+    margin-left: 280px;
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
+  .rc-floating-sidebar {
+    display: none; /* Hide sidebar on mobile */
+  }
   .guide-dashboard-main-full {
-    padding-left: 18rem; /* Further adjustment */
+    margin-left: 0;
+    padding: 1rem;
   }
 }
 
 /* RealityCheck Floating Sidebar - Urban, Radical Design */
 .rc-floating-sidebar {
   position: fixed;
-  left: 1rem;
-  top: 5rem; /* Start below navigation header */
+  left: 0;
+  top: 0;
   width: 320px;
-  height: calc(100vh - 6rem); /* Account for header height */
+  height: 100vh;
   background: var(--rc-noir);
-  border: 2px solid var(--rc-mint);
-  border-radius: 16px;
-  z-index: 100; /* Lower than header */
-  padding: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100;
+  padding: 1.5rem;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  transition: all 0.3s ease;
-}
-
-.rc-floating-sidebar.collapsed {
-  width: 60px;
-  height: calc(100vh - 6rem); /* Same height as expanded */
-  padding: 1rem 0.5rem;
-}
-
-.rc-floating-sidebar.collapsed .rc-time-banner,
-.rc-floating-sidebar.collapsed .rc-profile-block,
-.rc-floating-sidebar.collapsed .rc-actions-section,
-.rc-floating-sidebar.collapsed .rc-mode-section {
-  display: none;
+  gap: 1rem;
 }
 
 /* Restzeit-Kachel - Persistent, Provokant */
@@ -427,30 +417,6 @@
 }
 
 /* Collapse Toggle */
-.rc-sidebar-toggle {
-  position: absolute;
-  top: 1rem;
-  right: -12px;
-  width: 24px;
-  height: 24px;
-  background: var(--rc-mint);
-  color: var(--rc-noir);
-  border: none;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 0.875rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  z-index: 10; /* Ensure toggle is clickable */
-}
-
-.rc-sidebar-toggle:hover {
-  background: #3bb8b1;
-  transform: scale(1.1);
-}
 
 .rc-mode-card.active {
   border-color: var(--rc-mint);

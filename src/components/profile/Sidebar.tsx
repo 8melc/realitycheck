@@ -11,10 +11,20 @@ interface SidebarProps {
   setActiveSection: (section: 'overview' | 'profile') => void;
   hasUnsavedChanges?: boolean;
   creditsBalance?: number;
+  creditsValue?: number;
+  creditsConsumedThisWeek?: number;
 }
 
-const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsavedChanges, creditsBalance = 0 }: SidebarProps) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+const Sidebar = ({ 
+  profile, 
+  onEditGoal, 
+  activeSection, 
+  setActiveSection, 
+  hasUnsavedChanges, 
+  creditsBalance = 0,
+  creditsValue = 0,
+  creditsConsumedThisWeek = 0,
+}: SidebarProps) => {
   const [isClient, setIsClient] = useState(false);
   
   const handleLinkClick = (href: string, isGuidePrefs?: boolean) => {
@@ -70,7 +80,7 @@ const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsa
   ];
 
   return (
-    <aside className={`rc-floating-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <aside className="rc-floating-sidebar">
       {/* Credits Section - Complete in Sidebar */}
       <div className="rc-credits-section">
         <div className="rc-credits-header">
@@ -95,13 +105,15 @@ const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsa
           
           <div className="rc-credits-stat">
             <div className="rc-credits-stat-label">Wert</div>
-            <div className="rc-credits-stat-value rc-credits-stat-value--cream">€11,28</div>
+            <div className="rc-credits-stat-value rc-credits-stat-value--cream">
+              {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(creditsValue)}
+            </div>
             <div className="rc-credits-stat-subtitle">Aktueller Wert</div>
           </div>
           
           <div className="rc-credits-stat">
             <div className="rc-credits-stat-label">Verbraucht</div>
-            <div className="rc-credits-stat-value rc-credits-stat-value--coral">3</div>
+            <div className="rc-credits-stat-value rc-credits-stat-value--coral">{creditsConsumedThisWeek}</div>
             <div className="rc-credits-stat-subtitle">Diese Woche</div>
           </div>
         </div>
@@ -183,14 +195,6 @@ const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsa
           ))}
         </div>
       </div>
-
-      {/* Collapse Toggle */}
-      <button 
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="rc-sidebar-toggle"
-      >
-        {isCollapsed ? '→' : '←'}
-      </button>
     </aside>
   );
 };

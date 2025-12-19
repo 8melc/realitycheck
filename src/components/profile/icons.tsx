@@ -209,3 +209,10 @@ export const ChevronUpIcon = createIcon(
     <path d="m18 15-6-6-6 6" />
   </>
 );
+
+export const XMarkIcon = createIcon(
+  <>
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </>
+);

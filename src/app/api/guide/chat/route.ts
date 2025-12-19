@@ -279,6 +279,44 @@ export async function POST(req: NextRequest) {
       promptContext.slots // TODO: reflect post-consumption slots when decremented
     );
 
+    // Save conversation to guide_conversations table for dashboard history
+    if (user?.id) {
+      try {
+        const now = new Date().toISOString();
+        
+        // Save user message first
+        const { error: userMsgError } = await (supabase
+          .from('guide_conversations') as any)
+          .insert({
+            user_id: user.id,
+            role: 'user',
+            message: message,
+            created_at: now,
+          });
+
+        if (userMsgError) {
+          console.error('[Guide Chat] Error saving user message:', userMsgError);
+        }
+
+        // Save guide response immediately after (same timestamp for grouping)
+        const { error: guideMsgError } = await (supabase
+          .from('guide_conversations') as any)
+          .insert({
+            user_id: user.id,
+            role: 'guide',
+            message: cleanResponse,
+            created_at: now,
+          });
+
+        if (guideMsgError) {
+          console.error('[Guide Chat] Error saving guide message:', guideMsgError);
+        }
+      } catch (conversationError) {
+        console.error('[Guide Chat] Error saving conversation:', conversationError);
+        // Don't fail the request if conversation saving fails
+      }
+    }
+
     // Format slots_remaining für Response
     const slotsRemaining = {
       article: `${slots.article}/${typeof profile?.slots_article === 'number' ? profile.slots_article : '∞'}`,

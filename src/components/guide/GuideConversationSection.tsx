@@ -46,7 +46,7 @@ export default function GuideConversationSection({ prompts }: GuideConversationS
 
   if (prompts.length === 0) {
     return (
-      <section className="guide-section" id="guide">
+      <section className="guide-section" id="conversation">
         <div className="guide-section-header">
           <span className="guide-kicker">Guide Gespräche</span>
           <h2 className="guide-title">{getGuideText('conversationTitle', tone)}</h2>
@@ -60,7 +60,7 @@ export default function GuideConversationSection({ prompts }: GuideConversationS
   }
 
   return (
-    <section className="guide-section" id="guide">
+    <section className="guide-section" id="conversation">
       <div className="guide-section-header">
         <span className="guide-kicker">Guide Gespräche</span>
         <h2 className="guide-title">{getGuideText('conversationTitle', tone)}</h2>

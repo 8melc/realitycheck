@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
       .from('guide_conversations')
       .select('role, message, created_at')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
+      .order('created_at', { ascending: true }) // Ascending for proper pairing (user then guide)
+      .limit(50); // Increased limit to get more conversation pairs
     
     if (conversationsError) {
       console.error('[Guide Conversations] Error fetching conversations:', conversationsError);

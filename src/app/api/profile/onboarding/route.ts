@@ -167,8 +167,8 @@ export async function POST(request: NextRequest) {
 
     // Create journey event: Profil erstellt
     try {
-      await supabase
-        .from('user_journey_events')
+      await (supabase
+        .from('user_journey_events') as any)
         .insert({
           user_id: user.id,
           label: 'Profil erstellt',
@@ -188,8 +188,8 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
       
       if (!existingCredits) {
-        await supabase
-          .from('user_credits')
+        await (supabase
+          .from('user_credits') as any)
           .insert({
             user_id: user.id,
             balance: 50, // Initial credits
