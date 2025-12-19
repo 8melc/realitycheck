@@ -78,6 +78,7 @@ export default function Signup() {
           onClick={handleSignup}
           disabled={loading}
           className="signup-button"
+          type="button"
         >
           {loading ? 'Konto wird erstellt...' : 'Registrieren'}
         </button>

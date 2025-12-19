@@ -1,6 +1,9 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
+import { applySlotGuard, buildFYFPrompt, GuidePromptContext, GuideRecommendation, logGuideTurn } from '@/lib/guidePrompt';
+import { fetchCodex } from '@/lib/codexAdapter';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -9,6 +12,7 @@ const openai = new OpenAI({
 export async function POST(req: NextRequest) {
   try {
     const { message } = await req.json();
+    const sessionId = randomUUID();
 
     if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-...') {
       throw new Error('OpenAI API Key is missing or default');
@@ -19,42 +23,56 @@ export async function POST(req: NextRequest) {
     // Get authenticated user
     const { data: { user } } = await supabase.auth.getUser();
     
+    // Type definitions
+    type UserProfile = {
+      display_name: string | null;
+      focus_topic: string | null;
+      bio: string | null;
+      slots_article: number | null;
+      slots_podcast: number | null;
+      slots_quote: number | null;
+    };
+
+    type UserGoal = {
+      title: string | null;
+    };
+
     // Profil + Ziel laden
-    let profile = null;
-    let goal = null;
+    let profile: UserProfile | null = null;
+    let goal: UserGoal | null = null;
 
     if (user) {
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('display_name, focus_topic, bio, slots_article, slots_podcast, slots_quote')
         .eq('user_id', user.id)
-        .maybeSingle();
-      profile = profileData;
+        .maybeSingle<UserProfile>();
+      profile = profileData ?? null;
 
       const { data: goalData } = await supabase
         .from('user_goals')
         .select('title')
         .eq('user_id', user.id)
         .eq('is_primary', true)
-        .maybeSingle();
-      goal = goalData;
+        .maybeSingle<UserGoal>();
+      goal = goalData ?? null;
     }
 
-    // Slots extrahieren (mit Fallback auf Demo-Defaults falls NULL in DB)
+    // Slots extrahieren
     const slots = {
       article: typeof profile?.slots_article === 'number' ? profile.slots_article : 3,
       podcast: typeof profile?.slots_podcast === 'number' ? profile.slots_podcast : 2,
       quote: typeof profile?.slots_quote === 'number' ? profile.slots_quote : 4
     };
 
-    // Erlaubte Formate für die Empfehlungs-Query
+    // Erlaubte Formate
     const allowedFormats: string[] = [];
     if (slots.article > 0) allowedFormats.push('Artikel', 'article');
     if (slots.podcast > 0) allowedFormats.push('Podcast', 'podcast');
-    if (slots.quote > 0) allowedFormats.push('Zitat', 'quote');
+      if (slots.quote > 0) allowedFormats.push('Zitat', 'quote');
 
     // Empfehlungen holen
-    let recommendations: any[] = [];
+    let recommendations: GuideRecommendation[] = [];
     if (allowedFormats.length > 0) {
       const { data } = await supabase
         .from('content_items')
@@ -62,60 +80,61 @@ export async function POST(req: NextRequest) {
         .or('is_published.eq.true,is_published.is.null')
         .in('format', allowedFormats)
         .limit(3);
-      recommendations = data || [];
+      recommendations =
+        (data || []).map((r) => ({
+          id: String(r.id),
+          title: r.title,
+          format: r.format,
+          cluster: r.cluster,
+          read_time_minutes: r.read_time_minutes,
+          why: r.cluster ? `Cluster ${r.cluster}.` : null,
+        })) || [];
     }
 
-    // Empfehlungs-Liste für den Prompt bauen
-    const recList = recommendations.map(r => 
-      `- "${r.title}" (${r.format}, Cluster: ${r.cluster}${r.read_time_minutes ? `, Dauer: ${r.read_time_minutes} Min.` : ''})`
-    ).join('\n');
+    // Build prompt context
+    const promptContext: GuidePromptContext = {
+      profile: {
+        name: profile?.display_name || null,
+        primary_goal: goal?.title || null,
+      },
+      slots: {
+        article: {
+          available: slots.article,
+          daily_limit: profile?.slots_article ?? '∞',
+        },
+        podcast: {
+          available: slots.podcast,
+          daily_limit: profile?.slots_podcast ?? '∞',
+        },
+        quote: {
+          available: slots.quote,
+          daily_limit: profile?.slots_quote ?? '∞',
+        },
+      },
+      recommendations,
+      state: {
+        no_content: false,
+        tone: 'straight',
+      },
+    };
 
-    // Das neue Prompt-Skelett
-    const fyfPrompt = `Du bist der FYF RealityCheck Guide: direkt, respektvoll, kein Bullshit.
+    // Guard against zero slots or explicit no-content flag
+    const guard = applySlotGuard(promptContext);
+    if (guard.override) {
+      promptContext.state = {
+        ...promptContext.state,
+        no_content: true,
+        guardMessage: guard.system_message,
+      };
+      // Keine Empfehlungen anhängen, wenn keine Inhalte erlaubt sind
+      promptContext.recommendations = [];
+    }
 
-KONTEXT USER
-- Name: ${profile?.display_name || 'Unbekannt'}
-- Ziel: ${goal?.title || 'Kein Ziel gesetzt'}
-- Heute verfügbare Slots:
-  - Artikel: ${slots.article}
-  - Podcasts: ${slots.podcast}
-  - Zitate: ${slots.quote}
+    const codexText = await fetchCodex(supabase);
 
-FRAGE DES USERS
-"${message}"
-
-INHALTE, DIE DU VORSCHLAGEN DARFST (max. 1 nutzen):
-${recList || 'Keine passenden Inhalte gefunden.'}
-
-DEIN VERHALTEN
-
-1. Reagiere zuerst auf die Frage selbst (1–2 Sätze, klar, ehrlich).
-2. Dann:
-   - Wenn noch mehrere Formate verfügbar sind (z.B. Artikel & Podcast):
-     Stelle eine Rückfrage:
-     „Du hast heute noch ${slots.article} Artikel- und ${slots.podcast} Podcast-Slots. Willst du lieber was hören oder was lesen?“
-   - Wenn nur ein Format verfügbar ist:
-     Frage:
-     „Du hast heute noch ${slots.podcast} Podcast-Slots. Willst du was dazu hören?“
-   - Wenn gar keine Slots mehr frei sind:
-     Sag:
-     „Heute bist du slot-mäßig voll. Lass uns nur sortieren, nicht noch mehr reinschütten.“
-3. Nur wenn der User zustimmt oder ein Format benennt (oder explizit nach Empfehlung fragt):
-   - Schlage GENAU EINEN Inhalt aus der Liste vor, passend zum Format.
-   - Formuliere so:
-     „Dann nimm: ‚TITEL‘ (FORMAT, Dauer XY). Das kostet dich 1 von ${slots.article + slots.podcast + slots.quote} Slots heute.“
-4. Maximal 3 kurze Absätze. Kein Coaching-Blabla, kein Marketing.
-
-STIL
-- Direkt, aber nicht zynisch.
-- Klartext statt Fachbegriffe.
-- Du erinnerst an Grenzen („Slots“) statt zu pushen.
-
-ANTWORTFORMAT
-Schreibe eine einzige Chat-Antwort so, als würdest du 1:1 mit dem User schreiben.
-Keine Bulletlisten, keine Systemerklärungen.
-
-Antwort:`;
+    const fyfPrompt = buildFYFPrompt(promptContext, message, {
+      codexText,
+    });
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -124,17 +143,38 @@ Antwort:`;
       temperature: 0.7,
     });
 
+    const aiResponse = completion.choices[0].message.content || 'Keine Antwort';
+    
+    const idMatch = aiResponse.match(/\[\[ID:\s*(.+?)\]\]/);
+    const selectedId = idMatch ? idMatch[1].trim() : null;
+    const cleanResponse = aiResponse.replace(/\[\[ID:\s*.+?\]\]/, '').trim();
+
+    const finalItems = selectedId 
+      ? recommendations.filter(r => r.id === selectedId)
+      : [];
+
+    await logGuideTurn(
+      supabase,
+      user?.id || 'anon',
+      sessionId,
+      fyfPrompt,
+      cleanResponse,
+      promptContext.slots,
+      promptContext.slots // TODO: reflect post-consumption slots when decremented
+    );
+
     return NextResponse.json({
-      response: completion.choices[0].message.content || 'Keine Antwort',
+      response: cleanResponse,
       profile_used: !!profile,
       goal_used: !!goal,
-      recommendations: recommendations
+      recommendations: finalItems,
+      session_id: sessionId
     });
 
   } catch (error) {
     console.error('Guide Chat Error:', error);
     return NextResponse.json({
-      response: "Heute bist du slot-mäßig voll. Lass uns nur sortieren, nicht noch mehr reinschütten.",
+      response: "Lass uns kurz sortieren. Was davon stresst dich gerade am meisten?",
       fallback: true
     });
   }
