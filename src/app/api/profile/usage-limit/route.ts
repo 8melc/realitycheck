@@ -24,8 +24,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch usage limit' }, { status: 500 });
     }
 
-    // TODO: Calculate today's usage from usage_events table (for now: 0)
-    const todayUsageMinutes = 0;
+    // Calculate today's usage from user_sessions table
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('user_sessions')
+      .select('duration_minutes, session_start')
+      .eq('user_id', user.id)
+      .gte('session_start', todayStart.toISOString());
+
+    if (sessionsError) {
+      console.error('[Usage Limit] Error fetching sessions:', sessionsError);
+      // Fallback: verwende 0 wenn Sessions nicht geladen werden können
+    }
+
+    // Summiere duration_minutes aller Sessions von heute
+    // Für laufende Sessions (duration_minutes = null) berechne die Zeit seit session_start
+    const now = new Date();
+    let todayUsageMinutes = 0;
+    
+    if (sessions) {
+      sessions.forEach((session) => {
+        if (session.duration_minutes !== null) {
+          // Session ist bereits beendet
+          todayUsageMinutes += session.duration_minutes;
+        } else {
+          // Session läuft noch - berechne Zeit seit session_start
+          const sessionStart = new Date(session.session_start);
+          const durationMs = now.getTime() - sessionStart.getTime();
+          const durationMinutes = Math.round(durationMs / (1000 * 60));
+          todayUsageMinutes += durationMinutes;
+        }
+      });
+    }
+
     const dailyLimitMinutes = profile?.daily_time_limit_minutes || null;
     const limitReached = dailyLimitMinutes 
       ? todayUsageMinutes >= dailyLimitMinutes 
@@ -105,8 +138,38 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update usage limit' }, { status: 500 });
     }
 
-    // TODO: Calculate today's usage from usage_events table (for now: 0)
-    const todayUsageMinutes = 0;
+    // Calculate today's usage from user_sessions table
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('user_sessions')
+      .select('duration_minutes, session_start')
+      .eq('user_id', user.id)
+      .gte('session_start', todayStart.toISOString());
+
+    if (sessionsError) {
+      console.error('[Usage Limit] Error fetching sessions:', sessionsError);
+    }
+
+    // Summiere duration_minutes aller Sessions von heute
+    const now = new Date();
+    let todayUsageMinutes = 0;
+    
+    if (sessions) {
+      sessions.forEach((session) => {
+        if (session.duration_minutes !== null) {
+          todayUsageMinutes += session.duration_minutes;
+        } else {
+          // Session läuft noch
+          const sessionStart = new Date(session.session_start);
+          const durationMs = now.getTime() - sessionStart.getTime();
+          const durationMinutes = Math.round(durationMs / (1000 * 60));
+          todayUsageMinutes += durationMinutes;
+        }
+      });
+    }
+
     const limitReached = updatedProfile.daily_time_limit_minutes 
       ? todayUsageMinutes >= updatedProfile.daily_time_limit_minutes 
       : false;

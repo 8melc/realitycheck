@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, Righteous, Roboto_Mono } from 'next/font/google'
 import './globals.css'
 import CookieConsentBanner from '../components/CookieConsentBanner'
 import HeaderNav from '../components/HeaderNav'
+import SessionTrackerProvider from '../components/SessionTrackerProvider'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -39,42 +40,44 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${righteous.variable} ${robotoMono.variable}`}>
       <body className="font-body bg-realitycheck-noir text-realitycheck-cream antialiased">
-        <HeaderNav />
-        <main>
-          {children}
-        </main>
-        
-        {/* Global Footer */}
-        <footer className="landing-footer">
-          <div className="footer-container">
-            {/* Reality Check Column */}
-            <div className="footer-column">
-              <h3>Reality Check</h3>
-              <ul>
-                <li><a href="/feedboard">Guide</a></li>
-                <li><a href="/people">People</a></li>
-                <li><a href="/access">Access</a></li>
-              </ul>
+        <SessionTrackerProvider>
+          <HeaderNav />
+          <main>
+            {children}
+          </main>
+          
+          {/* Global Footer */}
+          <footer className="landing-footer">
+            <div className="footer-container">
+              {/* Reality Check Column */}
+              <div className="footer-column">
+                <h3>Reality Check</h3>
+                <ul>
+                  <li><a href="/feedboard">Guide</a></li>
+                  <li><a href="/people">People</a></li>
+                  <li><a href="/access">Access</a></li>
+                </ul>
+              </div>
+              
+              {/* About us Column */}
+              <div className="footer-column">
+                <h3>About us</h3>
+                <ul>
+                  <li><a href="/transparenz">Transparenz</a></li>
+                  <li><a href="/credits">Credits</a></li>
+                  <li><a href="/impressum">Impressum</a></li>
+                  <li><a href="mailto:hello@realitycheck.studio">Kontakt</a></li>
+                </ul>
+              </div>
             </div>
             
-            {/* About us Column */}
-            <div className="footer-column">
-              <h3>About us</h3>
-              <ul>
-                <li><a href="/transparenz">Transparenz</a></li>
-                <li><a href="/credits">Credits</a></li>
-                <li><a href="/impressum">Impressum</a></li>
-                <li><a href="mailto:hello@realitycheck.studio">Kontakt</a></li>
-              </ul>
+            <div className="footer-copyright">
+              © 2025 Reality Check Studio. Alle Rechte vorbehalten.
             </div>
-          </div>
+          </footer>
           
-          <div className="footer-copyright">
-            © 2025 Reality Check Studio. Alle Rechte vorbehalten.
-          </div>
-        </footer>
-        
-        <CookieConsentBanner />
+          <CookieConsentBanner />
+        </SessionTrackerProvider>
       </body>
     </html>
   )

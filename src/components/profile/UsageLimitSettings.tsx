@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUsageStore } from '@/stores/usageStore';
 import { PenSquareIcon } from './icons';
+import { sessionTracker } from '@/lib/session-tracker';
+import { createClient } from '@/lib/supabase/client';
 
 interface UsageLimitSettingsProps {
   onEdit?: () => void;
@@ -27,6 +29,42 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
   useEffect(() => {
     fetchUsageData();
   }, [fetchUsageData]);
+
+  // Initialize session tracking when component mounts
+  useEffect(() => {
+    let mounted = true;
+
+    const initializeSession = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
+          // User nicht eingeloggt - keine Session starten
+          return;
+        }
+
+        if (mounted) {
+          // Starte Session für eingeloggten User
+          await sessionTracker.startSession(user.id);
+          console.log('[UsageLimitSettings] Session tracking initialized');
+        }
+      } catch (error) {
+        console.error('[UsageLimitSettings] Error initializing session:', error);
+      }
+    };
+
+    // Initialisiere Session beim Mount
+    initializeSession();
+
+    // Cleanup: Beende Session beim Unmount (nur wenn diese Komponente unmountet)
+    // Note: Session läuft weiter, auch wenn Komponente nicht sichtbar ist
+    return () => {
+      mounted = false;
+      // Session wird nicht beendet, da sie global laufen soll
+      // Nur beim Tab-Close oder App-Unmount wird sie beendet
+    };
+  }, []);
 
   // Update local state when store changes
   useEffect(() => {

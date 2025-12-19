@@ -26,7 +26,7 @@ type QuickStat = {
 };
 
 const TIMER_INTERVAL_MS = 30_000;
-const INITIAL_CONSUMED_MINUTES = 37;
+const INITIAL_CONSUMED_MINUTES = 0; // Will be updated from API
 const STOPPSCHILD_TRIGGER_MINUTES = 1; // Show overlay after 1 minute
 
 const MODE_CONFIG: Record<
@@ -74,9 +74,7 @@ const INTENT_STATEMENTS = [
 ];
 
 export default function FeedboardPage() {
-  const [sessionStart, setSessionStart] = useState(
-    () => Date.now() - INITIAL_CONSUMED_MINUTES * 60 * 1000,
-  );
+  const [sessionStart, setSessionStart] = useState(() => Date.now());
   const [consumedMinutes, setConsumedMinutes] = useState(INITIAL_CONSUMED_MINUTES);
   const [showStoppschildOverlay, setShowStoppschildOverlay] = useState(false);
   const [sessionExtended, setSessionExtended] = useState(false);
@@ -132,6 +130,33 @@ export default function FeedboardPage() {
     }
 
     fetchFeedItems();
+  }, []);
+
+  // Fetch real usage time from API
+  useEffect(() => {
+    async function fetchUsageTime() {
+      try {
+        const response = await fetch('/api/profile/usage-limit');
+        if (response.ok) {
+          const data = await response.json();
+          // Update consumedMinutes with real data from database
+          if (typeof data.todayUsageMinutes === 'number') {
+            setConsumedMinutes(data.todayUsageMinutes);
+          }
+        }
+      } catch (error) {
+        console.error('[Feedboard] Error fetching usage time:', error);
+        // Keep current value on error
+      }
+    }
+
+    // Fetch immediately
+    fetchUsageTime();
+
+    // Update every 30 seconds to show real-time usage
+    const interval = setInterval(fetchUsageTime, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const allItems = useMemo(() => feedItems, [feedItems]);
@@ -213,8 +238,14 @@ export default function FeedboardPage() {
           note: 'Verlängerung (2 Credits) aktiv. Fokus wird weiter gezählt.'
         };
       }
+      // Format time display: show hours and minutes if > 60 minutes
+      const hours = Math.floor(consumedMinutes / 60);
+      const minutes = consumedMinutes % 60;
+      const timeDisplay = hours > 0 
+        ? `${hours}h ${minutes} Min`
+        : `${consumedMinutes} Min`;
       return {
-        value: `${consumedMinutes} Min`,
+        value: timeDisplay,
         note: 'Stoppschild nach 1 Minute'
       };
     };
@@ -511,10 +542,7 @@ export default function FeedboardPage() {
         activeMode={activeMode}
         onToggle={() => setIsHeaderOpen(value => !value)}
         onModeChange={mode => setActiveMode(mode)}
-        onCycleIntent={() => setIntentIndex(index => (index + 1) % INTENT_STATEMENTS.length)}
-        intent={activeIntent}
         onOpenGuide={() => setIsSidebarOpen(true)}
-        onSetFocus={() => setActiveMode('focus')}
       />
 
       {/* DISABLED: Session limit overlay (commented out, not deleted) */}
@@ -667,10 +695,7 @@ type HeaderProps = {
   activeMode: ModeKey;
   onToggle: () => void;
   onModeChange: (mode: ModeKey) => void;
-  onCycleIntent: () => void;
-  intent: (typeof INTENT_STATEMENTS)[number];
   onOpenGuide: () => void;
-  onSetFocus: () => void;
 };
 
 function TickTockHeader({
@@ -679,10 +704,7 @@ function TickTockHeader({
   activeMode,
   onToggle,
   onModeChange,
-  onCycleIntent,
-  intent,
   onOpenGuide,
-  onSetFocus,
 }: HeaderProps) {
   return (
     <header className={`ticktock-header ${isOpen ? 'is-open' : ''}`}>
@@ -729,6 +751,13 @@ function TickTockHeader({
               </button>
             );
           })}
+          <button 
+            type="button" 
+            className="ttg-button ttg-button--ghost ticktock-header__guide-button" 
+            onClick={onOpenGuide}
+          >
+            Guide fragen
+          </button>
         </div>
 
         <div className="ticktock-header__stats">
@@ -741,27 +770,6 @@ function TickTockHeader({
           ))}
         </div>
 
-        <div className="ticktock-header__intent">
-          <div className="ticktock-intent__badge" aria-hidden="true">
-            🜂
-          </div>
-          <div>
-            <h3>Heute: „{intent.today}“</h3>
-            <p>Guide sagt: {intent.guide}</p>
-          </div>
-
-          <div className="ticktock-intent__actions">
-            <button type="button" className="ttg-button ttg-button--solid" onClick={onSetFocus}>
-              Fokus setzen
-            </button>
-            <button type="button" className="ttg-button ttg-button--ghost" onClick={onOpenGuide}>
-              Guide fragen
-            </button>
-            <button type="button" className="ttg-button ttg-button--link" onClick={onCycleIntent}>
-              Statement wechseln
-            </button>
-          </div>
-        </div>
       </div>
           </header>
   );
