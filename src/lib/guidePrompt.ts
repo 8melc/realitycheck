@@ -2,11 +2,101 @@
  * Prompt utilities for the FYF Guide
  * - buildFYFPrompt: builds structured prompt layers (system/role/context/state/inventory/user)
  * - applySlotGuard: enforces slot and "no content" constraints before calling the LLM
+ * - detectClusterFromIntent: maps user intents to content clusters
  */
 
 type SlotInfo = {
   available?: number;
   daily_limit?: number | string;
+};
+
+/**
+ * Cluster Mapping: User-Intents → Content-Cluster
+ * Erkennt User-Intents in Messages und mappt sie zu passenden Clustern
+ */
+export const CLUSTER_MAP: Record<string, string> = {
+  // Freedom & Places
+  'digital nomad': 'freedom_places',
+  'digitaler nomade': 'freedom_places',
+  'job kündigen': 'freedom_places',
+  'job kuendigen': 'freedom_places',
+  'kündigen': 'freedom_places',
+  'kuendigen': 'freedom_places',
+  'remote work': 'freedom_places',
+  'freiheit': 'freedom_places',
+  'ort': 'freedom_places',
+  'reisen': 'freedom_places',
+  'nomad': 'freedom_places',
+  
+  // Time & Focus
+  'routine': 'time_focus',
+  'chaos': 'time_focus',
+  'zeit': 'time_focus',
+  'zeitmanagement': 'time_focus',
+  'fokus': 'time_focus',
+  'focus': 'time_focus',
+  'endlichkeit': 'time_focus',
+  'vergangenheit': 'time_focus',
+  'zukunft': 'time_focus',
+  
+  // Money & Value
+  'geld': 'money_value',
+  'money': 'money_value',
+  'finanzen': 'money_value',
+  'wert': 'money_value',
+  'value': 'money_value',
+  'kosten': 'money_value',
+  'sparen': 'money_value',
+  
+  // Meaning & Purpose
+  'sinn': 'meaning',
+  'meaning': 'meaning',
+  'zweck': 'meaning',
+  'purpose': 'meaning',
+  'bedeutung': 'meaning',
+  'ziel': 'meaning',
+  'goal': 'meaning',
+  
+  // Growth
+  'wachstum': 'growth',
+  'growth': 'growth',
+  'lernen': 'growth',
+  'learn': 'growth',
+  'entwicklung': 'growth',
+  
+  // Relationships
+  'beziehungen': 'relationships',
+  'relationships': 'relationships',
+  'freunde': 'relationships',
+  'familie': 'relationships',
+  
+  // Self Knowledge
+  'selbsterkenntnis': 'self_knowledge',
+  'self knowledge': 'self_knowledge',
+  'ich': 'self_knowledge',
+  'selbst': 'self_knowledge',
+  
+  // Culture & Voices
+  'kultur': 'culture',
+  'culture': 'culture',
+  'stimmen': 'culture',
+  'voices': 'culture',
+};
+
+/**
+ * Erkennt User-Intent aus Message und gibt passenden Cluster zurück
+ */
+export const detectClusterFromIntent = (userMessage: string): string | null => {
+  const messageLower = userMessage.toLowerCase();
+  
+  // Suche nach Keywords im Cluster-Map
+  for (const [keyword, cluster] of Object.entries(CLUSTER_MAP)) {
+    if (messageLower.includes(keyword)) {
+      return cluster;
+    }
+  }
+  
+  return null; // Kein spezifischer Cluster erkannt
 };
 
 export type GuideRecommendation = {
@@ -83,16 +173,29 @@ export const buildFYFPrompt = (
 - Prefer formats: ${(context.state?.preferFormats || []).join(', ') || '–'}${context.state?.guardMessage ? `\n- Guard: ${context.state.guardMessage}` : ''}`
   );
 
+  // Format INVENTORY mit Slots-Info
+  const formatInventoryItem = (r: GuideRecommendation, index: number) => {
+    // Bestimme Slot-Typ basierend auf Format
+    let slotInfo = '';
+    const formatLower = (r.format || '').toLowerCase();
+    if (formatLower.includes('artikel') || formatLower.includes('article')) {
+      slotInfo = `Slots: ${context.slots?.article?.available ?? 0}/${context.slots?.article?.daily_limit ?? '∞'}`;
+    } else if (formatLower.includes('podcast')) {
+      slotInfo = `Slots: ${context.slots?.podcast?.available ?? 0}/${context.slots?.podcast?.daily_limit ?? '∞'}`;
+    } else if (formatLower.includes('zitat') || formatLower.includes('quote')) {
+      slotInfo = `Slots: ${context.slots?.quote?.available ?? 0}/${context.slots?.quote?.daily_limit ?? '∞'}`;
+    }
+    
+    return `"${r.title}" (${r.format}, ${r.read_time_minutes ?? '?'}min) [${r.cluster || '?'}]
+Warum: ${r.why || '—'}
+${slotInfo ? slotInfo + '\n' : ''}[ID:${r.id}]`;
+  };
+
   sections.push(
     `INVENTORY (bereitgestellt):
 ${(context.recommendations || [])
-  .map(
-    (r) =>
-      `- [ID:${r.id}] ${r.title} (${r.format}, Cluster ${r.cluster || '?'}, Dauer ${
-        r.read_time_minutes ?? '?'
-      }m). Warum: ${r.why || '—'}`
-  )
-  .join('\n') || '- Keine passenden Items gefunden.'}`
+  .map((r, i) => formatInventoryItem(r, i))
+  .join('\n\n') || '- Keine passenden Items gefunden.'}`
   );
 
   sections.push(`USER:\n${userMessage}`);
