@@ -8,20 +8,85 @@ interface GuideState {
   guideTone: GuideTone;
   nudgingFrequency: NudgingFrequency;
   isGuideMuted: boolean;
+  isInitialized: boolean;
   setGuideTone: (tone: GuideTone) => void;
   setNudgingFrequency: (frequency: NudgingFrequency) => void;
   toggleGuideMute: () => void;
+  initializeFromAPI: () => Promise<void>;
+}
+
+// Helper function to sync to API
+async function syncToAPI(settings: { guideTone?: GuideTone; nudgingFrequency?: NudgingFrequency; isGuideMuted?: boolean }) {
+  try {
+    const response = await fetch('/api/profile/guide-settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        guideTone: settings.guideTone,
+        nudgingFrequency: settings.nudgingFrequency,
+        isGuideMuted: settings.isGuideMuted,
+      }),
+    });
+    
+    if (!response.ok) {
+      console.error('[Guide Store] Failed to sync to API:', await response.text());
+    }
+  } catch (error) {
+    console.error('[Guide Store] Error syncing to API:', error);
+    // Silently fail - localStorage is fallback
+  }
 }
 
 export const useGuideStore = create<GuideState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       guideTone: 'straight',
       nudgingFrequency: 'medium',
       isGuideMuted: false,
-      setGuideTone: (tone) => set({ guideTone: tone }),
-      setNudgingFrequency: (frequency) => set({ nudgingFrequency: frequency }),
-      toggleGuideMute: () => set((state) => ({ isGuideMuted: !state.isGuideMuted })),
+      isInitialized: false,
+      
+      setGuideTone: async (tone) => {
+        set({ guideTone: tone });
+        // Sync to API (non-blocking)
+        syncToAPI({ guideTone: tone });
+      },
+      
+      setNudgingFrequency: async (frequency) => {
+        set({ nudgingFrequency: frequency });
+        // Sync to API (non-blocking)
+        syncToAPI({ nudgingFrequency: frequency });
+      },
+      
+      toggleGuideMute: async () => {
+        const newMuted = !get().isGuideMuted;
+        set({ isGuideMuted: newMuted });
+        // Sync to API (non-blocking)
+        syncToAPI({ isGuideMuted: newMuted });
+      },
+      
+      initializeFromAPI: async () => {
+        if (get().isInitialized) return; // Already initialized
+        
+        try {
+          const response = await fetch('/api/profile/guide-settings');
+          if (response.ok) {
+            const data = await response.json();
+            set({
+              guideTone: data.guideTone || 'straight',
+              nudgingFrequency: data.nudgingFrequency || 'medium',
+              isGuideMuted: data.isGuideMuted || false,
+              isInitialized: true,
+            });
+          } else {
+            // API failed, use localStorage (already loaded by persist)
+            set({ isInitialized: true });
+          }
+        } catch (error) {
+          console.error('[Guide Store] Error initializing from API:', error);
+          // Use localStorage (already loaded by persist)
+          set({ isInitialized: true });
+        }
+      },
     }),
     {
       name: 'rc-guide-settings',
@@ -33,9 +98,10 @@ export const useGuideStore = create<GuideState>()(
             guideTone: 'straight',
             nudgingFrequency: 'medium',
             isGuideMuted: false,
+            isInitialized: false,
           };
         }
-        return persistedState;
+        return { ...persistedState, isInitialized: false }; // Reset flag on migrate
       },
     }
   )

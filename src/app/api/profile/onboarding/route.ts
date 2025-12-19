@@ -165,6 +165,41 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Create journey event: Profil erstellt
+    try {
+      await supabase
+        .from('user_journey_events')
+        .insert({
+          user_id: user.id,
+          label: 'Profil erstellt',
+          type: 'milestone',
+        });
+    } catch (journeyError) {
+      // Non-critical: Log but don't fail the request
+      console.warn('[Onboarding] Could not create journey event:', journeyError);
+    }
+
+    // Initialize user credits if not exists
+    try {
+      const { data: existingCredits } = await supabase
+        .from('user_credits')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (!existingCredits) {
+        await supabase
+          .from('user_credits')
+          .insert({
+            user_id: user.id,
+            balance: 50, // Initial credits
+          });
+      }
+    } catch (creditsError) {
+      // Non-critical: Log but don't fail the request
+      console.warn('[Onboarding] Could not initialize credits:', creditsError);
+    }
+
     return NextResponse.json({
       success: true,
       profile: {

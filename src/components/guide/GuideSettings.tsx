@@ -6,13 +6,19 @@ import './GuideSettings.css';
 
 export default function GuideSettings() {
   const {
-    tone,
-    setTone,
-    guideActive,
-    toggleGuide,
+    guideTone,
+    setGuideTone,
+    isGuideMuted,
+    toggleGuideMute,
     nudgingFrequency,
     setNudgingFrequency,
   } = useGuideStore();
+  
+  // Map to legacy names for compatibility
+  const tone = guideTone;
+  const setTone = setGuideTone;
+  const guideActive = !isGuideMuted;
+  const toggleGuide = toggleGuideMute;
 
   const nudgingInfo = getNudgingFrequencyInfo(nudgingFrequency) || {
     label: 'Standard',

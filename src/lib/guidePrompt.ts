@@ -106,6 +106,8 @@ export type GuideRecommendation = {
   cluster?: string | null;
   read_time_minutes?: number | null;
   why?: string | null;
+  url?: string | null;
+  subtitle?: string | null;
 };
 
 export type GuidePromptContext = {

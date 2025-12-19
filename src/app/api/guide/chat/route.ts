@@ -88,15 +88,16 @@ export async function POST(req: NextRequest) {
       url: string | null;
       read_time_minutes: number | null;
       subtitle: string | null;
+      transparency_reason: string | null;
     };
 
     // Erkenne Cluster aus User-Intent
     const detectedCluster = detectClusterFromIntent(message);
     console.log('[Guide Chat] Detected cluster from intent:', detectedCluster || 'none');
 
-    // Limit erhöhen, wenn Cluster erkannt (mehr Items für bessere Auswahl)
-    // Erwartung: 2 Podcasts + 3 Articles + 2 Quotes = 7 Items
-    const itemLimit = detectedCluster ? 7 : 3;
+    // FYF Architektur: Nur 1 Item für den Chat (selected_item)
+    // Die AI wählt das beste Item aus, daher reicht 1 Item aus der DB
+    const itemLimit = detectedCluster ? 1 : 1;
 
     let recommendations: GuideRecommendation[] = [];
     if (allowedFormats.length > 0) {
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
       
       let query = supabase
         .from('content_items')
-        .select('id, title, cluster, format, url, read_time_minutes, subtitle')
+        .select('id, title, cluster, format, url, read_time_minutes, subtitle, transparency_reason')
         .eq('is_published', true)
         .in('format', allowedFormats);
       
@@ -126,39 +127,51 @@ export async function POST(req: NextRequest) {
       }
       
       recommendations =
-        (data || []).map((r) => ({
-          id: String(r.id),
-          title: r.title,
-          format: r.format || 'Artikel',
-          cluster: r.cluster,
-          read_time_minutes: r.read_time_minutes,
-          why: detectedCluster 
-            ? `Cluster ${r.cluster} (erkannt aus deiner Nachricht).` 
-            : (r.cluster ? `Cluster ${r.cluster}.` : (r.subtitle || null)),
-        })) || [];
+        (data || []).map((r) => {
+          // Fallback: Wenn kein transparency_reason, generiere minimalen Text
+          const fallbackWhy = r.cluster 
+            ? (detectedCluster ? `Cluster ${r.cluster} (erkannt aus deiner Nachricht).` : `Cluster ${r.cluster}.`)
+            : (r.subtitle || null);
+          
+          return {
+            id: String(r.id),
+            title: r.title,
+            format: r.format || 'Artikel',
+            cluster: r.cluster,
+            read_time_minutes: r.read_time_minutes,
+            url: r.url,
+            subtitle: r.subtitle,
+            why: r.transparency_reason || fallbackWhy,
+          };
+        }) || [];
       
       // Fallback: Wenn keine Items mit Cluster-Filter gefunden, versuche ohne Cluster-Filter
       if (recommendations.length === 0 && detectedCluster && allowedFormats.length > 0) {
         console.log('[Guide Chat] No items found with cluster filter, trying without cluster filter...');
         const { data: fallbackData } = await supabase
           .from('content_items')
-          .select('id, title, cluster, format, url, read_time_minutes, subtitle')
+          .select('id, title, cluster, format, url, read_time_minutes, subtitle, transparency_reason')
           .eq('is_published', true)
           .in('format', allowedFormats)
           .order('created_at', { ascending: false })
-          .limit(3)
+          .limit(1)
           .returns<ContentItemRow[]>();
         
         if (fallbackData && fallbackData.length > 0) {
           console.log(`[Guide Chat] Fallback found ${fallbackData.length} items`);
-          recommendations = fallbackData.map((r) => ({
-            id: String(r.id),
-            title: r.title,
-            format: r.format || 'Artikel',
-            cluster: r.cluster,
-            read_time_minutes: r.read_time_minutes,
-            why: r.cluster ? `Cluster ${r.cluster}.` : (r.subtitle || null),
-          }));
+          recommendations = fallbackData.map((r) => {
+            const fallbackWhy = r.cluster ? `Cluster ${r.cluster}.` : (r.subtitle || null);
+            return {
+              id: String(r.id),
+              title: r.title,
+              format: r.format || 'Artikel',
+              cluster: r.cluster,
+              read_time_minutes: r.read_time_minutes,
+              url: r.url,
+              subtitle: r.subtitle,
+              why: r.transparency_reason || fallbackWhy,
+            };
+          });
         }
       }
       
@@ -167,22 +180,27 @@ export async function POST(req: NextRequest) {
         console.log('[Guide Chat] No items found, trying without format filter...');
         const { data: finalFallbackData } = await supabase
           .from('content_items')
-          .select('id, title, cluster, format, url, read_time_minutes, subtitle')
+          .select('id, title, cluster, format, url, read_time_minutes, subtitle, transparency_reason')
           .eq('is_published', true)
           .order('created_at', { ascending: false })
-          .limit(3)
+          .limit(1)
           .returns<ContentItemRow[]>();
         
         if (finalFallbackData && finalFallbackData.length > 0) {
           console.log(`[Guide Chat] Final fallback found ${finalFallbackData.length} items`);
-          recommendations = finalFallbackData.map((r) => ({
-            id: String(r.id),
-            title: r.title,
-            format: r.format || 'Artikel',
-            cluster: r.cluster,
-            read_time_minutes: r.read_time_minutes,
-            why: r.cluster ? `Cluster ${r.cluster}.` : (r.subtitle || null),
-          }));
+          recommendations = finalFallbackData.map((r) => {
+            const fallbackWhy = r.cluster ? `Cluster ${r.cluster}.` : (r.subtitle || null);
+            return {
+              id: String(r.id),
+              title: r.title,
+              format: r.format || 'Artikel',
+              cluster: r.cluster,
+              read_time_minutes: r.read_time_minutes,
+              url: r.url,
+              subtitle: r.subtitle,
+              why: r.transparency_reason || fallbackWhy,
+            };
+          });
         }
       }
     } else {
@@ -268,25 +286,48 @@ export async function POST(req: NextRequest) {
       quote: `${slots.quote}/${typeof profile?.slots_quote === 'number' ? profile.slots_quote : '∞'}`,
     };
 
-    // Format recommendations für Response (ohne id und why, nur relevante Felder)
-    const formattedRecommendations = recommendations.map(r => ({
-      title: r.title,
-      cluster: r.cluster,
-      format: r.format,
-      read_time_minutes: r.read_time_minutes,
-    }));
+    // FYF Architektur: 1 kuratiertes Item im Chat, Rest im Feedboard
+    // selected_item: Das eine Item, das der Guide im Chat hervorhebt
+    // feedboard_items: Restliche passende Items aus dem Cluster für das Feedboard
+    
+    // Fallback: Wenn AI kein Item explizit auswählt, aber Items vorhanden sind, nimm das erste
+    const selectedItem = finalItems.length > 0 
+      ? finalItems[0] 
+      : (recommendations.length > 0 ? recommendations[0] : null);
+    
+    // Restliche Items aus dem Cluster (ohne das selected_item)
+    const feedboardItems = recommendations
+      .filter(r => !selectedItem || r.id !== selectedItem.id)
+      .map(r => ({
+        id: r.id,
+        title: r.title,
+        cluster: r.cluster,
+        format: r.format,
+        read_time_minutes: r.read_time_minutes,
+        url: r.url || null,
+        subtitle: r.subtitle || null,
+        why: r.why || null, // Enthält transparency_reason oder Fallback
+        guideWhy: r.why || null, // Supabase-Text (transparency_reason) für Frontend
+      }));
 
     return NextResponse.json({
       response: cleanResponse,
       profile_used: !!profile,
       goal_used: !!goal,
-      recommendations: formattedRecommendations,
-      selected_item: finalItems.length > 0 ? {
-        title: finalItems[0].title,
-        cluster: finalItems[0].cluster,
-        format: finalItems[0].format,
-        read_time_minutes: finalItems[0].read_time_minutes,
+      // selected_item: Das eine kuratierte Item für den Chat
+      selected_item: selectedItem ? {
+        id: selectedItem.id,
+        title: selectedItem.title,
+        cluster: selectedItem.cluster,
+        format: selectedItem.format,
+        read_time_minutes: selectedItem.read_time_minutes,
+        url: selectedItem.url || null,
+        subtitle: selectedItem.subtitle || null,
+        why: selectedItem.why || null, // Enthält transparency_reason oder Fallback
+        guideWhy: selectedItem.why || null, // Supabase-Text (transparency_reason) für Frontend
       } : null,
+      // feedboard_items: Restliche Items für das Feedboard
+      feedboard_items: feedboardItems,
       session_id: sessionId,
       detectedCluster: detectedCluster || null,
       slots_remaining: slotsRemaining

@@ -8,6 +8,7 @@ import { CLUSTER_CONFIG } from '@/lib/clusterConfig';
 import { FeedItem, GuideItem, GuideConversationTurn } from '@/types/feedboard';
 import { handlePrompt, resetConversationContext } from '@/lib/guideChatEngine';
 import GuideChatSidebar from '@/components/feedboard/GuideChatSidebar';
+import { buildWhyText } from '@/utils/whyText';
 import './feedboard.css';
 
 type ModeKey = 'focus' | 'explore' | 'pulse';
@@ -92,6 +93,7 @@ export default function FeedboardPage() {
   const [prompt, setPrompt] = useState('Wie baue ich eine neue Routine?');
   const [isGuideLoading, setIsGuideLoading] = useState(false);
   const [overrideItems, setOverrideItems] = useState<FeedItem[] | null>(null);
+  const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
   
   const [isPersonalityOpen, setIsPersonalityOpen] = useState(false);
   const [activeFormat, setActiveFormat] = useState<string>('Alle');
@@ -366,6 +368,7 @@ export default function FeedboardPage() {
       return;
     }
 
+    setLastUserMessage(promptText.trim());
     setIsGuideLoading(true);
 
     try {
@@ -384,26 +387,40 @@ export default function FeedboardPage() {
 
       const data = await response.json();
       
-      // Map recommendations to GuideItems
-      const recommendedItems: GuideItem[] = (data.recommendations || []).map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        guideComment: '', // We don't have this in the simple recommendation query yet
-        guideWhy: '',
-        link: item.url || '#',
-        clusterId: item.cluster || '',
-        format: item.format || 'Artikel'
-      }));
+      // FYF Architektur: 1 kuratiertes Item im Chat, Rest im Feedboard
+      // selected_item: Das eine Item für den Chat
+      // feedboard_items: Restliche Items für das Feedboard
+      
+      const selectedItem = data.selected_item;
+      const feedboardItems = data.feedboard_items || [];
+      
+      // Nur 1 Item für den Chat (selected_item)
+      // Priorisiere guideWhy (transparency_reason) über why (Fallback)
+      const chatItem: GuideItem | null = selectedItem ? {
+        id: selectedItem.id,
+        title: selectedItem.title,
+        guideComment: '',
+        guideWhy: (selectedItem as any).guideWhy || selectedItem.why || '',
+        link: selectedItem.url || '#',
+        clusterId: selectedItem.cluster || '',
+        format: selectedItem.format || 'Artikel',
+        read_time_minutes: selectedItem.read_time_minutes
+      } : null;
 
-      // Create a new conversation turn
+      // Create a new conversation turn mit nur 1 Item
+      // Follow-up nur anzeigen, wenn ein Item vorgeschlagen wurde und es sinnvoll ist
+      // Keine generische "Hast du noch Fragen?" Floskel
       const newTurn: GuideConversationTurn = {
         id: Date.now().toString(),
         prompt: promptText.trim(),
         promptEcho: promptText.trim(),
         comment: data.response,
-        items: recommendedItems,
-        matchReasons: [],
-        followUp: data.fallback ? undefined : "Hast du noch Fragen dazu?",
+        items: chatItem ? [chatItem] : [],
+        matchReasons: chatItem && (selectedItem as any).guideWhy || selectedItem?.why ? [{
+          itemId: chatItem.id,
+          reason: (selectedItem as any).guideWhy || selectedItem.why || ''
+        }] : [],
+        followUp: data.fallback ? undefined : undefined, // Keine generische Follow-up-Frage mehr
         createdAt: new Date().toISOString(),
         isFallback: !!data.fallback
       };
@@ -411,6 +428,36 @@ export default function FeedboardPage() {
       // Update conversation state
       setConversationTurns(prev => [...prev, newTurn]);
       setActiveTurn(newTurn);
+      
+      // Feedboard: Restliche Items aus dem Cluster anzeigen
+      if (feedboardItems.length > 0 && data.detectedCluster) {
+        // Konvertiere feedboard_items zu FeedItems für das Feedboard
+        const feedItems: FeedItem[] = feedboardItems.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          description: item.subtitle || '',
+          format: item.format as any,
+          theme: item.cluster as any,
+          perma: 'Guide' as any,
+          link: item.url || '#',
+          image: '',
+          guideWhy: (item as any).guideWhy || item.why || '', // Priorisiere transparency_reason (guideWhy) über Fallback
+          source: 'guide' as any,
+          chips: [],
+          guideComment: '',
+          isHero: false,
+          isSilence: false
+        }));
+        
+        // Setze overrideItems für das Feedboard
+        setOverrideItems(feedItems);
+        
+        // Setze auch den activeCluster, damit das Feedboard den Cluster filtert
+        setActiveCluster(data.detectedCluster);
+      } else {
+        // Keine feedboard_items oder kein detectedCluster -> overrideItems zurücksetzen
+        setOverrideItems(null);
+      }
       
       setPrompt('');
     } catch (error) {
@@ -441,6 +488,7 @@ export default function FeedboardPage() {
     setActiveTurn(null);
     setOverrideItems(null);
     setPrompt('');
+    setLastUserMessage(null);
   };
 
   // Stoppschild Overlay Handlers
@@ -559,7 +607,7 @@ export default function FeedboardPage() {
 
         <section className="feedboard-grid" aria-live="polite">
           {gridItems.map(({ item, variant, key }) => (
-            <FeedCard key={key} item={item} variant={variant} />
+            <FeedCard key={key} item={item} variant={variant} lastUserMessage={lastUserMessage} />
           ))}
 
           {!gridItems.length && (
@@ -577,7 +625,7 @@ export default function FeedboardPage() {
             </div>
             <div className="feedboard-secondary__grid">
               {secondaryItems.map(item => (
-                <FeedCard key={`secondary-${item.id}`} item={item} variant="standard" size="compact" />
+                <FeedCard key={`secondary-${item.id}`} item={item} variant="standard" size="compact" lastUserMessage={lastUserMessage} />
               ))}
           </div>
         </section>
@@ -759,16 +807,103 @@ type FeedCardProps = {
   variant: 'hero' | 'standard' | 'silence';
   size?: 'default' | 'compact';
   onPartnerClick?: (item: FeedItem) => void;
+  lastUserMessage?: string | null;
 };
 
-function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardProps) {
+function FeedCard({ item, variant, size = 'default', onPartnerClick, lastUserMessage }: FeedCardProps) {
   const cluster = CLUSTER_CONFIG[item.theme];
   const accent = cluster?.color ?? '#4ecdc4';
   const icon = cluster?.icon ?? '◯';
+  
+  // Nutze buildWhyText Helper für saubere, vollständige Sätze
+  const whyText = buildWhyText({
+    matchReason: (item as any).matchReason ?? (item as any).match_reason ?? null,
+    guideWhy: item.guideWhy ?? null,
+    lastUserMessage: lastUserMessage ?? null,
+    clusterCode: (item as any).clusterId ?? item.theme ?? null,
+  });
 
   const [showGuideComment, setShowGuideComment] = useState(false);
   const [guideData, setGuideData] = useState<{ title: string; guide_comment: string; transparency_reason: string } | null>(null);
   const [isLoadingGuide, setIsLoadingGuide] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get user ID on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        console.log('[FeedCard] User fetch result:', { 
+          hasUser: !!user, 
+          userId: user?.id, 
+          error,
+          userEmail: user?.email 
+        });
+        
+        if (user) {
+          setUserId(user.id);
+          console.log('[FeedCard] User ID set:', user.id);
+        } else {
+          console.warn('[FeedCard] No user found, buttons will be hidden');
+        }
+      } catch (err) {
+        console.error('[FeedCard] Error fetching user:', err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const logFeedInteraction = async (action: 'bookmark' | 'more' | 'less') => {
+    console.log('[FeedCard] logFeedInteraction called:', { action, itemId: item.id, userId });
+    
+    if (!userId) {
+      console.warn('[FeedCard] Cannot log interaction: user not authenticated');
+      return;
+    }
+
+    try {
+      const requestBody = {
+        content_id: item.id,
+        action: action,
+      };
+      
+      console.log('[FeedCard] Sending request to /api/feedboard/interactions:', requestBody);
+      
+      const res = await fetch('/api/feedboard/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      const responseText = await res.text();
+      console.log('[FeedCard] Response status:', res.status);
+      console.log('[FeedCard] Response body:', responseText);
+
+      if (res.ok) {
+        try {
+          const data = JSON.parse(responseText);
+          console.log('[FeedCard] Feed interaction logged successfully:', data);
+        } catch (e) {
+          console.log('[FeedCard] Response (non-JSON):', responseText);
+        }
+      } else {
+        console.error('[FeedCard] Failed to log interaction:', {
+          status: res.status,
+          statusText: res.statusText,
+          body: responseText,
+        });
+      }
+    } catch (err: any) {
+      console.error('[FeedCard] Error logging feed interaction:', {
+        error: err,
+        message: err?.message,
+        stack: err?.stack,
+      });
+    }
+  };
 
   const openGuideComment = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -859,9 +994,9 @@ function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardP
 
         {item.guideComment && <p className="feed-card__comment">{item.guideComment}</p>}
 
-        {item.guideWhy && <p className="feed-card__why">{item.guideWhy}</p>}
+        {whyText && <p className="feed-card__why">{whyText}</p>}
 
-        <div className="feed-card__actions" style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+        <div className="feed-card__actions" style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button 
             className="guide-says-btn"
             onClick={openGuideComment}
@@ -881,6 +1016,74 @@ function FeedCard({ item, variant, size = 'default', onPartnerClick }: FeedCardP
           >
             {isLoadingGuide ? 'Lade...' : 'Guide sagt...'}
           </button>
+          
+          {userId ? (
+            <div className="feed-buttons" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  logFeedInteraction('bookmark');
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  color: 'var(--fyf-cream)',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                title="Merken"
+              >
+                📌 Merken
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  logFeedInteraction('more');
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  color: 'var(--fyf-cream)',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                title="Mehr davon"
+              >
+                👍 Mehr davon
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  logFeedInteraction('less');
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  color: 'var(--fyf-cream)',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                title="Anderes Thema"
+              >
+                👎 Anderes Thema
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {item.chips?.length > 0 && (

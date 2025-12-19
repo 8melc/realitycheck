@@ -2488,20 +2488,47 @@
 }
 
 .guidechat-sidebar__item-why {
-  margin: 8px 0 0 0;
-  padding: 8px 12px;
-  background: rgba(78, 205, 196, 0.05);
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(78, 205, 196, 0.08);
+  border: 1px solid rgba(78, 205, 196, 0.2);
   border-radius: 8px;
-  font-size: 12px;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.5;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.guidechat-sidebar__item-why strong {
+.guidechat-sidebar__item-why-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--fyf-mint);
   font-weight: 600;
-  font-style: normal;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: rgba(78, 205, 196, 0.5);
+  transition: all 160ms ease;
+}
+
+.guidechat-sidebar__item-why-trigger:hover {
+  color: var(--fyf-offwhite);
+  text-decoration-color: rgba(78, 205, 196, 0.8);
+}
+
+.guidechat-sidebar__item-why-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  line-height: 1.5;
+  display: block;
 }
 
 .guidechat-sidebar__item-link {
@@ -2523,6 +2550,34 @@
 .guidechat-sidebar__item-link:hover {
   background: rgba(78, 205, 196, 0.18);
   border-color: rgba(78, 205, 196, 0.4);
+}
+
+.guidechat-feedback-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.guidechat-feedback-buttons button {
+  border: 1px solid var(--fyf-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fyf-offwhite);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 120ms ease, transform 120ms ease, opacity 120ms ease;
+}
+
+.guidechat-feedback-buttons button:hover {
+  border-color: var(--fyf-border-strong);
+  transform: translateY(-1px);
+}
+
+.guidechat-feedback-buttons button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
 }
 
 .guidechat-sidebar__loading {

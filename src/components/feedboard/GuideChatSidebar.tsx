@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { GuideConversationTurn } from '@/types/feedboard';
 import { getClusterConfig } from '@/lib/guideChatEngine';
+import GuideFeedbackButtons from './GuideFeedbackButtons';
+import { buildWhyText } from '@/utils/whyText';
 
 interface GuideChatSidebarProps {
   isOpen: boolean;
@@ -142,11 +144,13 @@ export default function GuideChatSidebar({
           </div>
         )}
 
-        {turns.map((turn) => {
+        {turns.map((turn, turnIndex) => {
           const clusterConfig = getClusterConfig(turn.items[0]?.clusterId || 'Fokus & Flow');
+          // Ensure unique key: use turn.id if available, otherwise fallback to index
+          const turnKey = turn.id || `turn-${turnIndex}`;
           
           return (
-            <div key={turn.id} className="guidechat-sidebar__turn">
+            <div key={turnKey} className="guidechat-sidebar__turn">
               {/* User Prompt */}
               <div className="guidechat-sidebar__user">
                 <div className="guidechat-sidebar__user-bubble">
@@ -181,15 +185,22 @@ export default function GuideChatSidebar({
                   </div>
                 )}
 
-                {/* Items with "Why this?" */}
+                {/* FYF Architektur: 1 kuratiertes Item im Chat */}
                 {turn.items.length > 0 && (
-                  <ul className="guidechat-sidebar__items">
-                    {turn.items.map((item, index) => {
+                  <div className="guidechat-sidebar__curated-item">
+                    {(() => {
+                      const item = turn.items[0]; // Nur das erste Item (sollte nur 1 sein)
                       const matchReason = turn.matchReasons.find(mr => mr.itemId === item.id);
+                      // Nutze buildWhyText Helper für saubere, vollständige Sätze
+                      const whyText = buildWhyText({
+                        matchReason: matchReason?.reason ?? matchReason ?? null,
+                        guideWhy: item?.guideWhy ?? null,
+                        lastUserMessage: turn?.prompt ?? null,
+                        clusterCode: item?.clusterId ?? item?.theme ?? null,
+                      });
                       
                       return (
-                        <li 
-                          key={item.id} 
+                        <div 
                           className="guidechat-sidebar__item"
                           style={{ '--cluster-accent': clusterConfig?.color } as React.CSSProperties}
                         >
@@ -200,17 +211,74 @@ export default function GuideChatSidebar({
                             <span className="guidechat-sidebar__item-cluster">
                               {item.clusterId}
                             </span>
+                            {item.read_time_minutes && (
+                              <span className="guidechat-sidebar__item-duration">
+                                {item.read_time_minutes} min
+                              </span>
+                            )}
                           </div>
                           
                           <h4 className="guidechat-sidebar__item-title">
                             {item.title}
                           </h4>
                           
-                          {matchReason && (
-                            <p className="guidechat-sidebar__item-why">
-                              <strong>Warum?</strong> {matchReason.reason}
-                            </p>
+                          {whyText && (
+                            <div className="guidechat-sidebar__item-why">
+                              <button
+                                type="button"
+                                className="guidechat-sidebar__item-why-trigger"
+                                title={whyText}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  // Toggle visibility oder show tooltip
+                                  const target = e.currentTarget.nextElementSibling as HTMLElement;
+                                  if (target) {
+                                    target.style.display = target.style.display === 'none' ? 'block' : 'none';
+                                  }
+                                }}
+                              >
+                                Warum sehe ich das?
+                              </button>
+                              <p className="guidechat-sidebar__item-why-text">{whyText}</p>
+                            </div>
                           )}
+                          
+                          {/* Action Buttons: Ja / Später / Skip */}
+                          <div className="guidechat-sidebar__item-actions">
+                            <button
+                              type="button"
+                              className="guidechat-sidebar__action-btn guidechat-sidebar__action-btn--primary"
+                              onClick={() => {
+                                // TODO: Implement "Ja" action - mark as consumed, decrement slot
+                                console.log('[Guide] Item accepted:', item.id);
+                                if (item.link && item.link !== '#') {
+                                  window.open(item.link, '_blank');
+                                }
+                              }}
+                            >
+                              Ja
+                            </button>
+                            <button
+                              type="button"
+                              className="guidechat-sidebar__action-btn guidechat-sidebar__action-btn--secondary"
+                              onClick={() => {
+                                // TODO: Implement "Später" action - save for later
+                                console.log('[Guide] Item saved for later:', item.id);
+                              }}
+                            >
+                              Später
+                            </button>
+                            <button
+                              type="button"
+                              className="guidechat-sidebar__action-btn guidechat-sidebar__action-btn--tertiary"
+                              onClick={() => {
+                                // TODO: Implement "Skip" action - mark as skipped
+                                console.log('[Guide] Item skipped:', item.id);
+                              }}
+                            >
+                              Skip
+                            </button>
+                          </div>
                           
                           {item.link && item.link !== '#' && (
                             <a
@@ -222,10 +290,10 @@ export default function GuideChatSidebar({
                               Ansehen →
                             </a>
                           )}
-                        </li>
+                        </div>
                       );
-                    })}
-                  </ul>
+                    })()}
+                  </div>
                 )}
               </div>
             </div>
@@ -278,4 +346,3 @@ export default function GuideChatSidebar({
     </aside>
   );
 }
-

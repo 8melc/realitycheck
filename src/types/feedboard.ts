@@ -140,4 +140,5 @@ export interface GuideItem {
   link: string;
   clusterId: string;
   format: string;
+  read_time_minutes?: number; // Optional: Dauer in Minuten
 }

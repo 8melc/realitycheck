@@ -10,9 +10,10 @@ interface SidebarProps {
   activeSection: 'overview' | 'profile';
   setActiveSection: (section: 'overview' | 'profile') => void;
   hasUnsavedChanges?: boolean;
+  creditsBalance?: number;
 }
 
-const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsavedChanges }: SidebarProps) => {
+const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsavedChanges, creditsBalance = 0 }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isClient, setIsClient] = useState(false);
   
@@ -88,7 +89,7 @@ const Sidebar = ({ profile, onEditGoal, activeSection, setActiveSection, hasUnsa
         <div className="rc-credits-stats">
           <div className="rc-credits-stat">
             <div className="rc-credits-stat-label">Verfügbar</div>
-            <div className="rc-credits-stat-value rc-credits-stat-value--mint">47</div>
+            <div className="rc-credits-stat-value rc-credits-stat-value--mint">{creditsBalance}</div>
             <div className="rc-credits-stat-subtitle">Credits für Sessions</div>
           </div>
           

@@ -28,6 +28,32 @@ import { mapUserProfileToLegacyProfile } from '@/lib/utils/profile-mapper';
 import LogoutButton from '@/components/LogoutButton';
 import './page.css';
 
+// Philosophy and Lifestyle options (matching onboarding)
+const philosophyOptions = [
+  { value: 'dividende', label: 'Zeit als Dividende', description: 'Ich will meine Zeit so investieren, dass sie Dividende für mein Leben zahlt.' },
+  { value: 'wirkung', label: 'Wirkung statt Erledigung', description: 'Für mich zählt Wirkung, nicht nur Erledigungen – meine Zeit soll Sinn stiften.' },
+  { value: 'limitiert', label: 'Bewusste Limitierung', description: 'Jede Stunde ist limitiert – ich will sie bewusst gegen das eintauschen, was zählt.' },
+  { value: 'balance', label: 'Kalender-Depot Balance', description: 'Ich will mein Kalender-Depot so balancieren, dass Flow, Pause und Wachstum sich abwechseln.' },
+  { value: 'no-waste', label: 'Keine Zeitverschwendung', description: 'Zeitverschwendung ist für mich das Einzige, was ich mir wirklich nie leisten will.' },
+];
+
+const lifestyleOptions = [
+  { value: 'digital-nomad', label: 'Digital Nomad', description: 'Arbeite, wo du gerade bist.' },
+  { value: 'remote-worker', label: 'Remote Worker', description: 'Homeoffice ist mein Orbit.' },
+  { value: 'office-player', label: 'Office Player', description: '9-to-5, aber meinen Regeln.' },
+  { value: 'hybrid', label: 'Hybrid', description: 'Stadt und Rückzug im Wechsel.' },
+  { value: 'creator', label: 'Creator', description: 'Ich kreiere, Fokus ist fluide.' },
+  { value: 'sidepreneur', label: 'Sidepreneur', description: 'Mehrere Projekte, voller Drive.' },
+  { value: 'explorer', label: 'Explorer', description: 'Ich teste ständig neue Routinen.' },
+  { value: 'caretaker', label: 'Caretaker', description: 'Ich halte andere am Laufen.' },
+  { value: 'teamplayer', label: 'Teamplayer', description: 'Ich tanke Energie im Miteinander.' },
+  { value: 'rebel', label: 'Rebel', description: 'Kein klassisches Lebensmodell.' },
+  { value: 'family-flow', label: 'Family Flow', description: 'Familie ist mein Taktgeber.' },
+  { value: 'minimalist', label: 'Minimalist', description: 'Weniger Zeug, mehr Fokus.' },
+  { value: 'old-school', label: 'Old School', description: 'Feste Strukturen, klare Slots.' },
+  { value: 'standard', label: 'Standard', description: 'Standard-Lebensstil.' },
+];
+
 // Calculate time metrics
 const computeTimeMetrics = (profile: Profile) => {
   if (!profile?.identity?.birthdate) return { weeksLived: 0, weeksRemaining: 0, daysRemaining: 0 };
@@ -61,6 +87,8 @@ export default function GuideDashboardPage() {
     willShare, setWillShare,
     bio, setBio,
     isPublic, setIsPublic,
+    guidePersonality, setGuidePersonality,
+    lifestyle, setLifestyle,
     isSaving, saveError, saveSuccess,
     hasChanges,
     handleSaveProfileSettings: saveSettings,
@@ -74,8 +102,329 @@ export default function GuideDashboardPage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [guideConversations, setGuideConversations] = useState<Array<{ prompt: string; response: string; createdAt: string }>>([]);
+  const [userActions, setUserActions] = useState<Array<{ id: string; title: string; category: string | null; is_done: boolean; due_date: string | null; created_at: string }>>([]);
+  const [journeyEvents, setJourneyEvents] = useState<Array<{ id: string; type: string; description: string; timestamp: string }>>([]);
+  const [guideFeedback, setGuideFeedback] = useState<Array<{ id: string; tone: 'motivating' | 'challenging' | 'reflecting'; message: string; createdAt: string }>>([]);
+  const [creditsBalance, setCreditsBalance] = useState<number>(0);
+  const [userInterests, setUserInterests] = useState<Array<{ id: string; label: string; created_at: string }>>([]);
+  const [userProjects, setUserProjects] = useState<Array<{ id: string; title: string; status: string; priority: number; created_at: string; updated_at: string }>>([]);
   const { fetchUsageData } = useUsageStore();
-  const { guideTone, isGuideMuted } = useGuideStore();
+  const { guideTone, isGuideMuted, initializeFromAPI } = useGuideStore();
+  
+  // Initialize guide settings from API on mount
+  useEffect(() => {
+    initializeFromAPI();
+  }, [initializeFromAPI]);
+  
+  // Load guide conversations from API
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const response = await fetch('/api/profile/guide-conversations');
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API data to GuidePromptHistory format
+          // Group by conversation pairs (user message + guide response)
+          const conversations: Array<{ prompt: string; response: string; createdAt: string }> = [];
+          let currentPrompt = '';
+          let currentResponse = '';
+          let currentTimestamp = '';
+          
+          for (const msg of data) {
+            if (msg.role === 'user') {
+              // If we have a previous conversation, save it
+              if (currentPrompt && currentResponse) {
+                conversations.push({
+                  prompt: currentPrompt,
+                  response: currentResponse,
+                  createdAt: currentTimestamp,
+                });
+              }
+              currentPrompt = msg.message;
+              currentTimestamp = msg.created_at;
+              currentResponse = '';
+            } else if (msg.role === 'guide' && currentPrompt) {
+              currentResponse = msg.message;
+            }
+          }
+          
+          // Save last conversation if exists
+          if (currentPrompt && currentResponse) {
+            conversations.push({
+              prompt: currentPrompt,
+              response: currentResponse,
+              createdAt: currentTimestamp,
+            });
+          }
+          
+          setGuideConversations(conversations);
+        } else {
+          // Fallback: Try localStorage
+          try {
+            const stored = localStorage.getItem('rc-guide-dashboard');
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              setGuideConversations(parsed.guidePrompts || []);
+            }
+          } catch (e) {
+            console.error('[Dashboard] Error loading conversations from localStorage:', e);
+          }
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error loading conversations:', error);
+        // Fallback: Try localStorage
+        try {
+          const stored = localStorage.getItem('rc-guide-dashboard');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            setGuideConversations(parsed.guidePrompts || []);
+          }
+        } catch (e) {
+          console.error('[Dashboard] Error loading conversations from localStorage:', e);
+        }
+      }
+    };
+    
+    loadConversations();
+  }, []);
+  
+  // Load user actions from API
+  useEffect(() => {
+    const loadActions = async () => {
+      try {
+        const response = await fetch('/api/profile/actions');
+        if (response.ok) {
+          const data = await response.json();
+          setUserActions(data);
+        } else {
+          console.error('[Dashboard] Failed to load actions');
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error loading actions:', error);
+      }
+    };
+    
+    loadActions();
+  }, []);
+  
+  // Load journey events from API
+  useEffect(() => {
+    const loadJourney = async () => {
+      try {
+        const response = await fetch('/api/profile/journey');
+        if (response.ok) {
+          const data = await response.json();
+          // Transform to Profile['journey'] format
+          const events = data.map((event: any) => ({
+            id: event.id,
+            type: event.type || 'milestone',
+            description: event.label || 'Journey Event',
+            timestamp: event.created_at,
+          }));
+          setJourneyEvents(events);
+        } else {
+          console.error('[Dashboard] Failed to load journey');
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error loading journey:', error);
+      }
+    };
+    
+    loadJourney();
+  }, []);
+  
+  // Load guide feedback from API
+  useEffect(() => {
+    const loadFeedback = async () => {
+      try {
+        const response = await fetch('/api/profile/feedback');
+        if (response.ok) {
+          const data = await response.json();
+          // Transform to Profile['feedback'] format
+          // Map source to tone (simplified mapping)
+          const feedback = data.map((item: any) => ({
+            id: item.id,
+            tone: (item.source === 'challenge' ? 'challenging' : item.source === 'reflection' ? 'reflecting' : 'motivating') as 'motivating' | 'challenging' | 'reflecting',
+            message: item.message || '',
+            createdAt: item.created_at,
+          }));
+          setGuideFeedback(feedback);
+        } else {
+          console.error('[Dashboard] Failed to load feedback');
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error loading feedback:', error);
+      }
+    };
+    
+    loadFeedback();
+  }, []);
+  
+  // Load credits from API
+  useEffect(() => {
+    const loadCredits = async () => {
+      try {
+        const response = await fetch('/api/profile/credits');
+        if (response.ok) {
+          const data = await response.json();
+          setCreditsBalance(data.balance || 0);
+        } else {
+          console.error('[Dashboard] Failed to load credits');
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error loading credits:', error);
+      }
+    };
+    
+    loadCredits();
+  }, []);
+  
+  // Load user interests from API
+  useEffect(() => {
+    const loadInterests = async () => {
+      try {
+        const response = await fetch('/api/profile/interests');
+        if (response.ok) {
+          const data = await response.json();
+          setUserInterests(data);
+        } else {
+          console.error('[Dashboard] Failed to load interests');
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error loading interests:', error);
+      }
+    };
+    
+    loadInterests();
+  }, []);
+  
+  // Load user projects from API
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const response = await fetch('/api/profile/projects');
+        if (response.ok) {
+          const data = await response.json();
+          setUserProjects(data);
+        } else {
+          console.error('[Dashboard] Failed to load projects');
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error loading projects:', error);
+      }
+    };
+    
+    loadProjects();
+  }, []);
+  
+  // Handle add interest
+  const handleAddInterest = async (label: string) => {
+    try {
+      const response = await fetch('/api/profile/interests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label }),
+      });
+      
+      if (response.ok) {
+        const newInterest = await response.json();
+        setUserInterests(prev => [newInterest, ...prev]);
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error adding interest:', error);
+    }
+  };
+  
+  // Handle delete interest
+  const handleDeleteInterest = async (id: string) => {
+    try {
+      const response = await fetch(`/api/profile/interests?id=${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setUserInterests(prev => prev.filter(i => i.id !== id));
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error deleting interest:', error);
+    }
+  };
+  
+  // Handle add project
+  const handleAddProject = async (title: string) => {
+    try {
+      const response = await fetch('/api/profile/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
+      
+      if (response.ok) {
+        const newProject = await response.json();
+        setUserProjects(prev => [newProject, ...prev]);
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error adding project:', error);
+    }
+  };
+  
+  // Handle update project
+  const handleUpdateProject = async (id: string, updates: { status?: string; priority?: number; title?: string }) => {
+    try {
+      const response = await fetch(`/api/profile/projects/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      
+      if (response.ok) {
+        const updatedProject = await response.json();
+        setUserProjects(prev => prev.map(p => p.id === id ? updatedProject : p));
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error updating project:', error);
+    }
+  };
+  
+  // Handle action toggle (checkbox click)
+  const handleActionToggle = async (actionId: string) => {
+    const action = userActions.find(a => a.id === actionId);
+    if (!action) return;
+    
+    try {
+      const response = await fetch(`/api/profile/actions/${actionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_done: !action.is_done }),
+      });
+      
+      if (response.ok) {
+        const updatedAction = await response.json();
+        setUserActions(prev => prev.map(a => a.id === actionId ? updatedAction : a));
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error toggling action:', error);
+    }
+  };
+  
+  // Handle add action
+  const handleAddAction = async (title: string, category?: string) => {
+    try {
+      const response = await fetch('/api/profile/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, category }),
+      });
+      
+      if (response.ok) {
+        const newAction = await response.json();
+        setUserActions(prev => [newAction, ...prev]);
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error adding action:', error);
+    }
+  };
   
   // Calculate time metrics only on client side
   const timeMetrics = useMemo(() => {
@@ -244,13 +593,13 @@ export default function GuideDashboardPage() {
             updatedAt: userProfile.updated_at,
           },
           timePhilosophy: {
-            optionId: userProfile.guide_personality || 'time-investment',
-            label: userProfile.guide_personality || 'Zeit als Investition',
+            optionId: userProfile.guide_personality || 'dividende',
+            label: userProfile.guide_personality ? philosophyOptions.find(opt => opt.value === userProfile.guide_personality)?.label || userProfile.guide_personality : 'Zeit als Dividende',
             selectedAt: userProfile.created_at,
           },
           lifestyle: {
-            optionId: 'default',
-            label: 'Standard',
+            optionId: (userProfile as any).lifestyle || 'standard',
+            label: (userProfile as any).lifestyle ? lifestyleOptions.find(opt => opt.value === (userProfile as any).lifestyle)?.label || (userProfile as any).lifestyle : 'Standard',
             selectedAt: userProfile.created_at,
           },
           interests: [],
@@ -314,6 +663,11 @@ export default function GuideDashboardPage() {
   } = useGuideState();
 
   const handleEditSection = useCallback((section: string) => {
+    if (section === 'Zeit-Profil') {
+      // Zeit-Profil wird inline bearbeitet, keine separate Modal nötig
+      // Die Edit-Funktion wird direkt in TimeStyleCard gehandhabt
+      return;
+    }
     window.alert(`Bearbeitung für „${section}" ist in Arbeit.`);
   }, []);
 
@@ -442,7 +796,9 @@ export default function GuideDashboardPage() {
         will_learn: willLearn,
         will_share: willShare,
         bio: bio,
-        is_public: isPublic
+        is_public: isPublic,
+        guide_personality: guidePersonality,
+        lifestyle: lifestyle
       }));
 
       setProfile(prev => prev ? {
@@ -533,6 +889,7 @@ export default function GuideDashboardPage() {
         activeSection={activeSection}
         setActiveSection={setActiveSection}
         hasUnsavedChanges={hasChanges}
+        creditsBalance={creditsBalance}
       />
 
       <main className="guide-dashboard-main-full">
@@ -588,15 +945,37 @@ export default function GuideDashboardPage() {
             </section>
 
             <section className="guide-section" id="feedback">
-              <MotivationFeed profile={profile} onEdit={() => handleEditSection('Feedback & Impulse')} />
+              <MotivationFeed 
+                profile={{
+                  ...profile,
+                  feedback: guideFeedback.length > 0 ? guideFeedback as Profile['feedback'] : profile.feedback
+                }} 
+                onEdit={() => handleEditSection('Feedback & Impulse')} 
+              />
             </section>
 
             <section className="guide-section" id="zeit-profil">
-              <TimeStyleCard profile={profile} onEdit={() => handleEditSection('Zeit-Profil')} />
+              <TimeStyleCard 
+                profile={profile} 
+                guidePersonality={guidePersonality}
+                lifestyle={lifestyle}
+                onGuidePersonalityChange={setGuidePersonality}
+                onLifestyleChange={setLifestyle}
+                onSave={handleSaveProfileSettings}
+                isSaving={isSaving}
+              />
             </section>
 
             <section className="guide-section" id="energie-feeds">
-              <EnergyFeeds profile={profile} onConnectSpotify={handleConnectSpotify} onEdit={() => handleEditSection('Energie-Feeds')} />
+              <EnergyFeeds 
+                profile={{
+                  ...profile,
+                  interests: userInterests.map(i => ({ id: i.id, label: i.label, icon: undefined, weight: undefined })),
+                  projects: userProjects.map(p => ({ id: p.id, title: p.title, status: p.status as 'active' | 'paused' | 'completed', description: undefined, updatedAt: p.updated_at })),
+                }} 
+                onConnectSpotify={handleConnectSpotify} 
+                onEdit={() => handleEditSection('Energie-Feeds')} 
+              />
             </section>
 
             <section className="guide-section" id="guide-settings">
@@ -612,15 +991,32 @@ export default function GuideDashboardPage() {
             </section>
 
             <section className="guide-section" id="conversation">
-              <GuideConversationSection prompts={state.guidePrompts} />
+              <GuideConversationSection prompts={guideConversations.length > 0 ? guideConversations : state.guidePrompts} />
             </section>
 
             <section className="guide-section" id="journey">
-              <JourneyTimeline journey={profile.journey} onEdit={() => handleEditSection('Journey')} />
+              <JourneyTimeline 
+                journey={journeyEvents.length > 0 ? journeyEvents as Profile['journey'] : profile.journey} 
+                onEdit={() => handleEditSection('Journey')} 
+              />
             </section>
 
             <section className="guide-section" id="actions">
-              <GuideActionsSection items={state.actionItems} onToggle={(id) => console.log('Toggle:', id)} onReminder={(id) => console.log('Reminder:', id)} />
+              <GuideActionsSection 
+                items={userActions.map(action => ({
+                  id: action.id,
+                  title: action.title,
+                  meta: [action.category || 'Unkategorisiert', action.due_date ? `Fällig: ${new Date(action.due_date).toLocaleDateString('de-DE')}` : 'Kein Fälligkeitsdatum'],
+                  guide: action.is_done ? 'Erledigt' : 'Offen',
+                  chips: action.category ? [action.category] : [],
+                  addedAt: action.created_at,
+                  image: '',
+                  kicker: 'Aktion',
+                  source: 'manual' as const,
+                }))} 
+                onToggle={handleActionToggle} 
+                onReminder={(id) => console.log('Reminder:', id)} 
+              />
             </section>
           </>
         ) : (

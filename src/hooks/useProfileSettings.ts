@@ -9,6 +9,8 @@ export function useProfileSettings(initialProfile: any) {
   const [willShare, setWillShare] = useState<string[]>([]);
   const [bio, setBio] = useState<string>('');
   const [isPublic, setIsPublic] = useState<boolean>(true);
+  const [guidePersonality, setGuidePersonality] = useState<string>('');
+  const [lifestyle, setLifestyle] = useState<string>('');
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -20,7 +22,9 @@ export function useProfileSettings(initialProfile: any) {
     JSON.stringify(willLearn) !== JSON.stringify(initialProfile.will_learn || []) ||
     JSON.stringify(willShare) !== JSON.stringify(initialProfile.will_share || []) ||
     bio !== (initialProfile.bio || '') ||
-    isPublic !== (initialProfile.is_public ?? true)
+    isPublic !== (initialProfile.is_public ?? true) ||
+    guidePersonality !== (initialProfile.guide_personality || '') ||
+    lifestyle !== (initialProfile.lifestyle || '')
   ) : false;
 
   // Initialize states when initialProfile is available
@@ -31,6 +35,8 @@ export function useProfileSettings(initialProfile: any) {
       setWillShare(initialProfile.will_share || []);
       setBio(initialProfile.bio || '');
       setIsPublic(initialProfile.is_public ?? true);
+      setGuidePersonality(initialProfile.guide_personality || '');
+      setLifestyle(initialProfile.lifestyle || '');
     }
   }, [initialProfile]);
 
@@ -57,6 +63,8 @@ export function useProfileSettings(initialProfile: any) {
         will_share: willShare.length ? willShare : null,
         bio: bio || null,
         is_public: isPublic,
+        guide_personality: guidePersonality || null,
+        lifestyle: lifestyle || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -93,6 +101,10 @@ export function useProfileSettings(initialProfile: any) {
     setBio,
     isPublic,
     setIsPublic,
+    guidePersonality,
+    setGuidePersonality,
+    lifestyle,
+    setLifestyle,
     isSaving,
     saveError,
     saveSuccess,

@@ -1,67 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UsageLimitResponse } from '@/types/profile';
-import { DemoUsageService } from '@/lib/demoUsageService';
-
-// Helper function to get user from session (mock)
-function getCurrentUser(request: NextRequest): string | null {
-  // In production, extract user from JWT token or session
-  return 'user-001'; // Mock user ID
-}
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 // GET: Retrieve current usage limit and today's usage
 export async function GET(request: NextRequest) {
   try {
-    const userId = getCurrentUser(request);
-    if (!userId) {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const demoService = DemoUsageService.getInstance();
-    const userState = demoService.getUserState(userId);
-    const todayUsageMinutes = demoService.calculateTodayUsage(userId);
-    const limitReached = userState.dailyLimitMinutes 
-      ? todayUsageMinutes >= userState.dailyLimitMinutes 
+    // Get user profile with usage limit settings
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('daily_time_limit_minutes, daily_limit_enabled')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('[Usage Limit] Error fetching profile:', profileError);
+      return NextResponse.json({ error: 'Failed to fetch usage limit' }, { status: 500 });
+    }
+
+    // TODO: Calculate today's usage from usage_events table (for now: 0)
+    const todayUsageMinutes = 0;
+    const dailyLimitMinutes = profile?.daily_time_limit_minutes || null;
+    const limitReached = dailyLimitMinutes 
+      ? todayUsageMinutes >= dailyLimitMinutes 
       : false;
 
     const response: UsageLimitResponse = {
-      dailyLimitMinutes: userState.dailyLimitMinutes,
+      dailyLimitMinutes,
       todayUsageMinutes,
-      requiresReauth: userState.requiresReauth,
-      lastLimitUpdateAt: userState.lastLimitUpdateAt,
+      requiresReauth: false, // No longer needed with Supabase
+      lastLimitUpdateAt: null, // Can be added to user_profiles if needed
       limitReached,
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching usage limit:', error);
+    console.error('[Usage Limit] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// PUT: Update daily usage limit
+// PUT/PATCH: Update daily usage limit
 export async function PUT(request: NextRequest) {
+  return PATCH(request);
+}
+
+export async function PATCH(request: NextRequest) {
   try {
-    const userId = getCurrentUser(request);
-    if (!userId) {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const demoService = DemoUsageService.getInstance();
-    const userState = demoService.getUserState(userId);
-
-    // Check if reauth is required
-    if (userState.requiresReauth) {
-      return NextResponse.json(
-        { error: 'Please log in again to change your usage limit' }, 
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-    const { dailyLimitMinutes } = body;
+    const { dailyLimitMinutes, enabled } = body;
 
     // Validation
-    if (dailyLimitMinutes !== null) {
+    if (dailyLimitMinutes !== null && dailyLimitMinutes !== undefined) {
       if (typeof dailyLimitMinutes !== 'number' || dailyLimitMinutes < 15 || dailyLimitMinutes > 480) {
         return NextResponse.json(
           { error: 'Daily limit must be between 15 and 480 minutes' }, 
@@ -77,29 +80,48 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Update user state
-    demoService.updateUserState(userId, {
-      dailyLimitMinutes,
-      lastLimitUpdateAt: new Date().toISOString(),
-      requiresReauth: true,
-    });
+    // Update user profile
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
 
-    const todayUsageMinutes = demoService.calculateTodayUsage(userId);
-    const limitReached = dailyLimitMinutes 
-      ? todayUsageMinutes >= dailyLimitMinutes 
+    if (dailyLimitMinutes !== undefined) {
+      updateData.daily_time_limit_minutes = dailyLimitMinutes;
+    }
+
+    if (enabled !== undefined) {
+      updateData.daily_limit_enabled = enabled;
+    }
+
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('user_profiles')
+      .update(updateData)
+      .eq('user_id', user.id)
+      .select('daily_time_limit_minutes, daily_limit_enabled')
+      .single();
+
+    if (updateError) {
+      console.error('[Usage Limit] Update error:', updateError);
+      return NextResponse.json({ error: 'Failed to update usage limit' }, { status: 500 });
+    }
+
+    // TODO: Calculate today's usage from usage_events table (for now: 0)
+    const todayUsageMinutes = 0;
+    const limitReached = updatedProfile.daily_time_limit_minutes 
+      ? todayUsageMinutes >= updatedProfile.daily_time_limit_minutes 
       : false;
 
     const response: UsageLimitResponse = {
-      dailyLimitMinutes,
+      dailyLimitMinutes: updatedProfile.daily_time_limit_minutes,
       todayUsageMinutes,
-      requiresReauth: true,
+      requiresReauth: false,
       lastLimitUpdateAt: new Date().toISOString(),
       limitReached,
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating usage limit:', error);
+    console.error('[Usage Limit] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
