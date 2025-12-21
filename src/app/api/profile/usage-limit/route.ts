@@ -25,39 +25,81 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate today's usage from user_sessions table
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // WICHTIG: Nutze UTC für konsistente "heute"-Berechnung
+    // Supabase speichert timestamptz in UTC, daher müssen wir auch in UTC vergleichen
+    // Dies verhindert Zeitzonen-Probleme (z.B. Server in UTC, User in CET)
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      0, 0, 0, 0
+    ));
+    const todayEnd = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23, 59, 59, 999
+    ));
     
+    // Get sessions that started today (strictly today, not before)
+    // Query nutzt UTC-Timestamps für konsistenten Vergleich
     const { data: sessions, error: sessionsError } = await supabase
       .from('user_sessions')
-      .select('duration_minutes, session_start')
+      .select('duration_minutes, session_start, session_end')
       .eq('user_id', user.id)
-      .gte('session_start', todayStart.toISOString());
+      .gte('session_start', todayStart.toISOString())
+      .lt('session_start', todayEnd.toISOString());
 
     if (sessionsError) {
-      console.error('[Usage Limit] Error fetching sessions:', sessionsError);
-      // Fallback: verwende 0 wenn Sessions nicht geladen werden können
+      // Silent error - verwende 0 wenn Sessions nicht geladen werden können
+      // Nur in Development loggen
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Usage Limit] Error fetching sessions:', sessionsError);
+      }
     }
 
     // Summiere duration_minutes aller Sessions von heute
     // Für laufende Sessions (duration_minutes = null) berechne die Zeit seit session_start
-    const now = new Date();
     let todayUsageMinutes = 0;
     
     if (sessions) {
       sessions.forEach((session) => {
-        if (session.duration_minutes !== null) {
-          // Session ist bereits beendet
-          todayUsageMinutes += session.duration_minutes;
+        // Double-check: Session muss wirklich heute gestartet sein (UTC-basiert)
+        const sessionStart = new Date(session.session_start);
+        const sessionStartUTC = new Date(Date.UTC(
+          sessionStart.getUTCFullYear(),
+          sessionStart.getUTCMonth(),
+          sessionStart.getUTCDate(),
+          0, 0, 0, 0
+        ));
+        const isToday = sessionStartUTC.getTime() === todayStart.getTime();
+        
+        if (!isToday) {
+          return; // Skip sessions not started today
+        }
+        
+        if (session.duration_minutes !== null && session.duration_minutes >= 0) {
+          // Session ist bereits beendet - nur positive Werte verwenden
+          // Cap at 24 hours (1440 minutes) per session to prevent outliers
+          const cappedMinutes = Math.min(session.duration_minutes, 1440);
+          todayUsageMinutes += cappedMinutes;
         } else {
           // Session läuft noch - berechne Zeit seit session_start
-          const sessionStart = new Date(session.session_start);
           const durationMs = now.getTime() - sessionStart.getTime();
           const durationMinutes = Math.round(durationMs / (1000 * 60));
-          todayUsageMinutes += durationMinutes;
+          
+          if (durationMinutes >= 0) {
+            // Cap at 24 hours (1440 minutes) per session
+            const cappedMinutes = Math.min(durationMinutes, 1440);
+            todayUsageMinutes += cappedMinutes;
+          }
         }
       });
     }
+
+    // Final log (nur einmal, nicht pro Session)
+    console.log('[UsageLimit] todayUsageMinutes =', todayUsageMinutes);
 
     const dailyLimitMinutes = profile?.daily_time_limit_minutes || null;
     const limitReached = dailyLimitMinutes 
@@ -113,62 +155,157 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Update user profile
-    const updateData: any = {
-      updated_at: new Date().toISOString(),
-    };
-
-    if (dailyLimitMinutes !== undefined) {
-      updateData.daily_time_limit_minutes = dailyLimitMinutes;
-    }
-
-    if (enabled !== undefined) {
-      updateData.daily_limit_enabled = enabled;
-    }
-
-    const { data: updatedProfile, error: updateError } = await supabase
+    // Prüfe, ob Profil existiert
+    const { data: existingProfile, error: profileCheckError } = await supabase
       .from('user_profiles')
-      .update(updateData)
+      .select('user_id, daily_time_limit_minutes, daily_limit_enabled')
       .eq('user_id', user.id)
-      .select('daily_time_limit_minutes, daily_limit_enabled')
-      .single();
+      .maybeSingle();
 
-    if (updateError) {
-      console.error('[Usage Limit] Update error:', updateError);
-      return NextResponse.json({ error: 'Failed to update usage limit' }, { status: 500 });
+    if (profileCheckError) {
+      console.error('[Usage Limit] Error checking profile:', profileCheckError);
+      return NextResponse.json({ error: 'Failed to check user profile' }, { status: 500 });
+    }
+
+    let updatedProfile: { daily_time_limit_minutes: number | null; daily_limit_enabled: boolean | null } | null = null;
+
+    if (!existingProfile) {
+      // Profil existiert nicht - erstelle es
+      // WICHTIG: birth_date wird NICHT gesetzt (bleibt null)
+      // Dies erlaubt es, Profile ohne vollständiges Onboarding anzulegen
+      // birth_date wird später im Onboarding-Flow ergänzt
+      const insertData: any = {
+        user_id: user.id,
+        display_name: user.email?.split('@')[0] || 'User',
+        updated_at: new Date().toISOString(),
+        // birth_date wird absichtlich NICHT gesetzt (nullable in DB)
+      };
+
+      if (dailyLimitMinutes !== undefined) {
+        insertData.daily_time_limit_minutes = dailyLimitMinutes;
+      }
+
+      if (enabled !== undefined) {
+        insertData.daily_limit_enabled = enabled;
+      }
+
+      const { data: newProfile, error: insertError } = await supabase
+        .from('user_profiles')
+        .insert(insertData)
+        .select('daily_time_limit_minutes, daily_limit_enabled')
+        .single();
+
+      if (insertError) {
+        console.error('[Usage Limit] Insert error:', insertError);
+        return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+      }
+
+      updatedProfile = newProfile;
+    } else {
+      // Profil existiert - aktualisiere es
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (dailyLimitMinutes !== undefined) {
+        updateData.daily_time_limit_minutes = dailyLimitMinutes;
+      }
+
+      if (enabled !== undefined) {
+        updateData.daily_limit_enabled = enabled;
+      }
+
+      const { data: updated, error: updateError } = await supabase
+        .from('user_profiles')
+        .update(updateData)
+        .eq('user_id', user.id)
+        .select('daily_time_limit_minutes, daily_limit_enabled')
+        .single();
+
+      if (updateError) {
+        console.error('[Usage Limit] Update error:', updateError);
+        return NextResponse.json({ error: 'Failed to update usage limit' }, { status: 500 });
+      }
+
+      updatedProfile = updated;
+    }
+
+    if (!updatedProfile) {
+      return NextResponse.json({ error: 'Failed to save usage limit' }, { status: 500 });
     }
 
     // Calculate today's usage from user_sessions table
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // WICHTIG: Nutze UTC für konsistente "heute"-Berechnung
+    // Supabase speichert timestamptz in UTC, daher müssen wir auch in UTC vergleichen
+    // Dies verhindert Zeitzonen-Probleme (z.B. Server in UTC, User in CET)
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      0, 0, 0, 0
+    ));
+    const todayEnd = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23, 59, 59, 999
+    ));
     
+    // Get sessions that started today (strictly today, not before)
+    // Query nutzt UTC-Timestamps für konsistenten Vergleich
     const { data: sessions, error: sessionsError } = await supabase
       .from('user_sessions')
-      .select('duration_minutes, session_start')
+      .select('duration_minutes, session_start, session_end')
       .eq('user_id', user.id)
-      .gte('session_start', todayStart.toISOString());
+      .gte('session_start', todayStart.toISOString())
+      .lt('session_start', todayEnd.toISOString());
 
     if (sessionsError) {
-      console.error('[Usage Limit] Error fetching sessions:', sessionsError);
+      // Silent error - nur in Development loggen
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Usage Limit] Error fetching sessions:', sessionsError);
+      }
     }
 
     // Summiere duration_minutes aller Sessions von heute
-    const now = new Date();
     let todayUsageMinutes = 0;
     
     if (sessions) {
       sessions.forEach((session) => {
-        if (session.duration_minutes !== null) {
-          todayUsageMinutes += session.duration_minutes;
+        // Double-check: Session muss wirklich heute gestartet sein (UTC-basiert)
+        const sessionStart = new Date(session.session_start);
+        const sessionStartUTC = new Date(Date.UTC(
+          sessionStart.getUTCFullYear(),
+          sessionStart.getUTCMonth(),
+          sessionStart.getUTCDate(),
+          0, 0, 0, 0
+        ));
+        const isToday = sessionStartUTC.getTime() === todayStart.getTime();
+        
+        if (!isToday) {
+          return; // Skip sessions not started today
+        }
+        
+        if (session.duration_minutes !== null && session.duration_minutes >= 0) {
+          // Session ist bereits beendet - nur positive Werte verwenden
+          // Cap at 24 hours (1440 minutes) per session to prevent outliers
+          todayUsageMinutes += Math.min(session.duration_minutes, 1440);
         } else {
-          // Session läuft noch
-          const sessionStart = new Date(session.session_start);
+          // Session läuft noch - berechne Zeit seit session_start
           const durationMs = now.getTime() - sessionStart.getTime();
           const durationMinutes = Math.round(durationMs / (1000 * 60));
-          todayUsageMinutes += durationMinutes;
+          
+          if (durationMinutes >= 0) {
+            // Cap at 24 hours (1440 minutes) per session
+            todayUsageMinutes += Math.min(durationMinutes, 1440);
+          }
         }
       });
     }
+
+    // Final log (nur einmal, nicht pro Session)
+    console.log('[UsageLimit] todayUsageMinutes =', todayUsageMinutes);
 
     const limitReached = updatedProfile.daily_time_limit_minutes 
       ? todayUsageMinutes >= updatedProfile.daily_time_limit_minutes 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSessionTimer } from '@/hooks/useSessionTimer';
-import { useUsageStore } from '@/stores/usageStore';
+import { useUsageLimit } from '@/hooks/useUsageLimit';
 import SessionUsageBadge from '@/components/session/SessionUsageBadge';
 import UsageWarningBanner from '@/components/session/UsageWarningBanner';
 import LimitReachedModal from '@/components/session/LimitReachedModal';
@@ -40,7 +40,7 @@ export default function GuideFeed() {
   const [onboardingStep, setOnboardingStep] = useState(0);
   
   // Session Timer & Usage Limit
-  const { dailyLimitMinutes, limitReached, ensureUsageLoaded } = useUsageStore();
+  const { dailyLimitMinutes, todayUsageMinutes, limitReached, refetch } = useUsageLimit();
   const [showWarningBanner, setShowWarningBanner] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [warningDismissed, setWarningDismissed] = useState(false);
@@ -95,12 +95,19 @@ export default function GuideFeed() {
     }
   ]), []);
 
-  // Ensure usage data is loaded and initialize session timer
+  // Track if user has dismissed the modal to prevent endless loop
+  const limitReachedDismissedRef = useRef<boolean>(false);
+
+  // Check limitReached and show modal if needed (nur einmal, nicht in Endlosschleife)
   useEffect(() => {
-    if (!dailyLimitMinutes && !limitReached) {
-      ensureUsageLoaded();
+    if (limitReached && !showLimitModal && !limitReachedDismissedRef.current) {
+      setShowLimitModal(true);
     }
-  }, [dailyLimitMinutes, limitReached, ensureUsageLoaded]);
+    // Reset dismissed flag wenn limitReached wieder false wird (z.B. neuer Tag)
+    if (!limitReached) {
+      limitReachedDismissedRef.current = false;
+    }
+  }, [limitReached, showLimitModal]);
 
   // Initialize session timer when dailyLimitMinutes is available
   useEffect(() => {
@@ -112,7 +119,15 @@ export default function GuideFeed() {
   // Handle logout when limit is reached
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      // Beende aktuelle Session in DB
+      await fetch('/api/profile/session/end', { method: 'POST' });
+      
+      // Supabase Logout
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      
+      // Redirect to login
       window.location.href = '/login?limitReached=1';
     } catch (error) {
       console.error('Logout failed:', error);
@@ -125,6 +140,16 @@ export default function GuideFeed() {
   const handleWarningDismiss = () => {
     setWarningDismissed(true);
     setShowWarningBanner(false);
+  };
+
+  // Handle "Trotzdem weiter" - schließt Modal, aber lässt Guide weiterlaufen
+  const handleContinue = () => {
+    setShowLimitModal(false);
+    limitReachedDismissedRef.current = true; // Verhindere, dass Modal sofort wieder aufgeht
+    // Optional: Refetch usage data nach kurzer Zeit (aber Modal bleibt geschlossen)
+    setTimeout(() => {
+      refetch();
+    }, 5000);
   };
 
   const feedCards: FeedCard[] = [
@@ -904,6 +929,7 @@ export default function GuideFeed() {
       <LimitReachedModal
         isOpen={showLimitModal}
         onLogout={handleLogout}
+        onContinue={handleContinue}
       />
 
       <header className="guide-topbar">

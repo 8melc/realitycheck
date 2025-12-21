@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Profile } from '@/types/profile';
-import { CompassIcon, TargetIcon, PenSquareIcon, ClockIcon, MusicIcon, GaugeIcon, FlameIcon } from './icons';
+import { CompassIcon, TargetIcon, PenSquareIcon, GaugeIcon } from './icons';
 
 interface SidebarProps {
   profile: Profile;
@@ -69,8 +69,6 @@ const Sidebar = ({
   // Core navigation - minimal, situational
   const coreActions = [
     { href: '#life-weeks', label: 'Zeit-Grid', icon: CompassIcon, urgent: true },
-    { href: '#feedback', label: 'Impulse', icon: FlameIcon, urgent: true },
-    { href: '#actions', label: 'To-Dos', icon: TargetIcon, urgent: false },
   ];
 
   const modeActions = [
@@ -134,12 +132,6 @@ const Sidebar = ({
         <div className="rc-goal-section">
           <div className="rc-goal-question">Was willst du wirklich?</div>
           <div className="rc-goal-text">{profile.primaryGoalTitle || 'Noch kein Ziel gesetzt'}</div>
-          <div className="rc-goal-progress">
-            <div className="rc-progress-bar">
-              <div className="rc-progress-fill" style={{ width: '32%' }} />
-            </div>
-            <div className="rc-progress-text">32% Fokus</div>
-          </div>
         </div>
 
         <button onClick={onEditGoal} className="rc-btn rc-btn--primary rc-btn--statement">
@@ -170,19 +162,13 @@ const Sidebar = ({
       <div className="rc-mode-section">
         <div className="rc-section-title">Einstellungen</div>
         <div className="rc-mode-grid">
-          <button
-            onClick={() => {
-              if (activeSection === 'profile' && hasUnsavedChanges) {
-                const confirm = window.confirm('Bist du sicher? Deine Zeit ist zu wertvoll, um sie mit ungespeicherten Daten zu verschwenden. Willst du wirklich einfach so weggehen?');
-                if (!confirm) return;
-              }
-              setActiveSection('profile');
-            }}
-            className={`rc-mode-card ${activeSection === 'profile' ? 'active' : ''}`}
+          <a
+            href="/user/settings"
+            className="rc-mode-card"
           >
             <CompassIcon className="rc-mode-icon" />
-            <span className="rc-mode-label">Profil & Guide</span>
-          </button>
+            <span className="rc-mode-label">Account-Einstellungen</span>
+          </a>
           {modeActions.map(({ href, label, icon: Icon, isGuidePrefs, urgent }) => (
             <button
               key={label}

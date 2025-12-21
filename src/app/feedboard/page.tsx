@@ -9,6 +9,7 @@ import { FeedItem, GuideItem, GuideConversationTurn } from '@/types/feedboard';
 import { handlePrompt, resetConversationContext } from '@/lib/guideChatEngine';
 import GuideChatSidebar from '@/components/feedboard/GuideChatSidebar';
 import { buildWhyText } from '@/utils/whyText';
+import { useUsageLimit } from '@/hooks/useUsageLimit';
 import './feedboard.css';
 
 type ModeKey = 'focus' | 'explore' | 'pulse';
@@ -27,7 +28,7 @@ type QuickStat = {
 
 const TIMER_INTERVAL_MS = 30_000;
 const INITIAL_CONSUMED_MINUTES = 0; // Will be updated from API
-const STOPPSCHILD_TRIGGER_MINUTES = 1; // Show overlay after 1 minute
+// STOPPSCHILD_TRIGGER_MINUTES entfernt - jetzt basierend auf limitReached
 
 const MODE_CONFIG: Record<
   ModeKey,
@@ -79,6 +80,9 @@ export default function FeedboardPage() {
   const [showStoppschildOverlay, setShowStoppschildOverlay] = useState(false);
   const [sessionExtended, setSessionExtended] = useState(false);
   const [extensionStartTime, setExtensionStartTime] = useState<number | null>(null);
+  
+  // Usage Limit Hook für Tageslimit-Check
+  const usageLimit = useUsageLimit();
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const [activeMode, setActiveMode] = useState<ModeKey>('focus');
   const [activeCluster, setActiveCluster] = useState<string | null>(null);
@@ -132,32 +136,19 @@ export default function FeedboardPage() {
     fetchFeedItems();
   }, []);
 
-  // Fetch real usage time from API
+  // Update consumedMinutes from usageLimit hook
   useEffect(() => {
-    async function fetchUsageTime() {
-      try {
-        const response = await fetch('/api/profile/usage-limit');
-        if (response.ok) {
-          const data = await response.json();
-          // Update consumedMinutes with real data from database
-          if (typeof data.todayUsageMinutes === 'number') {
-            setConsumedMinutes(data.todayUsageMinutes);
-          }
-        }
-      } catch (error) {
-        console.error('[Feedboard] Error fetching usage time:', error);
-        // Keep current value on error
-      }
+    if (usageLimit.todayUsageMinutes !== undefined) {
+      setConsumedMinutes(usageLimit.todayUsageMinutes);
     }
+  }, [usageLimit.todayUsageMinutes]);
 
-    // Fetch immediately
-    fetchUsageTime();
-
-    // Update every 30 seconds to show real-time usage
-    const interval = setInterval(fetchUsageTime, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Stoppschild-Trigger: Zeige Overlay wenn limitReached === true
+  useEffect(() => {
+    if (usageLimit.limitReached && !showStoppschildOverlay && !sessionExtended) {
+      setShowStoppschildOverlay(true);
+    }
+  }, [usageLimit.limitReached, showStoppschildOverlay, sessionExtended]);
 
   const allItems = useMemo(() => feedItems, [feedItems]);
   const silenceCards = useMemo(() => allItems.filter(item => item.isSilence), [allItems]);
@@ -523,15 +514,51 @@ export default function FeedboardPage() {
   };
 
   // Stoppschild Overlay Handlers
-  const handleStoppschildLogout = () => {
-    window.location.assign('/logout-placeholder');
+  const handleStoppschildLogout = async () => {
+    try {
+      // Beende aktuelle Session in DB
+      await fetch('/api/profile/session/end', { method: 'POST' });
+      
+      // Supabase Logout
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      
+      // Redirect to login
+      window.location.href = '/login?limitReached=1';
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Fallback: redirect anyway
+      window.location.href = '/login?limitReached=1';
+    }
   };
 
-  const handleStoppschildContinue = () => {
-    // Hide the overlay and start 20-minute extension
-    setShowStoppschildOverlay(false);
-    setSessionExtended(true);
-    setExtensionStartTime(Date.now());
+  const handleStoppschildContinue = async () => {
+    try {
+      // Versuch, 1 Credit abzuziehen
+      const res = await fetch('/api/profile/override-limit', { method: 'POST' });
+      const json = await res.json();
+
+      if (!json.success) {
+        // Keine Credits mehr – zeige Fehlermeldung
+        const message = json.reason === 'NO_CREDITS' 
+          ? 'Keine Credits mehr – heute ist Schluss.'
+          : 'Fehler beim Abziehen der Credits. Bitte versuche es erneut.';
+        alert(message);
+        return;
+      }
+
+      // Erfolg: Overlay schließen, Session verlängern
+      setShowStoppschildOverlay(false);
+      setSessionExtended(true);
+      setExtensionStartTime(Date.now());
+      
+      // Optional: usage-limit neu laden (aber limitReached bleibt true, da wir das Limit überschrieben haben)
+      // Das Overlay bleibt geschlossen, da sessionExtended = true ist
+    } catch (error) {
+      console.error('Override limit failed:', error);
+      alert('Fehler beim Abziehen der Credits. Bitte versuche es erneut.');
+    }
   };
 
   return (
@@ -545,12 +572,12 @@ export default function FeedboardPage() {
         onOpenGuide={() => setIsSidebarOpen(true)}
       />
 
-      {/* DISABLED: Session limit overlay (commented out, not deleted) */}
-      {false && showStoppschildOverlay && (
+      {/* Stoppschild Overlay - zeigt wenn limitReached === true */}
+      {showStoppschildOverlay && (
         <SessionLimitOverlay
           onLogout={handleStoppschildLogout}
           onContinue={handleStoppschildContinue}
-          consumedMinutes={consumedMinutes}
+          consumedMinutes={usageLimit.todayUsageMinutes ?? consumedMinutes}
         />
       )}
 
@@ -1197,7 +1224,7 @@ function SessionLimitOverlay({ onLogout, onContinue, consumedMinutes }: SessionL
         <div className="session-limit-overlay__backdrop" />
         <div className="session-limit-overlay__content">
           <div className="session-limit-overlay__badge">Dein Limit. Deine Grenze. Dein Move.</div>
-          <h2 className="session-limit-overlay__title">Du hast dir das Stoppschild selbst gesetzt.</h2>
+          <h2 className="session-limit-overlay__title">Du hast dir das Limit selbst gesetzt.</h2>
           <p className="session-limit-overlay__description">
             Du warst {consumedMinutes} Minuten im Feedboard. RealityCheck hält dich an deiner Grenze fest.
             Heute Pause. Morgen wieder rein.

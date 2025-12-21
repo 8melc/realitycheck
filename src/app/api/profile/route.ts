@@ -25,24 +25,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user profile
+    // WICHTIG: birth_date kann null sein (nullable in DB)
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('user_id', user.id)
-      .single<UserProfile>();
+      .maybeSingle<UserProfile>();
 
     if (profileError) {
-      if (profileError.code === 'PGRST116') {
-        // Profile not found
-        return NextResponse.json(
-          { error: 'Profile not found' },
-          { status: 404 }
-        );
-      }
       console.error('Error fetching profile:', profileError);
       return NextResponse.json(
         { error: 'Failed to fetch profile' },
         { status: 500 }
+      );
+    }
+
+    if (!profile) {
+      // Profile not found - return 404
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
       );
     }
 
@@ -54,11 +56,11 @@ export async function GET(request: NextRequest) {
       .eq('is_primary', true)
       .maybeSingle();
 
-    // Calculate life-in-weeks data
-    const lifeInWeeksData = getLifeInWeeksDataForUser(
-      profile.birth_date,
-      profile.target_age
-    );
+    // Calculate life-in-weeks data (nur wenn birth_date gesetzt ist)
+    // birth_date ist optional - kann null sein
+    const lifeInWeeksData = profile.birth_date && profile.target_age
+      ? getLifeInWeeksDataForUser(profile.birth_date, profile.target_age)
+      : null;
 
     // Map to legacy Profile format
     const goalText = primaryGoal ? (primaryGoal as { title: string }).title : null;

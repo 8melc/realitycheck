@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       .from('user_profiles')
       .select('guide_tone, guide_nudging_frequency, guide_muted')
       .eq('user_id', user.id)
-      .maybeSingle();
+      .maybeSingle() as { data: { guide_tone: string | null; guide_nudging_frequency: string | null; guide_muted: boolean | null } | null; error: any };
     
     if (profileError) {
       console.error('[Guide Settings] Error fetching profile:', profileError);
@@ -64,17 +64,37 @@ export async function PATCH(req: NextRequest) {
       updateData.guide_muted = isGuideMuted;
     }
     
-    // Update user profile
-    const { data: updatedProfile, error: updateError } = await supabase
-      .from('user_profiles')
+    // Try UPDATE first (profile should exist after onboarding)
+    const { data: updatedProfile, error: updateError } = await (supabase
+      .from('user_profiles') as any)
       .update(updateData)
       .eq('user_id', user.id)
       .select('guide_tone, guide_nudging_frequency, guide_muted')
-      .single();
+      .maybeSingle();
     
     if (updateError) {
       console.error('[Guide Settings] Update error:', updateError);
-      return NextResponse.json({ error: 'Failed to update guide settings' }, { status: 500 });
+      
+      // If error is "0 rows" or PGRST116, profile doesn't exist
+      if (updateError.code === 'PGRST116' || updateError.message?.includes('0 rows') || updateError.message?.includes('No rows')) {
+        return NextResponse.json(
+          { error: 'Profile not found. Please complete onboarding first.' },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: updateError.message || 'Failed to update guide settings' },
+        { status: 500 }
+      );
+    }
+    
+    // If no rows were updated but no error, profile might not exist
+    if (!updatedProfile) {
+      return NextResponse.json(
+        { error: 'Profile not found. Please complete onboarding first.' },
+        { status: 404 }
+      );
     }
     
     return NextResponse.json({
@@ -87,3 +107,4 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

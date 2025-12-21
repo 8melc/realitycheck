@@ -1,5 +1,4 @@
 import { Profile } from '@/types/profile';
-import StatusMeter from './StatusMeter';
 import GoalBadge from './GoalBadge';
 import { PenSquareIcon } from './icons';
 import { useGuideStore } from '@/stores/guideStore';
@@ -19,8 +18,8 @@ const formatNumber = (value: number) =>
   Intl.NumberFormat('de-DE').format(Math.max(0, Math.floor(value)));
 
 const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProps) => {
-  const { identity, goal, progress } = profile;
-  const { tone } = useGuideStore();
+  const { identity, goal } = profile;
+  const { guideTone } = useGuideStore();
 
   return (
     <section className="rc-card rc-card--hero motion-fade-up" aria-labelledby="profile-summary-heading">
@@ -51,7 +50,7 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
               </h1>
               <p className="text-sm text-rc-steel">{identity.email}</p>
             </div>
-            <GoalBadge goal={`${getGuideText('profileGoal', tone)} ${profile.primaryGoalTitle || 'Noch kein Ziel gesetzt'}`} />
+            <GoalBadge goal={`${getGuideText('profileGoal', guideTone)} ${profile.primaryGoalTitle || 'Noch kein Ziel gesetzt'}`} />
           </div>
         </div>
 
@@ -71,8 +70,7 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
             </div>
           </dl>
 
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <StatusMeter progress={progress} />
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end">
             <button
               type="button"
               onClick={onEditGoal}

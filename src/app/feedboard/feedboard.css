@@ -181,6 +181,12 @@
   box-shadow: 0 0 0 1px rgba(78, 205, 196, 0.45);
 }
 
+.ticktock-header__guide-button {
+  font-size: 13px;
+  padding: 12px 20px;
+  white-space: nowrap;
+}
+
 .ticktock-header__stats {
   grid-column: span 7;
   display: grid;
@@ -461,6 +467,7 @@
   display: block;
   text-decoration: none;
   color: inherit;
+  z-index: 1;
 }
 
 .feed-card__visual {
@@ -489,6 +496,16 @@
   gap: 12px;
   padding: 32px;
   min-height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.feed-card__body button,
+.feed-card__body .feed-card__actions,
+.feed-card__body .feed-card__actions * {
+  pointer-events: auto;
+  position: relative;
+  z-index: 3;
 }
 
 .feed-card__cluster {
@@ -1814,6 +1831,7 @@
   gap: 2px;
   z-index: 20;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
 }
 
 .feed-card__event-date {

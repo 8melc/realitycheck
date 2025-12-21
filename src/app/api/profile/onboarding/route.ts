@@ -68,10 +68,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. Profile-Daten
+    // WICHTIG: birth_date ist optional (nullable in DB)
+    // Kann null sein, wenn User noch kein Geburtsdatum angegeben hat
     const profileData: UserProfileInsert = {
       user_id: user.id,
       display_name: name || 'FYF User',
-      birth_date: final_birth_date,
+      birth_date: final_birth_date || null, // Explizit null, wenn nicht vorhanden
       target_age: targetAgeNum,
       guide_personality: guidePersonality || timePhilosophy || null,
       bio: bio || null,

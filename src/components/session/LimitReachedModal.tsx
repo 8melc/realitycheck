@@ -3,9 +3,10 @@ import { useEffect, useRef } from 'react';
 interface LimitReachedModalProps {
   isOpen: boolean;
   onLogout: () => void;
+  onContinue?: () => void; // Optional: "Trotzdem weiter" Button
 }
 
-const LimitReachedModal = ({ isOpen, onLogout }: LimitReachedModalProps) => {
+const LimitReachedModal = ({ isOpen, onLogout, onContinue }: LimitReachedModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLButtonElement>(null);
 
@@ -101,19 +102,31 @@ const LimitReachedModal = ({ isOpen, onLogout }: LimitReachedModalProps) => {
                   id="limit-modal-description"
                   className="text-fyf-cream"
                 >
-                  Du hast dein tägliches Zeitlimit für FYF verbraucht. 
-                  Melde dich morgen wieder an, um weiterzumachen.
+                  Dein Tageslimit ist durch. Die Welt geht nicht unter, aber dein Kopf braucht Pause.
+                </p>
+                <p className="text-fyf-steel text-sm">
+                  Logout und morgen weiter – oder bewusst trotzdem bleiben.
                 </p>
               </div>
 
-              {/* Action Button */}
-              <button
-                ref={firstFocusableRef}
-                onClick={onLogout}
-                className="fyf-btn fyf-btn--primary w-full"
-              >
-                Jetzt abmelden
-              </button>
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3 w-full">
+                <button
+                  ref={firstFocusableRef}
+                  onClick={onLogout}
+                  className="fyf-btn fyf-btn--primary w-full"
+                >
+                  Jetzt abmelden
+                </button>
+                {onContinue && (
+                  <button
+                    onClick={onContinue}
+                    className="fyf-btn fyf-btn--ghost w-full text-fyf-steel hover:text-fyf-cream"
+                  >
+                    Trotzdem weiter
+                  </button>
+                )}
+              </div>
 
               {/* Additional Info */}
               <div className="text-xs text-fyf-steel">

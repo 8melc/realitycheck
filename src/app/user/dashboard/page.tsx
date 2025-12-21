@@ -1,19 +1,12 @@
 'use client';
 
-import { useGuideState } from '@/hooks/useGuideState';
 import { useProfileSettings } from '@/hooks/useProfileSettings';
 import { useClickOutside } from '@/hooks/useClickOutside';
-import GuideActionsSection from '@/components/guide/GuideActionsSection';
-import GuideSettings from '@/components/guide/GuideSettings';
 import ProfileSummary from '@/components/profile/ProfileSummary';
 import Sidebar from '@/components/profile/Sidebar';
-import TimeStyleCard from '@/components/profile/TimeStyleCard';
-import EnergyFeeds from '@/components/profile/EnergyFeeds';
-import UsageLimitSettings from '@/components/profile/UsageLimitSettings';
-import { SlotManager } from '@/components/profile/SlotManager';
-import JourneyTimeline from '@/components/profile/JourneyTimeline';
-import MotivationFeed from '@/components/profile/MotivationFeed';
 import LifeWeeksPreview from '@/components/profile/LifeWeeksPreview';
+import TransparencyWidget from '@/components/dashboard/TransparencyWidget';
+import GuideFeedWidget from '@/components/dashboard/GuideFeedWidget';
 import GoalModal from '@/components/profile/GoalModal';
 import GuideHistory from '@/components/guide/GuideHistory';
 import { Profile } from '@/types/profile';
@@ -21,7 +14,6 @@ import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUsageStore } from '@/stores/usageStore';
 import { useGuideStore } from '@/stores/guideStore';
-import { getGuideText } from '@/lib/guideTone';
 import { supabase } from '@/lib/supabase/client';
 import type { UserProfile } from '@/lib/types/database.types';
 import { mapUserProfileToLegacyProfile } from '@/lib/utils/profile-mapper';
@@ -102,94 +94,19 @@ export default function GuideDashboardPage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userActions, setUserActions] = useState<Array<{ id: string; title: string; category: string | null; is_done: boolean; due_date: string | null; created_at: string }>>([]);
-  const [journeyEvents, setJourneyEvents] = useState<Array<{ id: string; type: string; description: string; timestamp: string }>>([]);
-  const [guideFeedback, setGuideFeedback] = useState<Array<{ id: string; tone: 'motivating' | 'challenging' | 'reflecting'; message: string; createdAt: string }>>([]);
   const [creditsBalance, setCreditsBalance] = useState<number>(0);
   const [creditsValue, setCreditsValue] = useState<number>(0);
   const [creditsConsumedThisWeek, setCreditsConsumedThisWeek] = useState<number>(0);
   const [userInterests, setUserInterests] = useState<Array<{ id: string; label: string; created_at: string }>>([]);
   const [userProjects, setUserProjects] = useState<Array<{ id: string; title: string; status: string; priority: number; created_at: string; updated_at: string }>>([]);
   const { fetchUsageData } = useUsageStore();
-  const { guideTone, isGuideMuted, initializeFromAPI } = useGuideStore();
+  const { guideTone, isGuideMuted, initializeFromAPI, nudgingFrequency } = useGuideStore();
   
   // Initialize guide settings from API on mount
   useEffect(() => {
     initializeFromAPI();
   }, [initializeFromAPI]);
   
-  
-  // Load user actions from API
-  useEffect(() => {
-    const loadActions = async () => {
-      try {
-        const response = await fetch('/api/profile/actions');
-        if (response.ok) {
-          const data = await response.json();
-          setUserActions(data);
-        } else {
-          console.error('[Dashboard] Failed to load actions');
-        }
-      } catch (error) {
-        console.error('[Dashboard] Error loading actions:', error);
-      }
-    };
-    
-    loadActions();
-  }, []);
-  
-  // Load journey events from API
-  useEffect(() => {
-    const loadJourney = async () => {
-      try {
-        const response = await fetch('/api/profile/journey');
-        if (response.ok) {
-          const data = await response.json();
-          // Transform to Profile['journey'] format
-          const events = data.map((event: any) => ({
-            id: event.id,
-            type: event.type || 'milestone',
-            description: event.label || 'Journey Event',
-            timestamp: event.created_at,
-          }));
-          setJourneyEvents(events);
-        } else {
-          console.error('[Dashboard] Failed to load journey');
-        }
-      } catch (error) {
-        console.error('[Dashboard] Error loading journey:', error);
-      }
-    };
-    
-    loadJourney();
-  }, []);
-  
-  // Load guide feedback from API
-  useEffect(() => {
-    const loadFeedback = async () => {
-      try {
-        const response = await fetch('/api/profile/feedback');
-        if (response.ok) {
-          const data = await response.json();
-          // Transform to Profile['feedback'] format
-          // Map source to tone (simplified mapping)
-          const feedback = data.map((item: any) => ({
-            id: item.id,
-            tone: (item.source === 'challenge' ? 'challenging' : item.source === 'reflection' ? 'reflecting' : 'motivating') as 'motivating' | 'challenging' | 'reflecting',
-            message: item.message || '',
-            createdAt: item.created_at,
-          }));
-          setGuideFeedback(feedback);
-        } else {
-          console.error('[Dashboard] Failed to load feedback');
-        }
-      } catch (error) {
-        console.error('[Dashboard] Error loading feedback:', error);
-      }
-    };
-    
-    loadFeedback();
-  }, []);
   
   // Load credits from API
   useEffect(() => {
@@ -249,114 +166,6 @@ export default function GuideDashboardPage() {
     
     loadProjects();
   }, []);
-  
-  // Handle add interest
-  const handleAddInterest = async (label: string) => {
-    try {
-      const response = await fetch('/api/profile/interests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label }),
-      });
-      
-      if (response.ok) {
-        const newInterest = await response.json();
-        setUserInterests(prev => [newInterest, ...prev]);
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error adding interest:', error);
-    }
-  };
-  
-  // Handle delete interest
-  const handleDeleteInterest = async (id: string) => {
-    try {
-      const response = await fetch(`/api/profile/interests?id=${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (response.ok) {
-        setUserInterests(prev => prev.filter(i => i.id !== id));
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error deleting interest:', error);
-    }
-  };
-  
-  // Handle add project
-  const handleAddProject = async (title: string) => {
-    try {
-      const response = await fetch('/api/profile/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
-      });
-      
-      if (response.ok) {
-        const newProject = await response.json();
-        setUserProjects(prev => [newProject, ...prev]);
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error adding project:', error);
-    }
-  };
-  
-  // Handle update project
-  const handleUpdateProject = async (id: string, updates: { status?: string; priority?: number; title?: string }) => {
-    try {
-      const response = await fetch(`/api/profile/projects/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-      
-      if (response.ok) {
-        const updatedProject = await response.json();
-        setUserProjects(prev => prev.map(p => p.id === id ? updatedProject : p));
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error updating project:', error);
-    }
-  };
-  
-  // Handle action toggle (checkbox click)
-  const handleActionToggle = async (actionId: string) => {
-    const action = userActions.find(a => a.id === actionId);
-    if (!action) return;
-    
-    try {
-      const response = await fetch(`/api/profile/actions/${actionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_done: !action.is_done }),
-      });
-      
-      if (response.ok) {
-        const updatedAction = await response.json();
-        setUserActions(prev => prev.map(a => a.id === actionId ? updatedAction : a));
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error toggling action:', error);
-    }
-  };
-  
-  // Handle add action
-  const handleAddAction = async (title: string, category?: string) => {
-    try {
-      const response = await fetch('/api/profile/actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, category }),
-      });
-      
-      if (response.ok) {
-        const newAction = await response.json();
-        setUserActions(prev => [newAction, ...prev]);
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error adding action:', error);
-    }
-  };
   
   // Calculate time metrics only on client side
   const timeMetrics = useMemo(() => {
@@ -587,12 +396,6 @@ export default function GuideDashboardPage() {
     loadUserProfile();
     return () => { isMounted = false; };
   }, [router]);
-  
-  const {
-    state,
-    addAction,
-    removeAction,
-  } = useGuideState();
 
   const handleEditSection = useCallback((section: string) => {
     if (section === 'Zeit-Profil') {
@@ -664,21 +467,6 @@ export default function GuideDashboardPage() {
     []
   );
 
-  const handleConnectSpotify = useCallback(() => {
-    setProfile((prev) => prev ? ({
-      ...prev,
-      musicDNA: {
-        spotifyLinked: true,
-        genres: prev.musicDNA.genres,
-        spotifyData: {
-          topArtists: ['Bonobo', 'Kiasmos', 'Nils Frahm'],
-          topGenres: ['Electronic', 'Ambient', 'Indie'],
-          playlistId: 'rc-focus',
-          linkedAt: new Date().toISOString(),
-        },
-      },
-    }) : null);
-  }, []);
 
   // Tag management
   const handleWillLearnKeyDown = (e: React.KeyboardEvent) => {
@@ -840,118 +628,30 @@ export default function GuideDashboardPage() {
             </section>
 
             <section className="guide-section" id="guide-futter">
-              <div className="rc-card rc-card--hero p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <span className="guide-kicker">Guide-Futter</span>
-                    <h3 className="rc-heading text-2xl">Was dein Guide aktuell weiß</h3>
-                  </div>
-                  <button onClick={() => setActiveSection('profile')} className="text-[var(--fyf-mint)] hover:underline text-xs uppercase font-bold">Bearbeiten →</button>
-                </div>
+              <TransparencyWidget
+                userGoal={profile.primaryGoalTitle || null}
+                interests={userInterests.map(i => i.label)}
+                projects={userProjects.map(p => p.title)}
+                timePhilosophy={philosophyOptions.find(opt => opt.value === guidePersonality)?.label || 'Nicht gesetzt'}
+                lifestyle={lifestyleOptions.find(opt => opt.value === lifestyle)?.label || 'Nicht gesetzt'}
+                spotifyConnected={profile.musicDNA?.spotifyLinked || false}
+                guideTone={guideTone}
+                nudgingFrequency={nudgingFrequency === 'high' ? 'Intensiv' : nudgingFrequency === 'low' ? 'Minimal' : nudgingFrequency === 'off' ? 'Aus' : 'Standard'}
+              />
+            </section>
 
-                <div className="grid gap-8 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Fokus (Ziel)</h4>
-                    <p className="text-sm italic">{profile.primaryGoalTitle || 'Kein Ziel gesetzt.'}</p>
-                  </div>
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Will lernen</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {profile.willLearn?.slice(0, 4).map(tag => (
-                        <span key={tag} className="rc-chip text-[10px] px-2 py-0.5 bg-[var(--fyf-mint)]/10 text-[var(--fyf-mint)] rounded border border-[var(--fyf-mint)]/20">{tag}</span>
-                      )) || <span className="text-xs italic opacity-50">Keine Themen.</span>}
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Will teilen</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {profile.willShare?.slice(0, 4).map(tag => (
-                        <span key={tag} className="rc-chip text-[10px] px-2 py-0.5 bg-[var(--fyf-coral)]/10 text-[var(--fyf-coral)] rounded border border-[var(--fyf-coral)]/20">{tag}</span>
-                      )) || <span className="text-xs italic opacity-50">Keine Skills.</span>}
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <section className="guide-section" id="guide-feed">
+              <GuideFeedWidget />
             </section>
 
             <section className="guide-section" id="life-weeks">
               <LifeWeeksPreview profile={profile} />
             </section>
 
-            <section className="guide-section" id="feedback">
-              <MotivationFeed 
-                profile={{
-                  ...profile,
-                  feedback: guideFeedback.length > 0 ? guideFeedback as Profile['feedback'] : profile.feedback
-                }} 
-                onEdit={() => handleEditSection('Feedback & Impulse')} 
-              />
-            </section>
-
-            <section className="guide-section" id="zeit-profil">
-              <TimeStyleCard 
-                profile={profile} 
-                guidePersonality={guidePersonality}
-                lifestyle={lifestyle}
-                onGuidePersonalityChange={setGuidePersonality}
-                onLifestyleChange={setLifestyle}
-                onSave={handleSaveProfileSettings}
-                isSaving={isSaving}
-              />
-            </section>
-
-            <section className="guide-section" id="energie-feeds">
-              <EnergyFeeds 
-                profile={{
-                  ...profile,
-                  interests: userInterests.map(i => ({ id: i.id, label: i.label, icon: undefined, weight: undefined })),
-                  projects: userProjects.map(p => ({ id: p.id, title: p.title, status: p.status as 'active' | 'paused' | 'completed', description: undefined, updatedAt: p.updated_at })),
-                }} 
-                onConnectSpotify={handleConnectSpotify} 
-                onEdit={() => handleEditSection('Energie-Feeds')}
-              />
-            </section>
-
-            <section className="guide-section" id="guide-settings">
-              <GuideSettings />
-            </section>
-
-            <section className="guide-section" id="tageslimit">
-              <UsageLimitSettings onEdit={() => handleEditSection('Tageslimit')} />
-            </section>
-
-            <section className="guide-section" id="filter">
-              <SlotManager />
-            </section>
-
             <section className="guide-section" id="guide-history">
               <GuideHistory />
             </section>
 
-            <section className="guide-section" id="journey">
-              <JourneyTimeline 
-                journey={journeyEvents.length > 0 ? journeyEvents as Profile['journey'] : profile.journey} 
-                onEdit={() => handleEditSection('Journey')} 
-              />
-            </section>
-
-            <section className="guide-section" id="actions">
-              <GuideActionsSection 
-                items={userActions.map(action => ({
-                  id: action.id,
-                  title: action.title,
-                  meta: [action.category || 'Unkategorisiert', action.due_date ? `Fällig: ${new Date(action.due_date).toLocaleDateString('de-DE')}` : 'Kein Fälligkeitsdatum'],
-                  guide: action.is_done ? 'Erledigt' : 'Offen',
-                  chips: action.category ? [action.category] : [],
-                  addedAt: action.created_at,
-                  image: '',
-                  kicker: 'Aktion',
-                  source: 'manual' as const,
-                }))} 
-                onToggle={handleActionToggle} 
-                onReminder={(id) => console.log('Reminder:', id)} 
-              />
-            </section>
           </>
         ) : (
           <section id="profile" className="guide-section" ref={profileSectionRef}>
