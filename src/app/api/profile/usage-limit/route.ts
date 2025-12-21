@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { UsageLimitResponse } from '@/types/profile';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
+// Typen für die DB-Queries
+type UserSession = {
+  session_start: string;
+  session_end: string | null;
+  duration_minutes: number | null;
+};
+
+type UserProfileUsage = {
+  daily_time_limit_minutes: number | null;
+  daily_limit_enabled: boolean | null;
+};
+
 // GET: Retrieve current usage limit and today's usage
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +29,7 @@ export async function GET(request: NextRequest) {
       .from('user_profiles')
       .select('daily_time_limit_minutes, daily_limit_enabled')
       .eq('user_id', user.id)
-      .maybeSingle();
+      .maybeSingle() as { data: UserProfileUsage | null; error: any };
 
     if (profileError) {
       console.error('[Usage Limit] Error fetching profile:', profileError);
@@ -49,7 +61,7 @@ export async function GET(request: NextRequest) {
       .select('duration_minutes, session_start, session_end')
       .eq('user_id', user.id)
       .gte('session_start', todayStart.toISOString())
-      .lt('session_start', todayEnd.toISOString());
+      .lt('session_start', todayEnd.toISOString()) as { data: UserSession[] | null; error: any };
 
     if (sessionsError) {
       // Silent error - verwende 0 wenn Sessions nicht geladen werden können
@@ -101,7 +113,10 @@ export async function GET(request: NextRequest) {
     // Final log (nur einmal, nicht pro Session)
     console.log('[UsageLimit] todayUsageMinutes =', todayUsageMinutes);
 
-    const dailyLimitMinutes = profile?.daily_time_limit_minutes || null;
+    // Treat 0 as null (no limit) - especially useful for localhost/development
+    const dailyLimitMinutes = profile?.daily_time_limit_minutes === 0 
+      ? null 
+      : (profile?.daily_time_limit_minutes || null);
     const limitReached = dailyLimitMinutes 
       ? todayUsageMinutes >= dailyLimitMinutes 
       : false;
@@ -138,16 +153,38 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { dailyLimitMinutes, enabled } = body;
 
+    // Check if we're in development/localhost
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isLocalhost = request.headers.get('host')?.includes('localhost') || 
+                        request.headers.get('host')?.includes('127.0.0.1');
+    const allowZero = isDevelopment || isLocalhost;
+
     // Validation
     if (dailyLimitMinutes !== null && dailyLimitMinutes !== undefined) {
-      if (typeof dailyLimitMinutes !== 'number' || dailyLimitMinutes < 15 || dailyLimitMinutes > 480) {
+      // Allow 0 in development/localhost, otherwise require 15-480
+      if (typeof dailyLimitMinutes !== 'number') {
+        return NextResponse.json(
+          { error: 'Daily limit must be a number' }, 
+          { status: 400 }
+        );
+      }
+
+      if (dailyLimitMinutes === 0 && !allowZero) {
+        return NextResponse.json(
+          { error: 'Daily limit cannot be 0 in production' }, 
+          { status: 400 }
+        );
+      }
+
+      if (dailyLimitMinutes !== 0 && (dailyLimitMinutes < 15 || dailyLimitMinutes > 480)) {
         return NextResponse.json(
           { error: 'Daily limit must be between 15 and 480 minutes' }, 
           { status: 400 }
         );
       }
 
-      if (dailyLimitMinutes % 15 !== 0) {
+      // Only enforce 15-minute increments if not 0
+      if (dailyLimitMinutes !== 0 && dailyLimitMinutes % 15 !== 0) {
         return NextResponse.json(
           { error: 'Daily limit must be in 15-minute increments' }, 
           { status: 400 }
@@ -160,14 +197,14 @@ export async function PATCH(request: NextRequest) {
       .from('user_profiles')
       .select('user_id, daily_time_limit_minutes, daily_limit_enabled')
       .eq('user_id', user.id)
-      .maybeSingle();
+      .maybeSingle() as { data: (UserProfileUsage & { user_id: string }) | null; error: any };
 
     if (profileCheckError) {
       console.error('[Usage Limit] Error checking profile:', profileCheckError);
       return NextResponse.json({ error: 'Failed to check user profile' }, { status: 500 });
     }
 
-    let updatedProfile: { daily_time_limit_minutes: number | null; daily_limit_enabled: boolean | null } | null = null;
+    let updatedProfile: UserProfileUsage | null = null;
 
     if (!existingProfile) {
       // Profil existiert nicht - erstelle es
@@ -193,7 +230,7 @@ export async function PATCH(request: NextRequest) {
         .from('user_profiles')
         .insert(insertData)
         .select('daily_time_limit_minutes, daily_limit_enabled')
-        .single();
+        .single() as { data: UserProfileUsage | null; error: any };
 
       if (insertError) {
         console.error('[Usage Limit] Insert error:', insertError);
@@ -203,7 +240,7 @@ export async function PATCH(request: NextRequest) {
       updatedProfile = newProfile;
     } else {
       // Profil existiert - aktualisiere es
-      const updateData: any = {
+      const updateData: Partial<UserProfileUsage> & { updated_at: string } = {
         updated_at: new Date().toISOString(),
       };
 
@@ -215,12 +252,14 @@ export async function PATCH(request: NextRequest) {
         updateData.daily_limit_enabled = enabled;
       }
 
-      const { data: updated, error: updateError } = await supabase
-        .from('user_profiles')
+      const updateResult = await (supabase
+        .from('user_profiles') as any)
         .update(updateData)
         .eq('user_id', user.id)
         .select('daily_time_limit_minutes, daily_limit_enabled')
         .single();
+      
+      const { data: updated, error: updateError } = updateResult as { data: UserProfileUsage | null; error: any };
 
       if (updateError) {
         console.error('[Usage Limit] Update error:', updateError);
@@ -259,7 +298,7 @@ export async function PATCH(request: NextRequest) {
       .select('duration_minutes, session_start, session_end')
       .eq('user_id', user.id)
       .gte('session_start', todayStart.toISOString())
-      .lt('session_start', todayEnd.toISOString());
+      .lt('session_start', todayEnd.toISOString()) as { data: UserSession[] | null; error: any };
 
     if (sessionsError) {
       // Silent error - nur in Development loggen
@@ -307,12 +346,16 @@ export async function PATCH(request: NextRequest) {
     // Final log (nur einmal, nicht pro Session)
     console.log('[UsageLimit] todayUsageMinutes =', todayUsageMinutes);
 
-    const limitReached = updatedProfile.daily_time_limit_minutes 
-      ? todayUsageMinutes >= updatedProfile.daily_time_limit_minutes 
+    // Treat 0 as null (no limit) - especially useful for localhost/development
+    const effectiveDailyLimitMinutes = updatedProfile.daily_time_limit_minutes === 0 
+      ? null 
+      : updatedProfile.daily_time_limit_minutes;
+    const limitReached = effectiveDailyLimitMinutes 
+      ? todayUsageMinutes >= effectiveDailyLimitMinutes 
       : false;
 
     const response: UsageLimitResponse = {
-      dailyLimitMinutes: updatedProfile.daily_time_limit_minutes,
+      dailyLimitMinutes: effectiveDailyLimitMinutes,
       todayUsageMinutes,
       requiresReauth: false,
       lastLimitUpdateAt: new Date().toISOString(),
