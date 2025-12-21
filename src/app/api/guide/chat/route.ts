@@ -5,14 +5,36 @@ import OpenAI from 'openai';
 import { applySlotGuard, buildFYFPrompt, GuidePromptContext, GuideRecommendation, logGuideTurn, detectClusterFromIntent } from '@/lib/guidePrompt';
 import { fetchCodex } from '@/lib/codexAdapter';
 
+export type GuideChatRequest = {
+  message: string;
+  sessionId?: string;   // optional: wenn leer -> neue Session
+};
+
+export type GuideChatResponse = {
+  response: string;
+  session_id: string;
+  profile_used: boolean;
+  goal_used: boolean;
+  selected_item: any | null;
+  feedboard_items: any[];
+  detectedCluster: string | null;
+  slots_remaining: {
+    article: string;
+    podcast: string;
+    quote: string;
+  };
+};
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
 export async function POST(req: NextRequest) {
   try {
-    const { message } = await req.json();
-    const sessionId = randomUUID();
+    const { message, sessionId } = await req.json() as {
+      message: string;
+      sessionId?: string;
+    };
 
     if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-...') {
       throw new Error('OpenAI API Key is missing or default');
@@ -21,8 +43,12 @@ export async function POST(req: NextRequest) {
     const supabase = await createSupabaseServerClient();
 
     // Get authenticated user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     // Type definitions
     type UserProfile = {
       display_name: string | null;
@@ -31,20 +57,115 @@ export async function POST(req: NextRequest) {
       slots_article: number | null;
       slots_podcast: number | null;
       slots_quote: number | null;
+      answer_style: 'short' | 'medium' | 'long' | null;
+      guide_tone: 'Soft Touch' | 'Straight' | 'Hard Truth' | null;
+      focus_window: 'morning' | 'afternoon' | 'evening' | 'late_night' | null;
     };
 
     type UserGoal = {
       title: string | null;
     };
 
+    // Session-Handling: Erstellen oder Fortsetzen
+    const MAX_MESSAGES_PER_SESSION = 50;
+    const MAX_MESSAGES_FOR_MODEL = 60;
+    let activeSessionId: string;
+
+    if (!sessionId) {
+      // Neue Session erstellen
+      const { data: session, error: sessionError } = await supabase
+        .from('guide_sessions')
+        .insert({
+          user_id: user.id,
+          title: message.slice(0, 80), // Erste 80 Zeichen als Titel
+        })
+        .select('id')
+        .single();
+
+      if (sessionError || !session) {
+        console.error('[Guide Chat] Error creating session:', sessionError);
+        throw sessionError || new Error('Could not create session');
+      }
+
+      activeSessionId = session.id;
+    } else {
+      // Bestehende Session prüfen und fortführen
+      // Prüfe Max. Chat-Länge
+      const { count: messageCount, error: countError } = await supabase
+        .from('guide_conversations')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('session_id', sessionId);
+
+      if (countError) {
+        console.error('[Guide Chat] Error counting messages:', countError);
+      }
+
+      if (messageCount !== null && messageCount >= MAX_MESSAGES_PER_SESSION) {
+        return NextResponse.json({
+          error: 'Session limit reached',
+          message: `Diese Session hat bereits ${messageCount} Nachrichten erreicht. Bitte starte ein neues Gespräch.`,
+          max_messages: MAX_MESSAGES_PER_SESSION,
+          current_count: messageCount
+        }, { status: 400 });
+      }
+
+      // Session updated_at aktualisieren
+      await supabase
+        .from('guide_sessions')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
+
+      activeSessionId = sessionId;
+    }
+
     // Profil + Ziel laden
     let profile: UserProfile | null = null;
     let goal: UserGoal | null = null;
 
+    // History aus aktueller Session laden
+    const { data: allMessages, error: convError } = await supabase
+      .from('guide_conversations')
+      .select('role, message, created_at')
+      .eq('user_id', user.id)
+      .eq('session_id', activeSessionId)
+      .order('created_at', { ascending: true });
+
+    if (convError) {
+      console.error('[Guide Chat] Error loading conversation history:', convError);
+    }
+
+    const messagesForContext = allMessages || [];
+
+    // History-Truncation: Wenn > MAX_MESSAGES_FOR_MODEL, ältere zusammenfassen
+    let summaryMessage: string | null = null;
+    let recentMessages = messagesForContext;
+
+    if (messagesForContext.length > MAX_MESSAGES_FOR_MODEL) {
+      // Ältere Nachrichten zusammenfassen
+      const older = messagesForContext.slice(0, messagesForContext.length - MAX_MESSAGES_FOR_MODEL);
+      const newer = messagesForContext.slice(-MAX_MESSAGES_FOR_MODEL);
+
+      // Einfache Text-Zusammenfassung (kann später durch AI-Summary ersetzt werden)
+      const olderText = older.map((m) => `${m.role === 'user' ? 'User' : 'Guide'}: ${m.message}`).join('\n');
+      summaryMessage = `Bisherige Session-Zusammenfassung: User und Guide haben über verschiedene Themen gesprochen. (${older.length} ältere Nachrichten zusammengefasst.)`;
+
+      recentMessages = newer;
+    }
+
+    // lastMessages-Array für Prompt bauen
+    const lastMessages = recentMessages.map((m) =>
+      `${m.role === 'user' ? 'User' : 'Guide'}: ${m.message}`
+    );
+
+    // User-Turn-Count nur aus aktueller Session
+    const userTurnCountInSession = messagesForContext.filter((m) => m.role === 'user').length;
+
     if (user) {
       const { data: profileData } = await supabase
         .from('user_profiles')
-        .select('display_name, focus_topic, bio, slots_article, slots_podcast, slots_quote')
+        .select('display_name, focus_topic, bio, slots_article, slots_podcast, slots_quote, answer_style, guide_tone, focus_window')
         .eq('user_id', user.id)
         .maybeSingle<UserProfile>();
       profile = profileData ?? null;
@@ -208,7 +329,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Build prompt context
-    const promptContext: GuidePromptContext = {
+    const answerStyle = profile?.answer_style || 'medium';
+    const guideTone = profile?.guide_tone || 'Straight';
+
+    const promptContext: GuidePromptContext & {
+      state: GuidePromptContext['state'] & {
+        suggestAfterMessages?: number;
+        userTurnCountInSession?: number;
+      };
+    } = {
       profile: {
         name: profile?.display_name || null,
         primary_goal: goal?.title || null,
@@ -227,10 +356,20 @@ export async function POST(req: NextRequest) {
           daily_limit: profile?.slots_quote ?? '∞',
         },
       },
+      lifeWeeks: {
+        weeksRemaining: null,
+        percentageLived: null,
+      },
+      lastMessages,
       recommendations,
       state: {
         no_content: false,
-        tone: 'straight',
+        tone: guideTone,
+        avoidClusters: [],
+        preferFormats: [],
+        guardMessage: undefined,
+        suggestAfterMessages: 3,
+        userTurnCountInSession: userTurnCountInSession,
       },
     };
 
@@ -252,11 +391,28 @@ export async function POST(req: NextRequest) {
       codexText,
     });
 
+    // Antwortlänge aus Profil bestimmen
+    const maxTokensByStyle: Record<'short' | 'medium' | 'long', number> = {
+      short: 250,
+      medium: 450,
+      long: 800,
+    };
+
+    const maxTokens = maxTokensByStyle[answerStyle];
+
+    // OpenAI Messages mit optionaler Summary
+    const openAiMessages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+      { role: 'system', content: fyfPrompt.system },
+      ...(summaryMessage ? [{ role: 'assistant', content: summaryMessage }] : []),
+      ...fyfPrompt.history,
+      { role: 'user', content: message },
+    ];
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: fyfPrompt }],
-      max_tokens: 300,
-      temperature: 0.7,
+      messages: openAiMessages,
+      max_tokens: maxTokens,
+      temperature: 0.6, // etwas stabiler für Struktur
     });
 
     const aiResponse = completion.choices[0].message.content || 'Keine Antwort';
@@ -269,52 +425,59 @@ export async function POST(req: NextRequest) {
       ? recommendations.filter(r => r.id === selectedId)
       : [];
 
+    // Format prompt for logging (combine system + history + user message)
+    const promptForLogging = [
+      `SYSTEM:\n${fyfPrompt.system}`,
+      ...fyfPrompt.history.map(m => `${m.role.toUpperCase()}:\n${m.content}`),
+      `USER:\n${message}`
+    ].join('\n\n');
+
     await logGuideTurn(
       supabase,
-      user?.id || 'anon',
-      sessionId,
-      fyfPrompt,
+      user.id,
+      activeSessionId,
+      promptForLogging,
       cleanResponse,
       promptContext.slots,
       promptContext.slots // TODO: reflect post-consumption slots when decremented
     );
 
     // Save conversation to guide_conversations table for dashboard history
-    if (user?.id) {
-      try {
-        const now = new Date().toISOString();
-        
-        // Save user message first
-        const { error: userMsgError } = await (supabase
-          .from('guide_conversations') as any)
-          .insert({
-            user_id: user.id,
-            role: 'user',
-            message: message,
-            created_at: now,
-          });
+    try {
+      const now = new Date().toISOString();
+      
+      // Save user message first
+      const { error: userMsgError } = await supabase
+        .from('guide_conversations')
+        .insert({
+          user_id: user.id,
+          session_id: activeSessionId,
+          role: 'user',
+          message: message,
+          created_at: now,
+        });
 
-        if (userMsgError) {
-          console.error('[Guide Chat] Error saving user message:', userMsgError);
-        }
-
-        // Save guide response immediately after (same timestamp for grouping)
-        const { error: guideMsgError } = await (supabase
-          .from('guide_conversations') as any)
-          .insert({
-            user_id: user.id,
-            role: 'guide',
-            message: cleanResponse,
-            created_at: now,
-          });
-
-        if (guideMsgError) {
-          console.error('[Guide Chat] Error saving guide message:', guideMsgError);
-        }
-      } catch (conversationError) {
-        console.error('[Guide Chat] Error saving conversation:', conversationError);
-        // Don't fail the request if conversation saving fails
+      if (userMsgError) {
+        console.error('[Guide Chat] Error saving user message:', userMsgError);
       }
+
+      // Save guide response immediately after (same timestamp for grouping)
+      const { error: guideMsgError } = await supabase
+        .from('guide_conversations')
+        .insert({
+          user_id: user.id,
+          session_id: activeSessionId,
+          role: 'guide',
+          message: cleanResponse,
+          created_at: now,
+        });
+
+      if (guideMsgError) {
+        console.error('[Guide Chat] Error saving guide message:', guideMsgError);
+      }
+    } catch (conversationError) {
+      console.error('[Guide Chat] Error saving conversation:', conversationError);
+      // Don't fail the request if conversation saving fails
     }
 
     // Format slots_remaining für Response
@@ -352,6 +515,7 @@ export async function POST(req: NextRequest) {
       response: cleanResponse,
       profile_used: !!profile,
       goal_used: !!goal,
+      session_id: activeSessionId, // Return session_id for frontend reference
       // selected_item: Das eine kuratierte Item für den Chat
       selected_item: selectedItem ? {
         id: selectedItem.id,
@@ -366,7 +530,6 @@ export async function POST(req: NextRequest) {
       } : null,
       // feedboard_items: Restliche Items für das Feedboard
       feedboard_items: feedboardItems,
-      session_id: sessionId,
       detectedCluster: detectedCluster || null,
       slots_remaining: slotsRemaining
     });

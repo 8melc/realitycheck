@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import Sidebar from '@/components/profile/Sidebar';
 import { Profile } from '@/types/profile';
 import { useGuideStore, getNudgingFrequencyInfo } from '@/stores/guideStore';
+import GuideSettings from '@/components/GuideSettings';
 import './settings.css';
 
 // Philosophy options (matching dashboard)
@@ -157,9 +158,21 @@ export default function SettingsPage() {
   const [willLearnInput, setWillLearnInput] = useState('');
   const [willShareInput, setWillShareInput] = useState('');
 
+  // Get user ID for GuideSettings
+  const [userId, setUserId] = useState<string>('');
+
   // Load initial data
   useEffect(() => {
     loadData();
+    
+    // Get user ID for GuideSettings
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    getUser();
   }, []);
 
   const loadData = async () => {
@@ -795,6 +808,16 @@ export default function SettingsPage() {
           </div>
 
           <GuideVerhaltenForm />
+        </section>
+
+        {/* Guide-Präferenzen Section */}
+        <section id="guide-praeferenzen" className="settings-section">
+          <div className="settings-section-header">
+            <h2 className="settings-section-title">Guide-Präferenzen</h2>
+            <p className="settings-section-description">Passe die Antwortlänge und den Kommunikationsstil des Guides an deine Bedürfnisse an.</p>
+          </div>
+
+          {userId && <GuideSettings userId={userId} />}
         </section>
 
         {/* Account Management Section */}

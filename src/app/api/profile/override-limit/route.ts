@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { chargeCredits } from '@/lib/credits/chargeCredits';
 
 /**
  * POST /api/profile/override-limit
  * 
  * Erlaubt User, das Tageslimit mit 1 Credit zu überschreiben
- * Prüft Credits-Balance und zieht 1 Credit ab
+ * Nutzt die zentrale chargeCredits-Funktion für konsistente Credit-Verwaltung
  */
 export async function POST(request: NextRequest) {
   try {
@@ -13,83 +14,66 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Hole Credits-Balance aus user_credits
-    // Falls kein Eintrag existiert, erstelle einen mit balance = 0
-    let { data: credits, error: creditsError } = await supabase
-      .from('user_credits')
-      .select('balance')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (creditsError) {
-      console.error('[Override Limit] Error fetching credits:', creditsError);
       return NextResponse.json(
-        { success: false, reason: 'CREDITS_FETCH_ERROR' },
-        { status: 500 }
+        { ok: false, error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
-    // Falls kein Credits-Eintrag existiert, erstelle einen
-    if (!credits) {
-      const { data: newCredits, error: createError } = await supabase
-        .from('user_credits')
-        .insert({ user_id: user.id, balance: 0 })
-        .select('balance')
-        .single();
+    // Charge 1 credit for extending session
+    const result = await chargeCredits(
+      supabase,
+      user.id,
+      1,
+      'extend_session',
+      { action: 'override_daily_limit' }
+    );
 
-      if (createError) {
-        console.error('[Override Limit] Error creating credits:', createError);
+    if (!result.ok) {
+      // Standardisierte Response für Frontend
+      if (result.reason === 'INSUFFICIENT_CREDITS') {
         return NextResponse.json(
-          { success: false, reason: 'CREDITS_CREATE_ERROR' },
-          { status: 500 }
+          {
+            ok: false,
+            error: 'INSUFFICIENT_CREDITS',
+            credits: {
+              balance: result.balance,
+              required: result.required,
+              message: `Du hast nicht genug Credits, um diese Session zu verlängern. Du hast aktuell ${result.balance} Credit${result.balance !== 1 ? 's' : ''}, benötigt werden ${result.required}.`,
+            },
+          },
+          { status: 400 }
         );
       }
-      credits = newCredits;
-    }
 
-    const currentBalance = credits.balance ?? 0;
-
-    // Prüfe, ob genug Credits vorhanden sind
-    if (currentBalance < 1) {
+      // Andere Fehler
       return NextResponse.json(
-        { success: false, reason: 'NO_CREDITS', remainingCredits: currentBalance },
-        { status: 400 }
-      );
-    }
-
-    // Ziehe 1 Credit ab
-    const { data: updatedCredits, error: updateError } = await supabase
-      .from('user_credits')
-      .update({ 
-        balance: currentBalance - 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', user.id)
-      .select('balance')
-      .single();
-
-    if (updateError) {
-      console.error('[Override Limit] Error updating credits:', updateError);
-      return NextResponse.json(
-        { success: false, reason: 'UPDATE_ERROR' },
+        {
+          ok: false,
+          error: result.reason,
+          message: result.error || 'Fehler beim Abziehen der Credits',
+        },
         { status: 500 }
       );
     }
 
-    // Optional: Track override usage (kann später für Analytics verwendet werden)
-    // z.B. in user_profiles: override_used_today = true
-
+    // Erfolgreich
     return NextResponse.json({
-      success: true,
-      remainingCredits: updatedCredits.balance,
+      ok: true,
+      credits: {
+        cost: result.cost,
+        new_balance: result.newBalance,
+        message: `Dir wurden gerade ${result.cost} Credit${result.cost !== 1 ? 's' : ''} abgezogen.`,
+      },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Override Limit] Error:', error);
     return NextResponse.json(
-      { success: false, reason: 'INTERNAL_ERROR' },
+      {
+        ok: false,
+        error: 'INTERNAL_ERROR',
+        message: error?.message || 'Unerwarteter Fehler',
+      },
       { status: 500 }
     );
   }

@@ -136,48 +136,26 @@ export type GuidePromptContext = {
 };
 
 export const buildFYFPrompt = (
-  context: GuidePromptContext,
+  context: GuidePromptContext & {
+    state?: GuidePromptContext['state'] & {
+      suggestAfterMessages?: number;
+      userTurnCountInSession?: number;
+    };
+  },
   userMessage: string,
   options?: {
     codexText?: string;
   }
-): string => {
-  const sections: string[] = [];
-
-  const systemBase = `SYSTEM:
-- Tool not Coach. User steuert, FYF folgt. Autonomie ist Bedingung.
-- Zeit=Asset. Limits=Freedom. Transparenz: Liefere immer den Grund ("warum siehst du das?").
-- Keine Listen/Walls of text. Max ein Gedanke pro Satz. Eine Frage pro Antwort.
-- Content nur wenn erlaubt: exakt EIN Vorschlag und nur aus INVENTORY. Bei Verbot: kein Content.`;
-
-  sections.push(options?.codexText ? `${systemBase}\n${options.codexText}` : systemBase);
-
-  sections.push(
-    `ROLE:
-- FYF Guide. Direkt, respektvoll, urban. Spiegeln, nicht steuern.
-- Keine Ratgeber-Floskeln. Beispiel-Ton: "Das ist tiefe Arbeit." / "15 Min. Lohnt sich oder skip."`
-  );
-
-  sections.push(
-    `CONTEXT:
-- User: ${context.profile?.name || 'Unbekannt'}
-- Primärziel: ${context.profile?.primary_goal || 'nicht gesetzt'}
-- Slots: Artikel ${context.slots?.article?.available ?? 0}/${context.slots?.article?.daily_limit ?? '∞'}, Podcasts ${context.slots?.podcast?.available ?? 0}/${context.slots?.podcast?.daily_limit ?? '∞'}, Zitate ${context.slots?.quote?.available ?? 0}/${context.slots?.quote?.daily_limit ?? '∞'}
-- Life-in-Weeks: ${context.lifeWeeks?.weeksRemaining ?? '?'} Wochen übrig (${context.lifeWeeks?.percentageLived ?? '?'}% gelebt)
-- Letzte Turns: ${(context.lastMessages || []).slice(-3).map((m) => `"${m}"`).join(' | ') || '–'}`
-  );
-
-  sections.push(
-    `STATE:
-- Content erlaubt: ${context.state?.no_content ? 'NEIN (User Wunsch)' : 'JA'}
-- Tone: ${context.state?.tone || 'normal'}
-- Avoid clusters: ${(context.state?.avoidClusters || []).join(', ') || '–'}
-- Prefer formats: ${(context.state?.preferFormats || []).join(', ') || '–'}${context.state?.guardMessage ? `\n- Guard: ${context.state.guardMessage}` : ''}`
-  );
+): {
+  system: string;
+  history: { role: 'user' | 'assistant'; content: string }[];
+} => {
+  const toneLabel = context.state?.tone || 'Straight';
+  const suggestAfter = context.state?.suggestAfterMessages ?? 3;
+  const userTurns = context.state?.userTurnCountInSession ?? 0;
 
   // Format INVENTORY mit Slots-Info
-  const formatInventoryItem = (r: GuideRecommendation, index: number) => {
-    // Bestimme Slot-Typ basierend auf Format
+  const formatInventoryItem = (r: GuideRecommendation) => {
     let slotInfo = '';
     const formatLower = (r.format || '').toLowerCase();
     if (formatLower.includes('artikel') || formatLower.includes('article')) {
@@ -193,16 +171,95 @@ Warum: ${r.why || '—'}
 ${slotInfo ? slotInfo + '\n' : ''}[ID:${r.id}]`;
   };
 
-  sections.push(
-    `INVENTORY (bereitgestellt):
-${(context.recommendations || [])
-  .map((r, i) => formatInventoryItem(r, i))
-  .join('\n\n') || '- Keine passenden Items gefunden.'}`
-  );
+  const inventoryText = (context.recommendations || []).length > 0
+    ? (context.recommendations || [])
+        .map((r) => formatInventoryItem(r))
+        .join('\n\n')
+    : '- Keine passenden Items gefunden.';
 
-  sections.push(`USER:\n${userMessage}`);
+  const system = `
+Du bist der FYF Guide von RealityCheck.
 
-  return sections.join('\n\n').trim();
+ZIELE:
+- Antworte wie ein moderner Chat-Assistent (ChatGPT-Style): direkt, hilfreich, konkret.
+- Halte IMMER den FYF-Ton: ruhig, klar, leicht urban, kein Coaching-Geschwurbel.
+- Der User führt. Du folgst, spiegelst und konkretisierst.
+
+VERHALTEN (HARDCODED REGELN):
+- Erfülle explizite Aufträge des Users so präzise wie möglich:
+  - "5 Fragen" = genau 5 nummerierte Fragen.
+  - "3 Schritte" = genau 3 klare Schritte.
+  - "7-Tage-Plan" = 7 klar getrennte Tage.
+- Beziehe dich in jeder Antwort explizit auf mindestens einen Begriff aus der aktuellen Nachricht
+  oder den letzten 3 Nachrichten (z.B. "nicht betäuben", "4.000 Wochen", "Gründer und Student").
+- Nutze die letzten Nachrichten, um Ziele und Wörter des Users aktiv wieder aufzugreifen.
+- Keine künstlichen Limits:
+  - Sage NICHT: "Ich kann dir keine fünf Fragen geben", wenn du sie geben kannst.
+  - Wenn eine Aufgabe machbar ist, löse sie direkt.
+- Vermeide generische Floskeln:
+  - Schreibe NICHT: "Das klingt nach einer soliden Herangehensweise" als Standardreaktion.
+  - Stattdessen: liefere konkrete Vorschläge, Sätze, Wenn-Dann-Regeln, Listen.
+- Sei konkret:
+  - Lieber kurze Listen, klare Mikro-Schritte und Beispiele statt abstrakter Aussagen.
+- Antworten:
+  - Maximal 3–5 Sätze Fließtext.
+  - Wenn der User nach einer Liste fragt, nutze nummerierte Listen.
+  - Stelle höchstens EINE Rückfrage pro Antwort.
+
+CONTENT-NUTZUNG:
+- INVENTORY enthält mögliche Artikel/Podcasts/Zitate.
+- Content ist OPTIONAL, nicht aufdringlich.
+- Explizite Bitte:
+  - Wenn der User ausdrücklich fragt ("schlag mir was vor", "hast du einen Artikel/Podcast dazu?"):
+    - Du DARFST sofort genau EIN Item aus dem INVENTORY empfehlen.
+- Implizite Empfehlung:
+  - Wenn der User nicht explizit fragt, warte mindestens ${suggestAfter} User-Nachrichten in dieser Session
+    (aktuell: ${userTurns} User-Nachrichten), bevor du zum ersten Mal Content vorschlägst.
+  - Danach maximal alle 3–4 Antworten einen Content-Vorschlag, nur wenn er thematisch wirklich passt.
+- Wenn du ein Item empfiehlst:
+  - Nenne Format, Dauer (falls vorhanden) und eine kurze Begründung: "Warum siehst du das?".
+  - Füge am Ende der Antwort [[ID:...]] ein (ID aus INVENTORY).
+- Wenn Slots nicht verfügbar sind oder no_content = true:
+  - KEINE Content-Empfehlungen, nur Spiegeln/Fragen/Mikro-Schritte.
+
+TON:
+- Aktueller Stil: ${toneLabel}.
+- Immer FYF: direkt, respektvoll, ohne Drama, leicht urban.
+- Beispiele:
+  - "Das ist tiefe Arbeit."
+  - "15 Minuten. Entweder du machst sie bewusst – oder du lässt es."
+
+USER-KONTEXT:
+- Name: ${context.profile?.name || 'unbekannt'}
+- Primärziel: ${context.profile?.primary_goal || 'nicht gesetzt'}
+- Life-in-Weeks: ${context.lifeWeeks?.weeksRemaining ?? '?'} Wochen übrig (${context.lifeWeeks?.percentageLived ?? '?'}% gelebt)
+- Slots heute: Artikel ${context.slots?.article?.available ?? 0}/${context.slots?.article?.daily_limit ?? '∞'},
+  Podcasts ${context.slots?.podcast?.available ?? 0}/${context.slots?.podcast?.daily_limit ?? '∞'},
+  Zitate ${context.slots?.quote?.available ?? 0}/${context.slots?.quote?.daily_limit ?? '∞'}.
+
+INVENTORY (bereitgestellt):
+${inventoryText}
+
+${context.state?.no_content ? 'WICHTIG: KEINE Content-Empfehlungen. Nur spiegeln/fragen. User hat Limits oder "kein Content" gesetzt.' : ''}
+${context.state?.guardMessage ? `GUARD: ${context.state.guardMessage}` : ''}
+
+${options?.codexText ? `INTERNAL FYF-CODEX:\n${options.codexText}` : ''}
+  `.trim();
+
+  const history: { role: 'user' | 'assistant'; content: string }[] = [];
+
+  // Parse lastMessages aus context.lastMessages
+  // Erwartetes Format: [ "User: ...", "Guide: ...", ... ] oder [ "user: ...", "assistant: ...", ... ]
+  (context.lastMessages || []).slice(-6).forEach((m) => {
+    const lower = m.toLowerCase();
+    if (lower.startsWith('user:')) {
+      history.push({ role: 'user', content: m.replace(/^user:\s*/i, '').trim() });
+    } else if (lower.startsWith('guide:') || lower.startsWith('assistant:')) {
+      history.push({ role: 'assistant', content: m.replace(/^(guide|assistant):\s*/i, '').trim() });
+    }
+  });
+
+  return { system, history };
 };
 
 export const applySlotGuard = (context: GuidePromptContext) => {
@@ -231,13 +288,18 @@ export const __testPrompt = () => {
       podcast: { available: 1, daily_limit: 2 },
       quote: { available: 4, daily_limit: 4 },
     },
-    state: { no_content: false, tone: 'direkt' },
+    state: { no_content: false, tone: 'Straight' },
   };
-  return buildFYFPrompt(
+  const result = buildFYFPrompt(
     testContext,
     'Zeig mir Content für heute',
     { codexText: '[principles]: Tool not Coach; Autonomie; Transparenz' }
   );
+  return {
+    system: result.system,
+    history: result.history,
+    fullPrompt: `SYSTEM:\n${result.system}\n\nHISTORY:\n${result.history.map(m => `${m.role}: ${m.content}`).join('\n')}\n\nUSER:\nZeig mir Content für heute`
+  };
 };
 
 /**

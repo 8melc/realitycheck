@@ -24,6 +24,9 @@ export interface Database {
           will_learn: string[] | null
           will_share: string[] | null
           is_public: boolean
+          answer_style: string | null
+          guide_tone: string | null
+          focus_window: string | null
           created_at: string
           updated_at: string
         }
@@ -41,6 +44,9 @@ export interface Database {
           will_learn?: string[] | null
           will_share?: string[] | null
           is_public?: boolean
+          answer_style?: string | null
+          guide_tone?: string | null
+          focus_window?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -58,6 +64,9 @@ export interface Database {
           will_learn?: string[] | null
           will_share?: string[] | null
           is_public?: boolean
+          answer_style?: string | null
+          guide_tone?: string | null
+          focus_window?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -220,12 +229,36 @@ export interface Database {
           created_at?: string
         }
       }
+      guide_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          title: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       guide_conversations: {
         Row: {
           id: string
           user_id: string
           role: 'user' | 'guide'
           message: string
+          session_id: string
           created_at: string
         }
         Insert: {
@@ -233,6 +266,7 @@ export interface Database {
           user_id: string
           role: 'user' | 'guide'
           message: string
+          session_id: string
           created_at?: string
         }
         Update: {
@@ -240,6 +274,30 @@ export interface Database {
           user_id?: string
           role?: 'user' | 'guide'
           message?: string
+          session_id?: string
+          created_at?: string
+        }
+      }
+      content_interactions: {
+        Row: {
+          id: string
+          user_id: string
+          content_id: string
+          interaction_type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          content_id: string
+          interaction_type: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          content_id?: string
+          interaction_type?: string
           created_at?: string
         }
       }

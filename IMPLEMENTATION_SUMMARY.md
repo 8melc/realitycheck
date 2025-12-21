@@ -165,3 +165,24 @@ COMMENT ON COLUMN user_profiles.birth_date IS 'Optional: Geburtsdatum des Nutzer
 - **UTC-basierte Berechnung**: "Heute" wird in UTC berechnet, um Zeitzonen-Probleme zu vermeiden
 - **Robuste Filterung**: Nur Sessions von heute (UTC) werden gezählt
 - Verhindert, dass alte/kaputte Sessions die Berechnung verfälschen
+
+### ✅ Credit-System (2025-01-20)
+- **Zentrale `chargeCredits` Utility**: Alle Credit-Operationen laufen durch eine gemeinsame Funktion
+  - Prüft aktuellen Credit-Stand
+  - Validiert ausreichende Credits
+  - Zieht Credits ab
+  - Schreibt Transaktion in `credit_history`
+- **Credit-Historie Tabelle**: `credit_history` speichert alle Transaktionen (earned, spent, purchased)
+  - Migration: `db/migrations/006_add_credit_history.sql`
+  - Felder: `amount`, `balance_after`, `reason`, `meta` (JSONB)
+- **Standardisierte API-Responses**:
+  - Erfolg: `{ ok: true, credits: { cost, new_balance, message } }`
+  - Fehler: `{ ok: false, error: 'INSUFFICIENT_CREDITS', credits: { balance, required, message } }`
+- **Frontend-Komponenten**:
+  - `InsufficientCreditsModal`: Zeigt Modal bei zu wenig Credits
+  - `CreditToast`: Toast-Benachrichtigung bei erfolgreichem Credit-Abzug
+  - `CreditHistory`: Historie-Komponente für Dashboard
+- **Refactored Routes**:
+  - `POST /api/profile/override-limit`: Nutzt jetzt `chargeCredits` Utility
+  - `GET /api/credits/history`: Neue Route für Credit-Historie
+- **Integration**: Feedboard nutzt neue Komponenten für Credit-Feedback

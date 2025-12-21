@@ -10,6 +10,8 @@ import { handlePrompt, resetConversationContext } from '@/lib/guideChatEngine';
 import GuideChatSidebar from '@/components/feedboard/GuideChatSidebar';
 import { buildWhyText } from '@/utils/whyText';
 import { useUsageLimit } from '@/hooks/useUsageLimit';
+import InsufficientCreditsModal from '@/components/credits/InsufficientCreditsModal';
+import CreditToast from '@/components/credits/CreditToast';
 import './feedboard.css';
 
 type ModeKey = 'focus' | 'explore' | 'pulse';
@@ -81,6 +83,12 @@ export default function FeedboardPage() {
   const [sessionExtended, setSessionExtended] = useState(false);
   const [extensionStartTime, setExtensionStartTime] = useState<number | null>(null);
   
+  // Credit Modal & Toast State
+  const [showInsufficientCreditsModal, setShowInsufficientCreditsModal] = useState(false);
+  const [insufficientCreditsData, setInsufficientCreditsData] = useState<{ balance: number; required: number } | null>(null);
+  const [showCreditToast, setShowCreditToast] = useState(false);
+  const [creditToastData, setCreditToastData] = useState<{ cost: number; newBalance: number; message?: string } | null>(null);
+  
   // Usage Limit Hook für Tageslimit-Check
   const usageLimit = useUsageLimit();
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
@@ -96,6 +104,18 @@ export default function FeedboardPage() {
   const [isGuideLoading, setIsGuideLoading] = useState(false);
   const [overrideItems, setOverrideItems] = useState<FeedItem[] | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
+  
+  // Guide Chat Session ID - persist across page reloads
+  const [guideSessionId, setGuideSessionId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('guide_session_id');
+      if (stored) return stored;
+      const newId = crypto.randomUUID();
+      localStorage.setItem('guide_session_id', newId);
+      return newId;
+    }
+    return crypto.randomUUID();
+  });
   
   const [isPersonalityOpen, setIsPersonalityOpen] = useState(false);
   const [activeFormat, setActiveFormat] = useState<string>('Alle');
@@ -394,13 +414,16 @@ export default function FeedboardPage() {
     setIsGuideLoading(true);
 
     try {
-      // Call our new API route
+      // Call our new API route with session_id
       const response = await fetch('/api/guide/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: promptText.trim() }),
+        body: JSON.stringify({ 
+          message: promptText.trim(),
+          sessionId: guideSessionId
+        }),
       });
 
       if (!response.ok) {
@@ -408,6 +431,14 @@ export default function FeedboardPage() {
       }
 
       const data = await response.json();
+      
+      // Update session_id if a new session was created
+      if (data.session_id && data.session_id !== guideSessionId) {
+        setGuideSessionId(data.session_id);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('guide_session_id', data.session_id);
+        }
+      }
       
       // FYF Architektur: 1 kuratiertes Item im Chat, Rest im Feedboard
       // selected_item: Das eine Item für den Chat
@@ -539,16 +570,32 @@ export default function FeedboardPage() {
       const res = await fetch('/api/profile/override-limit', { method: 'POST' });
       const json = await res.json();
 
-      if (!json.success) {
-        // Keine Credits mehr – zeige Fehlermeldung
-        const message = json.reason === 'NO_CREDITS' 
-          ? 'Keine Credits mehr – heute ist Schluss.'
-          : 'Fehler beim Abziehen der Credits. Bitte versuche es erneut.';
-        alert(message);
+      if (!json.ok) {
+        // Standardisierte Response: INSUFFICIENT_CREDITS
+        if (json.error === 'INSUFFICIENT_CREDITS' && json.credits) {
+          setInsufficientCreditsData({
+            balance: json.credits.balance,
+            required: json.credits.required,
+          });
+          setShowInsufficientCreditsModal(true);
+          return;
+        }
+
+        // Andere Fehler
+        alert(json.message || 'Fehler beim Abziehen der Credits. Bitte versuche es erneut.');
         return;
       }
 
-      // Erfolg: Overlay schließen, Session verlängern
+      // Erfolg: Zeige Toast, Overlay schließen, Session verlängern
+      if (json.credits) {
+        setCreditToastData({
+          cost: json.credits.cost,
+          newBalance: json.credits.new_balance,
+          message: json.credits.message,
+        });
+        setShowCreditToast(true);
+      }
+
       setShowStoppschildOverlay(false);
       setSessionExtended(true);
       setExtensionStartTime(Date.now());
@@ -578,6 +625,34 @@ export default function FeedboardPage() {
           onLogout={handleStoppschildLogout}
           onContinue={handleStoppschildContinue}
           consumedMinutes={usageLimit.todayUsageMinutes ?? consumedMinutes}
+        />
+      )}
+
+      {/* Insufficient Credits Modal */}
+      {showInsufficientCreditsModal && insufficientCreditsData && (
+        <InsufficientCreditsModal
+          isOpen={showInsufficientCreditsModal}
+          onClose={() => setShowInsufficientCreditsModal(false)}
+          balance={insufficientCreditsData.balance}
+          required={insufficientCreditsData.required}
+          onUpgrade={() => {
+            // TODO: Navigate to pricing/upgrade page
+            setShowInsufficientCreditsModal(false);
+            window.location.href = '/pricing'; // Placeholder
+          }}
+        />
+      )}
+
+      {/* Credit Toast - zeigt erfolgreichen Credit-Abzug */}
+      {showCreditToast && creditToastData && (
+        <CreditToast
+          cost={creditToastData.cost}
+          newBalance={creditToastData.newBalance}
+          message={creditToastData.message}
+          onClose={() => {
+            setShowCreditToast(false);
+            setCreditToastData(null);
+          }}
         />
       )}
 
