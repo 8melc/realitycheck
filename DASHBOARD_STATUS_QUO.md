@@ -278,3 +278,4 @@
 1. **Slots-Spalten:** Prüfen, ob `user_profiles.slots_article`, `slots_podcast`, `slots_quote` in Supabase existieren (Code verwendet sie, Types fehlen)
 2. **guide_logs Tabelle:** Prüfen, ob Tabelle existiert (wird in Code verwendet, aber nicht in Types)
 3. **daily_time_limit_minutes:** Prüfen, ob echte DB-Integration gewünscht ist (aktuell nur Mock)
+

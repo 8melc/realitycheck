@@ -44,3 +44,4 @@ WHERE tablename = 'feed_interactions'
 -- FOR INSERT
 -- TO authenticated
 -- WITH CHECK (auth.uid() = user_id);
+

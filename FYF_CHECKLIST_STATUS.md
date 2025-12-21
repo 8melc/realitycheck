@@ -49,3 +49,4 @@
 1. **FeedCard Buttons implementieren** (Merken/Mehr/Anderes) → feed_interactions INSERT
 2. **guide_conversations INSERT aktivieren** → logGuideTurn() erweitern oder neue Funktion
 3. **content_items COUNT prüfen** → CSV-Import Status verifizieren
+

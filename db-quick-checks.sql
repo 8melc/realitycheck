@@ -70,3 +70,4 @@ LIMIT 5;
 -- FROM user_profiles
 -- WHERE slots_article IS NOT NULL
 -- LIMIT 5;
+

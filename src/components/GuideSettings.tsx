@@ -22,9 +22,16 @@ const FOCUS_WINDOWS = [
   { value: 'late_night', label: 'Spät', desc: '22:00 - 6:00 Uhr', icon: '🌙' }
 ] as const;
 
+const NUDGING_FREQUENCIES = [
+  { value: 'minimal', label: 'Minimal', desc: '1 Nudge pro Tag' },
+  { value: 'standard', label: 'Standard', desc: '2-3 Nudges pro Tag - Empfohlen' },
+  { value: 'frequent', label: 'Häufig', desc: '3-4 Nudges pro Tag' }
+] as const;
+
 type AnswerStyle = typeof ANSWER_STYLES[number]['value'];
 type GuideTone = typeof GUIDE_TONES[number]['value'];
 type FocusWindow = typeof FOCUS_WINDOWS[number]['value'];
+type NudgingFrequency = typeof NUDGING_FREQUENCIES[number]['value'];
 
 interface GuideSettingsProps {
   userId: string;
@@ -34,26 +41,118 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
   const [answerStyle, setAnswerStyle] = useState<AnswerStyle>('medium');
   const [guideTone, setGuideTone] = useState<GuideTone>('Straight');
   const [focusWindow, setFocusWindow] = useState<FocusWindow>('evening');
-  const [loading, setLoading] = useState(false);
+  const [nudgingFrequency, setNudgingFrequency] = useState<NudgingFrequency>('standard');
+  const [nudgingPausedUntil, setNudgingPausedUntil] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // Start with true to show loading state
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Load settings on mount
   useEffect(() => {
     const fetchSettings = async () => {
-      if (!userId) return;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
+      setLoadError(null);
+      
       try {
+        // Try to load profile with all possible column names (for compatibility)
         const { data, error: fetchError } = await supabase
           .from('user_profiles')
-          .select('answer_style, guide_tone, focus_window')
+          .select('answer_style, guide_tone, focus_window, nudging_frequency, guide_nudging_frequency, nudging_paused_until, guide_muted, nudging_enabled')
           .eq('user_id', userId)
-          .maybeSingle();
+          .maybeSingle<{
+            answer_style: string | null;
+            guide_tone: string | null;
+            focus_window: string | null;
+            nudging_frequency: string | null;
+            guide_nudging_frequency?: string | null;
+            nudging_paused_until: string | null;
+            guide_muted?: boolean | null;
+            nudging_enabled?: boolean | null;
+          }>();
         
         if (fetchError) {
-          console.error('[GuideSettings] Error fetching settings:', fetchError);
+          // Check if error is "no rows returned" (PGRST116)
+          if (fetchError.code === 'PGRST116' || fetchError.message?.includes('No rows')) {
+            // User has no profile yet - create one with defaults
+            console.log('[GuideSettings] No profile found, creating default profile...');
+            
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+              setLoadError('Bitte melde dich an, um Guide-Einstellungen zu verwalten.');
+              setLoading(false);
+              return;
+            }
+
+            const { error: insertError } = await supabase
+              .from('user_profiles')
+              .insert({
+                user_id: userId,
+                answer_style: 'medium',
+                guide_tone: 'Straight',
+                focus_window: 'evening',
+                nudging_frequency: 'standard',
+              } as any);
+
+            if (insertError) {
+              console.error('[GuideSettings] Error creating profile:', insertError);
+              setLoadError(`Fehler beim Erstellen des Profils: ${insertError.message || 'Unbekannter Fehler'}. Bitte Seite neu laden.`);
+              setLoading(false);
+              return;
+            }
+
+            // Retry fetch after creating profile
+            const { data: newData, error: retryError } = await supabase
+              .from('user_profiles')
+              .select('answer_style, guide_tone, focus_window, nudging_frequency, guide_nudging_frequency, nudging_paused_until, guide_muted, nudging_enabled')
+              .eq('user_id', userId)
+              .maybeSingle<{
+                answer_style: string | null;
+                guide_tone: string | null;
+                focus_window: string | null;
+                nudging_frequency: string | null;
+                guide_nudging_frequency?: string | null;
+                nudging_paused_until: string | null;
+                guide_muted?: boolean | null;
+                nudging_enabled?: boolean | null;
+              }>();
+
+            if (retryError || !newData) {
+              console.error('[GuideSettings] Error fetching after create:', retryError);
+              setLoadError('Profil erstellt, aber Fehler beim Laden. Bitte Seite neu laden.');
+              setLoading(false);
+              return;
+            }
+
+            // Use newData instead of data
+            const profileData = newData;
+            const normalizedNudgingFrequency = (profileData.nudging_frequency || profileData.guide_nudging_frequency || 'standard') as NudgingFrequency;
+            
+            // Set values from newly created profile
+            setAnswerStyle((profileData.answer_style || 'medium') as AnswerStyle);
+            setGuideTone((profileData.guide_tone || 'Straight') as GuideTone);
+            setFocusWindow((profileData.focus_window || 'evening') as FocusWindow);
+            setNudgingFrequency(normalizedNudgingFrequency);
+            setNudgingPausedUntil(profileData.nudging_paused_until);
+            setLoading(false);
+            return;
+          }
+
+          // Other error
+          console.error('[GuideSettings] Error fetching settings:', {
+            message: fetchError.message,
+            code: fetchError.code,
+            details: fetchError.details,
+            hint: fetchError.hint
+          });
+          setLoadError(`Fehler beim Laden der Einstellungen: ${fetchError.message || 'Unbekannter Fehler'}. Bitte Seite neu laden.`);
+          setLoading(false);
           return;
         }
         
@@ -64,6 +163,8 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
             ? (data.guide_tone === 'straight' ? 'Straight' : data.guide_tone as GuideTone)
             : 'Straight';
           const normalizedFocusWindow = (data.focus_window || 'evening') as FocusWindow;
+          // Support both column names for compatibility
+          const normalizedNudgingFrequency = (data.nudging_frequency || data.guide_nudging_frequency || 'standard') as NudgingFrequency;
           
           // Validate values
           if (ANSWER_STYLES.some(s => s.value === normalizedAnswerStyle)) {
@@ -75,9 +176,16 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
           if (FOCUS_WINDOWS.some(w => w.value === normalizedFocusWindow)) {
             setFocusWindow(normalizedFocusWindow);
           }
+          if (NUDGING_FREQUENCIES.some(f => f.value === normalizedNudgingFrequency)) {
+            setNudgingFrequency(normalizedNudgingFrequency);
+          }
+          
+          // Set nudging paused state
+          setNudgingPausedUntil(data.nudging_paused_until);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('[GuideSettings] Error loading settings:', err);
+        setLoadError(err.message || 'Fehler beim Laden der Einstellungen');
       } finally {
         setLoading(false);
       }
@@ -94,39 +202,115 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
     setSuccess(false);
     
     try {
-      const { error: updateError } = await supabase
-        .from('user_profiles')
-        .update({ 
+      // Try to update with nudging_frequency first, fallback to guide_nudging_frequency if needed
+      const updateData: any = {
+        answer_style: answerStyle,
+        guide_tone: guideTone,
+        focus_window: focusWindow,
+      };
+
+      // Try nudging_frequency first (newer column name)
+      // If that fails, we'll try guide_nudging_frequency
+      updateData.nudging_frequency = nudgingFrequency;
+
+      const { error: updateError } = await (supabase
+        .from('user_profiles') as any)
+        .update(updateData)
+        .eq('user_id', userId);
+
+      // If update failed and error suggests column doesn't exist, try with guide_nudging_frequency
+      if (updateError && (updateError.message?.includes('column') || updateError.code === '42703')) {
+        console.log('[GuideSettings] Trying with guide_nudging_frequency instead...');
+        const fallbackData: any = {
           answer_style: answerStyle,
           guide_tone: guideTone,
-          focus_window: focusWindow
-        })
-        .eq('user_id', userId);
+          focus_window: focusWindow,
+          guide_nudging_frequency: nudgingFrequency,
+        };
+        
+        const { error: fallbackError } = await (supabase
+          .from('user_profiles') as any)
+          .update(fallbackData)
+          .eq('user_id', userId);
+        
+        if (fallbackError) {
+          throw new Error(fallbackError.message || 'Fehler beim Speichern');
+        }
+      } else if (updateError) {
+        throw new Error(updateError.message || 'Fehler beim Speichern');
+      }
 
       if (updateError) {
         throw new Error(updateError.message || 'Fehler beim Speichern');
       }
       
       setSuccess(true);
+      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
       console.error('[GuideSettings] Error updating settings:', err);
-      setError(err.message || 'Fehler beim Speichern der Einstellungen');
+      const errorMessage = err.message || 'Fehler beim Speichern der Einstellungen';
+      setError(errorMessage);
+      // Clear error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
     } finally {
       setSaving(false);
     }
   };
 
+  if (!userId) {
+    return (
+      <div className="settings-form">
+        <p style={{ color: 'var(--rc-steel, #9ca3af)', textAlign: 'center' }}>
+          Bitte melde dich an, um Guide-Einstellungen zu verwalten.
+        </p>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="settings-form">
-        <p style={{ color: '#B8BCC8', textAlign: 'center' }}>Lade Guide-Einstellungen...</p>
+        <div style={{ 
+          padding: '2rem', 
+          textAlign: 'center',
+          color: 'var(--rc-steel, #9ca3af)'
+        }}>
+          <div style={{ marginBottom: '0.5rem' }}>Lade Guide-Einstellungen...</div>
+          <div style={{ 
+            width: '24px', 
+            height: '24px', 
+            border: '2px solid var(--rc-steel, #9ca3af)',
+            borderTopColor: 'transparent',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto'
+          }} />
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="settings-form">
+      {/* Load Error Message */}
+      {loadError && (
+        <div className="form-error" style={{ 
+          padding: '0.75rem', 
+          backgroundColor: 'rgba(220, 38, 38, 0.1)', 
+          color: '#FCA5A5', 
+          borderRadius: '0.5rem',
+          marginBottom: '1rem',
+          border: '1px solid rgba(220, 38, 38, 0.3)'
+        }}>
+          {loadError}
+        </div>
+      )}
       {/* Answer Style Section */}
       <div className="form-group">
         <label className="form-label">Antwort-Länge</label>
@@ -137,7 +321,7 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
           className="guide-settings-grid"
           style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
             gap: '0.75rem'
           }}
         >
@@ -146,6 +330,7 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
               key={style.value}
               type="button"
               onClick={() => setAnswerStyle(style.value)}
+              disabled={saving}
               className={`btn ${answerStyle === style.value ? 'btn-primary' : 'btn-secondary'}`}
               style={{
                 padding: '1rem',
@@ -153,9 +338,11 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
                 border: answerStyle === style.value ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
                 backgroundColor: answerStyle === style.value ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
                 transition: 'all 0.2s',
-                cursor: 'pointer',
+                cursor: saving ? 'not-allowed' : 'pointer',
                 textAlign: 'left',
-                color: 'var(--rc-cream, #f3efe8)'
+                color: 'var(--rc-cream, #f3efe8)',
+                minHeight: '80px',
+                opacity: saving ? 0.6 : 1
               }}
             >
               <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{style.label}</div>
@@ -178,6 +365,7 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
               key={tone.value}
               type="button"
               onClick={() => setGuideTone(tone.value)}
+              disabled={saving}
               className={`btn ${guideTone === tone.value ? 'btn-primary' : 'btn-secondary'}`}
               style={{
                 width: '100%',
@@ -186,13 +374,48 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
                 border: guideTone === tone.value ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
                 backgroundColor: guideTone === tone.value ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
                 transition: 'all 0.2s',
-                cursor: 'pointer',
+                cursor: saving ? 'not-allowed' : 'pointer',
                 textAlign: 'left',
-                color: 'var(--rc-cream, #f3efe8)'
+                color: 'var(--rc-cream, #f3efe8)',
+                opacity: saving ? 0.6 : 1
               }}
             >
               <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{tone.label}</div>
               <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>{tone.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Nudging Frequency Section */}
+      <div className="form-group" style={{ marginTop: '2rem' }}>
+        <label className="form-label">Nudging-Frequenz</label>
+        <p className="form-hint" style={{ marginBottom: '1rem' }}>
+          Wie oft soll der Guide dich erinnern?
+        </p>
+        <div className="space-y-2" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {NUDGING_FREQUENCIES.map(freq => (
+            <button
+              key={freq.value}
+              type="button"
+              onClick={() => setNudgingFrequency(freq.value)}
+              disabled={saving}
+              className={`btn ${nudgingFrequency === freq.value ? 'btn-primary' : 'btn-secondary'}`}
+              style={{
+                width: '100%',
+                padding: '1rem',
+                borderRadius: '0.5rem',
+                border: nudgingFrequency === freq.value ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: nudgingFrequency === freq.value ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
+                transition: 'all 0.2s',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                textAlign: 'left',
+                color: 'var(--rc-cream, #f3efe8)',
+                opacity: saving ? 0.6 : 1
+              }}
+            >
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{freq.label}</div>
+              <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>{freq.desc}</div>
             </button>
           ))}
         </div>
@@ -208,7 +431,7 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
           className="guide-settings-grid"
           style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
             gap: '0.75rem'
           }}
         >
@@ -217,6 +440,7 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
               key={window.value}
               type="button"
               onClick={() => setFocusWindow(window.value)}
+              disabled={saving}
               className={`btn ${focusWindow === window.value ? 'btn-primary' : 'btn-secondary'}`}
               style={{
                 padding: '1rem',
@@ -224,9 +448,11 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
                 border: focusWindow === window.value ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
                 backgroundColor: focusWindow === window.value ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
                 transition: 'all 0.2s',
-                cursor: 'pointer',
+                cursor: saving ? 'not-allowed' : 'pointer',
                 textAlign: 'center',
-                color: 'var(--rc-cream, #f3efe8)'
+                color: 'var(--rc-cream, #f3efe8)',
+                minHeight: '100px',
+                opacity: saving ? 0.6 : 1
               }}
             >
               <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{window.icon}</div>
@@ -235,6 +461,76 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Halt die Fresse Button */}
+      <div className="form-group" style={{ marginTop: '2rem' }}>
+        <label className="form-label">Nudging Pausieren</label>
+        <p className="form-hint" style={{ marginBottom: '1rem' }}>
+          {nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
+            ? `Nudging ist pausiert bis ${new Date(nudgingPausedUntil).toLocaleString('de-DE')}`
+            : 'Guide komplett stumm schalten für 24 Stunden'}
+        </p>
+        <button
+          type="button"
+          onClick={async () => {
+            if (!userId) return;
+            
+            const isCurrentlyPaused = nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date();
+            
+            if (isCurrentlyPaused) {
+              // Unpause
+              const { error } = await (supabase
+                .from('user_profiles') as any)
+                .update({ nudging_paused_until: null })
+                .eq('user_id', userId);
+              
+              if (!error) {
+                setNudgingPausedUntil(null);
+                setSuccess(true);
+                setTimeout(() => setSuccess(false), 3000);
+              }
+            } else {
+              // Pause for 24 hours
+              const pauseUntil = new Date();
+              pauseUntil.setHours(pauseUntil.getHours() + 24);
+              
+              const { error } = await (supabase
+                .from('user_profiles') as any)
+                .update({ nudging_paused_until: pauseUntil.toISOString() })
+                .eq('user_id', userId);
+              
+              if (!error) {
+                setNudgingPausedUntil(pauseUntil.toISOString());
+                setSuccess(true);
+                setTimeout(() => setSuccess(false), 3000);
+              }
+            }
+          }}
+          disabled={saving}
+          className={`btn ${nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date() ? 'btn-secondary' : 'btn-danger'}`}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            backgroundColor: nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date() 
+              ? 'rgba(156, 163, 175, 0.3)' 
+              : 'rgba(220, 38, 38, 0.2)',
+            color: nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
+              ? 'var(--rc-steel, #9ca3af)'
+              : '#FCA5A5',
+            borderRadius: '0.5rem',
+            fontWeight: 600,
+            cursor: saving ? 'not-allowed' : 'pointer',
+            opacity: saving ? 0.6 : 1,
+            border: nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
+              ? '2px solid rgba(255, 255, 255, 0.1)'
+              : '2px solid rgba(220, 38, 38, 0.3)'
+          }}
+        >
+          {nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
+            ? 'Guide aktivieren'
+            : 'HALT DIE FRESSE'}
+        </button>
       </div>
 
       {/* Error/Success Messages */}

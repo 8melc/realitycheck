@@ -115,3 +115,4 @@ INSERT INTO public.user_goals (
 
 ### "Failed to create profile"
 → Prüfe RLS-Policies in Supabase
+

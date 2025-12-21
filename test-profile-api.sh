@@ -17,3 +17,4 @@ fi
 echo ""
 echo "✅ If you see profile data above, API works!"
 echo "❌ If you see error, check server logs"
+

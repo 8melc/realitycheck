@@ -257,3 +257,4 @@ Kopiere diesen Block in dein Notion-Roadmap-Dokument:
 ---
 
 **💡 Hinweis:** Dieses Update basiert auf Code-Analyse und Status-Dokumenten. Für 100% Genauigkeit bitte manuell in Notion verifizieren und anpassen.
+

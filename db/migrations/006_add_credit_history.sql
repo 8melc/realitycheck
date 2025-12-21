@@ -25,3 +25,4 @@ COMMENT ON TABLE credit_history IS 'Tracks all credit transactions for transpare
 COMMENT ON COLUMN credit_history.amount IS 'Negative for spending, positive for earning/purchasing';
 COMMENT ON COLUMN credit_history.reason IS 'Type of transaction: extend_session, guide_message, content_open, purchase, earned, etc.';
 COMMENT ON COLUMN credit_history.meta IS 'Optional JSON metadata: session_id, content_id, guide_message_id, etc.';
+

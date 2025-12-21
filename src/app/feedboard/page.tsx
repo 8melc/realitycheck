@@ -12,6 +12,7 @@ import { buildWhyText } from '@/utils/whyText';
 import { useUsageLimit } from '@/hooks/useUsageLimit';
 import InsufficientCreditsModal from '@/components/credits/InsufficientCreditsModal';
 import CreditToast from '@/components/credits/CreditToast';
+import NudgePopup from '@/components/NudgePopup';
 import './feedboard.css';
 
 type ModeKey = 'focus' | 'explore' | 'pulse';
@@ -785,6 +786,9 @@ export default function FeedboardPage() {
             setActivePartner(null);
           }}
         />
+
+        {/* Nudge Popup */}
+        <NudgePopup />
       </div>
     </>
   );

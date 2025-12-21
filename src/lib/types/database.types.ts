@@ -27,6 +27,12 @@ export interface Database {
           answer_style: string | null
           guide_tone: string | null
           focus_window: string | null
+          nudging_paused_until: string | null
+          nudging_frequency: string | null
+          avatar_type: 'initials' | 'upload' | 'generated' | null
+          avatar_url: string | null
+          avatar_seed: string | null
+          avatar_style: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
           created_at: string
           updated_at: string
         }
@@ -47,6 +53,12 @@ export interface Database {
           answer_style?: string | null
           guide_tone?: string | null
           focus_window?: string | null
+          nudging_paused_until?: string | null
+          nudging_frequency?: string | null
+          avatar_type?: 'initials' | 'upload' | 'generated' | null
+          avatar_url?: string | null
+          avatar_seed?: string | null
+          avatar_style?: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
           created_at?: string
           updated_at?: string
         }
@@ -67,8 +79,46 @@ export interface Database {
           answer_style?: string | null
           guide_tone?: string | null
           focus_window?: string | null
+          nudging_paused_until?: string | null
+          nudging_frequency?: string | null
+          avatar_type?: 'initials' | 'upload' | 'generated' | null
+          avatar_url?: string | null
+          avatar_seed?: string | null
+          avatar_style?: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
           created_at?: string
           updated_at?: string
+        }
+      }
+      nudges_sent: {
+        Row: {
+          id: string
+          user_id: string
+          nudge_type: string
+          nudge_content: string
+          shown_at: string
+          dismissed_at: string | null
+          action_taken: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          nudge_type: string
+          nudge_content: string
+          shown_at?: string
+          dismissed_at?: string | null
+          action_taken?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          nudge_type?: string
+          nudge_content?: string
+          shown_at?: string
+          dismissed_at?: string | null
+          action_taken?: string | null
+          created_at?: string
         }
       }
       user_goals: {

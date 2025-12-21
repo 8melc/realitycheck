@@ -42,3 +42,4 @@ ADD COLUMN IF NOT EXISTS slots_quote INTEGER DEFAULT 4;
 }
 
 checkColumns();
+

@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import Sidebar from '@/components/profile/Sidebar';
 import { Profile } from '@/types/profile';
-import { useGuideStore, getNudgingFrequencyInfo } from '@/stores/guideStore';
 import GuideSettings from '@/components/GuideSettings';
+import AvatarSettings from '@/components/profile/AvatarSettings';
 import './settings.css';
 
 // Philosophy options (matching dashboard)
@@ -52,63 +52,6 @@ interface ProfileData {
   will_learn: string[] | null;
   will_share: string[] | null;
   is_public: boolean;
-}
-
-// Guide-Verhalten Form Component
-function GuideVerhaltenForm() {
-  const { guideTone, setGuideTone, nudgingFrequency, setNudgingFrequency, isGuideMuted, toggleGuideMute } = useGuideStore();
-  const nudgingInfo = getNudgingFrequencyInfo(nudgingFrequency);
-
-  return (
-    <div className="settings-form">
-      <div className="form-group">
-        <label className="form-label">Ton-Kalibrierung</label>
-        <div className="button-group" style={{ display: 'flex', gap: '1rem' }}>
-          <button
-            type="button"
-            className={`btn ${guideTone === 'straight' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setGuideTone('straight')}
-          >
-            Straight Talk
-          </button>
-          <button
-            type="button"
-            className={`btn ${guideTone === 'soft' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setGuideTone('soft')}
-          >
-            Soft Touch
-          </button>
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="nudgingFrequency" className="form-label">Nudging-Frequenz</label>
-        <select
-          id="nudgingFrequency"
-          className="form-select"
-          value={nudgingFrequency}
-          onChange={(e) => setNudgingFrequency(e.target.value as 'high' | 'medium' | 'low' | 'off')}
-        >
-          <option value="high">Intensiv (3-4 Nudges/Tag)</option>
-          <option value="medium">Standard (2-3 Nudges/Tag) - Empfohlen</option>
-          <option value="low">Minimal (1 Nudge/Tag)</option>
-          <option value="off">Aus (0 Nudges)</option>
-        </select>
-        <p className="form-hint">{nudgingInfo.description}</p>
-      </div>
-
-      <div className="form-group">
-        <button
-          type="button"
-          className={`btn ${isGuideMuted ? 'btn-secondary' : 'btn-danger'}`}
-          onClick={toggleGuideMute}
-        >
-          {isGuideMuted ? 'Guide aktivieren' : 'HALT DIE FRESSE'}
-        </button>
-        <p className="form-hint">Guide komplett stumm schalten.</p>
-      </div>
-    </div>
-  );
 }
 
 export default function SettingsPage() {
@@ -559,6 +502,16 @@ export default function SettingsPage() {
           </form>
         </section>
 
+        {/* Avatar Section */}
+        <section id="profilbild" className="settings-section">
+          <div className="settings-section-header">
+            <h2 className="settings-section-title">Profilbild</h2>
+            <p className="settings-section-description">Wähle dein Avatar: Initialen, eigenes Bild oder KI-generiert</p>
+          </div>
+
+          {userId && <AvatarSettings userId={userId} />}
+        </section>
+
         {/* Password Section */}
         <section className="settings-section">
           <div className="settings-section-header">
@@ -800,21 +753,11 @@ export default function SettingsPage() {
           </form>
         </section>
 
-        {/* Guide-Verhalten Section */}
-        <section id="guide-verhalten" className="settings-section">
+        {/* Guide-Einstellungen Section (Konsolidiert) */}
+        <section id="guide-einstellungen" className="settings-section">
           <div className="settings-section-header">
             <h2 className="settings-section-title">Guide-Einstellungen</h2>
-            <p className="settings-section-description">Ich erinnere dich, wenn es wichtig wird. Nicht nervig, aber konsequent.</p>
-          </div>
-
-          <GuideVerhaltenForm />
-        </section>
-
-        {/* Guide-Präferenzen Section */}
-        <section id="guide-praeferenzen" className="settings-section">
-          <div className="settings-section-header">
-            <h2 className="settings-section-title">Guide-Präferenzen</h2>
-            <p className="settings-section-description">Passe die Antwortlänge und den Kommunikationsstil des Guides an deine Bedürfnisse an.</p>
+            <p className="settings-section-description">Passe den Kommunikationsstil, die Antwortlänge und Nudging-Frequenz des Guides an deine Bedürfnisse an.</p>
           </div>
 
           {userId && <GuideSettings userId={userId} />}

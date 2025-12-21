@@ -895,10 +895,75 @@
   color: var(--rc-coral);
 }
 
+.rc-credits-stat-value--urgent {
+  color: var(--rc-coral);
+  position: relative;
+}
+
 .rc-credits-stat-subtitle {
   font-size: 0.625rem;
   color: var(--rc-steel);
   line-height: 1.2;
+}
+
+/* Urgent Credit States */
+.rc-credits-section--urgent {
+  border-color: var(--rc-coral);
+  box-shadow: 0 4px 12px rgba(240, 138, 143, 0.3);
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(240, 138, 143, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(240, 138, 143, 0.5);
+  }
+}
+
+.rc-btn--pulse {
+  animation: pulse-button 2s ease-in-out infinite;
+}
+
+@keyframes pulse-button {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.rc-credits-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+.rc-credits-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--rc-coral);
+  border-radius: 50%;
+  margin-left: 0.5rem;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
 }
 
 .rc-btn--small {

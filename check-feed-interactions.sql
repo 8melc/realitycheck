@@ -105,3 +105,4 @@ FROM feed_interactions
 WHERE created_at >= NOW() - INTERVAL '7 days'
 GROUP BY DATE(created_at), action
 ORDER BY date DESC, action;
+

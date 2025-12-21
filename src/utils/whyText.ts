@@ -56,3 +56,4 @@ export function buildWhyText(opts: BuildWhyTextOpts): string {
   // 5. Fallback – nie peinlich, nie technisch
   return "Weil Inhalt, Dauer und Thema zu deinem Fokus und deinen Filtern passen – nicht optimiert für Klicks, sondern für deine Zeit.";
 }
+

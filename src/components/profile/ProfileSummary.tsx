@@ -3,6 +3,7 @@ import GoalBadge from './GoalBadge';
 import { PenSquareIcon } from './icons';
 import { useGuideStore } from '@/stores/guideStore';
 import { getGuideText } from '@/lib/guideTone';
+import UserAvatar from '@/components/UserAvatar';
 
 interface ProfileSummaryProps {
   profile: Profile;
@@ -25,23 +26,13 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
     <section className="rc-card rc-card--hero motion-fade-up" aria-labelledby="profile-summary-heading">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-1 flex-col gap-6 lg:flex-row lg:items-center">
-          <div className="relative h-32 w-32 shrink-0 rounded-full border border-rc-mint/60 bg-rc-noir/60 text-4xl font-semibold uppercase tracking-wide text-rc-mint shadow-lg shadow-rc-mint/5 overflow-hidden">
-            {identity.avatarUrl ? (
-              <img 
-                src={identity.avatarUrl} 
-                alt={`${identity.name} Profilbild`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                {identity.name
-                  .split(' ')
-                  .map((part) => part[0])
-                  .join('')
-                  .slice(0, 2)}
-              </div>
-            )}
-          </div>
+          <UserAvatar
+            userId={profile.id}
+            size="lg"
+            displayName={identity.name}
+            email={identity.email}
+            className="shadow-lg shadow-rc-mint/5"
+          />
 
           <div className="flex flex-col gap-3">
             <div>

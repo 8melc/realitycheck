@@ -18,6 +18,8 @@ import { supabase } from '@/lib/supabase/client';
 import type { UserProfile } from '@/lib/types/database.types';
 import { mapUserProfileToLegacyProfile } from '@/lib/utils/profile-mapper';
 import LogoutButton from '@/components/LogoutButton';
+import NudgePopup from '@/components/NudgePopup';
+import { CreditReminder } from '@/components/credits/CreditReminder';
 import './page.css';
 
 // Philosophy and Lifestyle options (matching onboarding)
@@ -603,6 +605,7 @@ export default function GuideDashboardPage() {
 
   return (
     <div className="guide-dashboard-shell">
+      <CreditReminder />
       <Sidebar 
         profile={profile} 
         onEditGoal={() => setGoalModalOpen(true)} 
@@ -707,6 +710,9 @@ export default function GuideDashboardPage() {
       </main>
 
       <GoalModal open={isGoalModalOpen} initialGoal={profile?.primaryGoalTitle || ''} onClose={() => setGoalModalOpen(false)} onSave={handleGoalSave} />
+      
+      {/* Nudge Popup */}
+      <NudgePopup />
     </div>
   );
 }

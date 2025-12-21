@@ -53,3 +53,4 @@ INSERT INTO public.user_goals (
 -- FROM user_profiles up
 -- LEFT JOIN user_goals ug ON ug.user_id = up.user_id AND ug.is_primary = true
 -- WHERE up.user_id = 'USER_ID_HIER';
+

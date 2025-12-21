@@ -274,3 +274,4 @@ Erstelle eine moderne, provokante Landingpage für "FYF Reality Check" mit:
 
 **Ready to paste in Framer.com/ai → Generate**
 
+

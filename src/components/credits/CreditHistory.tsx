@@ -161,3 +161,4 @@ export default function CreditHistory({ userId, limit = 20 }: CreditHistoryProps
     </div>
   );
 }
+

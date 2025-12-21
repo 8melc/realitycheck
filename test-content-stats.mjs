@@ -128,3 +128,4 @@ async function testAPIEndpoint() {
     console.log('\n💡 Tipp: Stelle sicher, dass der Dev-Server läuft (npm run dev)');
   }
 }
+

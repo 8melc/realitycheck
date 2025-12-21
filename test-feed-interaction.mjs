@@ -78,3 +78,4 @@ console.log('   2. Klicke auf "Mehr davon" Button');
 console.log('   3. Prüfe Request zu /api/feedboard/interactions');
 console.log('   4. Prüfe Response Status & Body');
 console.log('   5. Prüfe Server-Logs für [Feed Interactions] Logs\n');
+

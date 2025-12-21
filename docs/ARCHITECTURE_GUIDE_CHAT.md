@@ -123,3 +123,4 @@ LLM wählt 1 Item aus (selected_item)
 - **Chat Component**: `src/components/feedboard/GuideChatSidebar.tsx`
 - **Feedboard Integration**: `src/app/feedboard/page.tsx`
 - **Types**: `src/types/feedboard.ts`
+

@@ -4,6 +4,7 @@ import './globals.css'
 import CookieConsentBanner from '../components/CookieConsentBanner'
 import HeaderNav from '../components/HeaderNav'
 import SessionTrackerProvider from '../components/SessionTrackerProvider'
+import { CreditProvider } from '../contexts/CreditContext'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -41,10 +42,11 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${righteous.variable} ${robotoMono.variable}`}>
       <body className="font-body bg-realitycheck-noir text-realitycheck-cream antialiased">
         <SessionTrackerProvider>
-          <HeaderNav />
-          <main>
-            {children}
-          </main>
+          <CreditProvider>
+            <HeaderNav />
+            <main>
+              {children}
+            </main>
           
           {/* Global Footer */}
           <footer className="landing-footer">
@@ -77,6 +79,7 @@ export default function RootLayout({
           </footer>
           
           <CookieConsentBanner />
+          </CreditProvider>
         </SessionTrackerProvider>
       </body>
     </html>

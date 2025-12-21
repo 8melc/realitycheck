@@ -1,0 +1,629 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/lib/supabase/client';
+import UserAvatar from '@/components/UserAvatar';
+
+type AvatarType = 'initials' | 'upload' | 'generated';
+type AvatarStyle = 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei';
+
+const AVATAR_STYLES: Array<{ value: AvatarStyle; label: string; desc: string }> = [
+  { value: 'avataaars', label: 'Avataaars', desc: 'Standard, Cartoon-Style' },
+  { value: 'personas', label: 'Personas', desc: 'Minimalistisch' },
+  { value: 'bottts', label: 'Bottts', desc: 'Roboter' },
+  { value: 'micah', label: 'Micah', desc: 'Ilustrativ' },
+  { value: 'lorelei', label: 'Lorelei', desc: 'Abstrakt' },
+];
+
+interface AvatarSettingsProps {
+  userId: string;
+}
+
+export default function AvatarSettings({ userId }: AvatarSettingsProps) {
+  const [avatarType, setAvatarType] = useState<AvatarType>('initials');
+  const [avatarStyle, setAvatarStyle] = useState<AvatarStyle>('avataaars');
+  const [avatarSeed, setAvatarSeed] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialState, setInitialState] = useState<{
+    avatarType: AvatarType;
+    avatarStyle: AvatarStyle;
+    avatarSeed: string;
+  } | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [displayName, setDisplayName] = useState<string>('');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  // Load current settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Get user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('avatar_type, avatar_style, avatar_seed, avatar_url, display_name')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('[AvatarSettings] Error fetching profile:', profileError);
+          setLoading(false);
+          return;
+        }
+
+        // Get user email
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setUserEmail(user.email);
+        }
+
+        const currentType = (profile?.avatar_type || 'initials') as AvatarType;
+        const currentStyle = (profile?.avatar_style || 'avataaars') as AvatarStyle;
+        const currentSeed = profile?.avatar_seed || user?.email || userId;
+
+        setAvatarType(currentType);
+        setAvatarStyle(currentStyle);
+        setAvatarSeed(currentSeed);
+        setDisplayName(profile?.display_name || '');
+
+        // Save initial state for change detection
+        setInitialState({
+          avatarType: currentType,
+          avatarStyle: currentStyle,
+          avatarSeed: currentSeed,
+        });
+
+        if (currentType === 'upload' && profile?.avatar_url) {
+          setPreviewUrl(profile.avatar_url);
+        }
+      } catch (err: any) {
+        console.error('[AvatarSettings] Error loading settings:', err);
+        setError(err.message || 'Fehler beim Laden der Einstellungen');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, [userId]);
+
+  // Check for changes
+  useEffect(() => {
+    if (!initialState) return;
+
+    const changed =
+      avatarType !== initialState.avatarType ||
+      (avatarType === 'generated' && (avatarStyle !== initialState.avatarStyle || avatarSeed !== initialState.avatarSeed)) ||
+      (avatarType === 'upload' && selectedFile !== null);
+
+    setHasChanges(changed);
+  }, [avatarType, avatarStyle, avatarSeed, selectedFile, initialState]);
+
+  // Handle file selection
+  const handleFileSelect = (file: File) => {
+    // Validate file
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Bild zu groß (max 2MB)');
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Nur JPG, PNG oder WEBP erlaubt');
+      return;
+    }
+
+    setSelectedFile(file);
+    setError(null);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle drag and drop
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Generate random seed for "new avatar"
+  const generateRandomSeed = () => {
+    const newSeed = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    setAvatarSeed(newSeed);
+  };
+
+  // Save settings
+  const handleSave = async () => {
+    if (!userId) return;
+
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      // If upload type and file selected, upload first
+      if (avatarType === 'upload' && selectedFile) {
+        setUploading(true);
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        const uploadResponse = await fetch('/api/profile/avatar/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const uploadError = await uploadResponse.json();
+          throw new Error(uploadError.error || 'Fehler beim Hochladen');
+        }
+
+        setUploading(false);
+        setSelectedFile(null);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+
+        // Update initial state
+        setInitialState({
+          avatarType: 'upload',
+          avatarStyle: avatarStyle,
+          avatarSeed: avatarSeed,
+        });
+
+        setSaving(false);
+        return;
+      }
+
+      // For other types, update via PUT
+      const updateData: {
+        avatar_type: AvatarType;
+        avatar_seed?: string;
+        avatar_style?: AvatarStyle;
+      } = {
+        avatar_type: avatarType,
+      };
+
+      if (avatarType === 'generated') {
+        updateData.avatar_seed = avatarSeed || userEmail || userId;
+        updateData.avatar_style = avatarStyle;
+      } else if (avatarType === 'initials') {
+        // No additional data needed
+      }
+
+      const response = await fetch('/api/profile/avatar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Fehler beim Speichern');
+      }
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+
+      // Update initial state
+      setInitialState({
+        avatarType,
+        avatarStyle,
+        avatarSeed: avatarSeed || userEmail || userId,
+      });
+
+      setSelectedFile(null);
+    } catch (err: any) {
+      console.error('[AvatarSettings] Error saving:', err);
+      setError(err.message || 'Fehler beim Speichern');
+    } finally {
+      setSaving(false);
+      setUploading(false);
+    }
+  };
+
+  // Delete uploaded avatar
+  const handleDeleteUpload = async () => {
+    if (!userId) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/profile/avatar/upload', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Fehler beim Löschen');
+      }
+
+      setPreviewUrl(null);
+      setSelectedFile(null);
+      setAvatarType('initials');
+
+      // Update initial state
+      setInitialState({
+        avatarType: 'initials',
+        avatarStyle,
+        avatarSeed: avatarSeed || userEmail || userId,
+      });
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      console.error('[AvatarSettings] Error deleting:', err);
+      setError(err.message || 'Fehler beim Löschen');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="settings-form">
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--rc-steel, #9ca3af)' }}>
+          Lade Avatar-Einstellungen...
+        </div>
+      </div>
+    );
+  }
+
+  // Get preview seed for generated avatars
+  const previewSeed = avatarSeed || userEmail || userId;
+
+  return (
+    <div className="settings-form">
+      {/* Live Preview */}
+      <div className="form-group" style={{ marginBottom: '2rem' }}>
+        <label className="form-label">Vorschau</label>
+        <div className="flex items-center gap-4" style={{ marginTop: '1rem' }}>
+          <UserAvatar
+            userId={userId}
+            size="lg"
+            displayName={displayName}
+            email={userEmail}
+          />
+          {avatarType === 'upload' && previewUrl && (
+            <div className="relative">
+              <img
+                src={previewUrl}
+                alt="Avatar Vorschau"
+                className="w-32 h-32 rounded-full border border-rc-mint/60 object-cover"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Avatar Type Selection */}
+      <div className="form-group">
+        <label className="form-label">Avatar-Typ</label>
+        <div className="space-y-2" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+          {/* Initials Option */}
+          <button
+            type="button"
+            onClick={() => {
+              setAvatarType('initials');
+              setError(null);
+            }}
+            disabled={saving || uploading}
+            className={`btn ${avatarType === 'initials' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{
+              width: '100%',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              border: avatarType === 'initials' ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
+              backgroundColor: avatarType === 'initials' ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
+              transition: 'all 0.2s',
+              cursor: saving || uploading ? 'not-allowed' : 'pointer',
+              textAlign: 'left',
+              color: 'var(--rc-cream, #f3efe8)',
+              opacity: saving || uploading ? 0.6 : 1
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Initialen</div>
+            <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>Zeigt deine Initialen in farbigem Kreis</div>
+          </button>
+
+          {/* Upload Option */}
+          <button
+            type="button"
+            onClick={() => {
+              setAvatarType('upload');
+              setError(null);
+            }}
+            disabled={saving || uploading}
+            className={`btn ${avatarType === 'upload' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{
+              width: '100%',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              border: avatarType === 'upload' ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
+              backgroundColor: avatarType === 'upload' ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
+              transition: 'all 0.2s',
+              cursor: saving || uploading ? 'not-allowed' : 'pointer',
+              textAlign: 'left',
+              color: 'var(--rc-cream, #f3efe8)',
+              opacity: saving || uploading ? 0.6 : 1
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Eigenes Bild hochladen</div>
+            <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>JPG, PNG oder WEBP, max. 2MB</div>
+          </button>
+
+          {/* Generated Option */}
+          <button
+            type="button"
+            onClick={() => {
+              setAvatarType('generated');
+              setError(null);
+            }}
+            disabled={saving || uploading}
+            className={`btn ${avatarType === 'generated' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{
+              width: '100%',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              border: avatarType === 'generated' ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
+              backgroundColor: avatarType === 'generated' ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
+              transition: 'all 0.2s',
+              cursor: saving || uploading ? 'not-allowed' : 'pointer',
+              textAlign: 'left',
+              color: 'var(--rc-cream, #f3efe8)',
+              opacity: saving || uploading ? 0.6 : 1
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>KI-generierter Avatar</div>
+            <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>Wähle aus verschiedenen Styles</div>
+          </button>
+        </div>
+      </div>
+
+      {/* Upload Zone */}
+      {avatarType === 'upload' && (
+        <div className="form-group" style={{ marginTop: '2rem' }}>
+          <label className="form-label">Bild hochladen</label>
+          <div
+            ref={dropZoneRef}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              border: '2px dashed rgba(255, 255, 255, 0.2)',
+              borderRadius: '0.5rem',
+              padding: '2rem',
+              textAlign: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--rc-mint, #00D9FF)';
+              e.currentTarget.style.backgroundColor = 'rgba(0, 217, 255, 0.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+            }}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleFileSelect(file);
+                }
+              }}
+              style={{ display: 'none' }}
+            />
+            {previewUrl ? (
+              <div>
+                <img
+                  src={previewUrl}
+                  alt="Vorschau"
+                  style={{
+                    maxWidth: '200px',
+                    maxHeight: '200px',
+                    borderRadius: '0.5rem',
+                    marginBottom: '1rem',
+                  }}
+                />
+                <div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFile(null);
+                      setPreviewUrl(null);
+                      fileInputRef.current!.value = '';
+                    }}
+                    className="btn btn-secondary"
+                    style={{ marginRight: '0.5rem' }}
+                  >
+                    Anderes Bild wählen
+                  </button>
+                  {initialState?.avatarType === 'upload' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteUpload();
+                      }}
+                      disabled={saving}
+                      className="btn btn-danger"
+                    >
+                      Bild löschen
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📸</div>
+                <div style={{ color: 'var(--rc-cream, #f3efe8)', marginBottom: '0.5rem' }}>
+                  Klicke hier oder ziehe ein Bild hierher
+                </div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>
+                  JPG, PNG oder WEBP, max. 2MB
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Generated Avatar Options */}
+      {avatarType === 'generated' && (
+        <div className="form-group" style={{ marginTop: '2rem' }}>
+          <label className="form-label">Avatar-Style</label>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+              gap: '0.75rem',
+              marginTop: '1rem',
+            }}
+          >
+            {AVATAR_STYLES.map((style) => (
+              <button
+                key={style.value}
+                type="button"
+                onClick={() => setAvatarStyle(style.value)}
+                disabled={saving || uploading}
+                className={`btn ${avatarStyle === style.value ? 'btn-primary' : 'btn-secondary'}`}
+                style={{
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  border: avatarStyle === style.value ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
+                  backgroundColor: avatarStyle === style.value ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
+                  transition: 'all 0.2s',
+                  cursor: saving || uploading ? 'not-allowed' : 'pointer',
+                  textAlign: 'center',
+                  color: 'var(--rc-cream, #f3efe8)',
+                  minHeight: '120px',
+                  opacity: saving || uploading ? 0.6 : 1
+                }}
+              >
+                <img
+                  src={`https://api.dicebear.com/9.x/${style.value}/svg?seed=${encodeURIComponent(previewSeed)}`}
+                  alt={style.label}
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    marginBottom: '0.5rem',
+                    borderRadius: '50%',
+                  }}
+                />
+                <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem' }}>{style.label}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--rc-steel, #9ca3af)' }}>{style.desc}</div>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ marginTop: '1rem' }}>
+            <button
+              type="button"
+              onClick={generateRandomSeed}
+              disabled={saving || uploading}
+              className="btn btn-secondary"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+              }}
+            >
+              🎲 Neuer Avatar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div
+          className="form-error"
+          style={{
+            padding: '0.75rem',
+            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+            color: '#FCA5A5',
+            borderRadius: '0.5rem',
+            marginTop: '1rem',
+            border: '1px solid rgba(220, 38, 38, 0.3)',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div
+          className="form-success"
+          style={{
+            padding: '0.75rem',
+            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+            color: '#6EE7B7',
+            borderRadius: '0.5rem',
+            marginTop: '1rem',
+            border: '1px solid rgba(5, 150, 105, 0.3)',
+          }}
+        >
+          ✓ Avatar erfolgreich aktualisiert
+        </div>
+      )}
+
+      {/* Save Button */}
+      <div className="form-actions" style={{ marginTop: '1.5rem' }}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || uploading || !hasChanges}
+          className="btn btn-primary"
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            backgroundColor: saving || uploading || !hasChanges ? 'rgba(156, 163, 175, 0.3)' : 'var(--rc-mint, #00D9FF)',
+            color: saving || uploading || !hasChanges ? 'var(--rc-steel, #9ca3af)' : '#000',
+            borderRadius: '0.5rem',
+            fontWeight: 600,
+            cursor: saving || uploading || !hasChanges ? 'not-allowed' : 'pointer',
+            opacity: saving || uploading || !hasChanges ? 0.6 : 1,
+            border: 'none'
+          }}
+        >
+          {uploading ? 'Hochladen...' : saving ? 'Speichern...' : 'Avatar speichern'}
+        </button>
+      </div>
+    </div>
+  );
+}
+

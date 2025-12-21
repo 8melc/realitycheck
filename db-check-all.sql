@@ -139,3 +139,4 @@ SELECT
   COUNT(CASE WHEN focus_topic IS NOT NULL THEN 1 END) as with_focus,
   COUNT(CASE WHEN slots_article IS NOT NULL THEN 1 END) as with_slots
 FROM user_profiles;
+

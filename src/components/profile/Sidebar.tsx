@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Profile } from '@/types/profile';
 import { CompassIcon, TargetIcon, PenSquareIcon, GaugeIcon } from './icons';
+import UserAvatar from '@/components/UserAvatar';
 
 interface SidebarProps {
   profile: Profile;
@@ -80,14 +81,20 @@ const Sidebar = ({
   return (
     <aside className="rc-floating-sidebar">
       {/* Credits Section - Complete in Sidebar */}
-      <div className="rc-credits-section">
+      <div className={`rc-credits-section ${creditsBalance === 0 ? 'rc-credits-section--urgent' : ''}`}>
         <div className="rc-credits-header">
           <h3 className="rc-section-title">Credits</h3>
           <a 
             href="/credits#purchase" 
-            className="rc-btn rc-btn--primary rc-btn--small inline-flex items-center gap-1"
+            className={`rc-btn rc-btn--primary rc-btn--small inline-flex items-center gap-1 ${creditsBalance === 0 ? 'rc-btn--pulse' : ''}`}
+            title={creditsBalance === 0 ? 'Keine Credits mehr!' : undefined}
           >
-            Credits holen
+            <span className="inline-flex items-center gap-1">
+              Credits holen
+              {creditsBalance === 0 && (
+                <span className="rc-credits-badge" aria-label="Keine Credits">⚠️</span>
+              )}
+            </span>
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -97,7 +104,14 @@ const Sidebar = ({
         <div className="rc-credits-stats">
           <div className="rc-credits-stat">
             <div className="rc-credits-stat-label">Verfügbar</div>
-            <div className="rc-credits-stat-value rc-credits-stat-value--mint">{creditsBalance}</div>
+            <div className={`rc-credits-stat-value rc-credits-stat-value--mint ${creditsBalance === 0 ? 'rc-credits-stat-value--urgent' : ''}`}>
+              <span className="inline-flex items-center">
+                {creditsBalance}
+                {creditsBalance === 0 && (
+                  <span className="rc-credits-dot" aria-label="Keine Credits verfügbar"></span>
+                )}
+              </span>
+            </div>
             <div className="rc-credits-stat-subtitle">Credits für Sessions</div>
           </div>
           
@@ -121,7 +135,12 @@ const Sidebar = ({
       <div className="rc-profile-block">
         <div className="rc-profile-header">
           <div className="rc-profile-avatar">
-            <img src={profile.identity.avatarUrl} alt={profile.identity.name || 'User'} />
+            <UserAvatar 
+              userId={profile.id} 
+              size="md" 
+              displayName={profile.identity.name}
+              email={profile.identity.email}
+            />
           </div>
           <div className="rc-profile-info">
             <div className="rc-profile-name">{profile.identity.name || 'User'}</div>

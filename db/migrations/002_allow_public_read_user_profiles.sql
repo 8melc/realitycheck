@@ -27,3 +27,4 @@ USING (
 -- 1. Adding a `is_public` boolean field to user_profiles
 -- 2. Only allowing profiles with `is_public = true` to be read
 -- 3. Or requiring authentication and showing only profiles of users who opted in
+

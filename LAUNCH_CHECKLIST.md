@@ -141,3 +141,4 @@ OpenAI → Usage → RealityCheck Project
 **Print das aus → Haken setzen → Launch!** 🚀
 
 **Sonntag 30 Min → Montag LIVE!** 🏆
+
