@@ -23,10 +23,12 @@ export default function TransparencyGrid({ tiles }: TransparencyGridProps) {
       
       try {
         const content = await loadSourcesContent();
-        setModalContent(content.content);
+        // content.content kann leer sein, wenn Dateien nicht gefunden wurden
+        setModalContent(content.content || '');
       } catch (error) {
         console.error('Error loading sources content:', error);
-        setModalContent('# Fehler beim Laden der Quellen\n\nDie Quellen konnten nicht geladen werden.');
+        // Kein throw - setze leeren String, Modal zeigt Fallback-Nachricht
+        setModalContent('');
       } finally {
         setIsLoading(false);
       }

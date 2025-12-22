@@ -112,10 +112,20 @@ export default function TransparencyModal({ isOpen, onClose, tile, content }: Tr
                 {content}
               </ReactMarkdown>
             </div>
-          ) : (
+          ) : content === undefined ? (
             <div className="modal-loading">
               <div className="loading-spinner" aria-hidden="true" />
               <p>Lade Inhalte...</p>
+            </div>
+          ) : (
+            <div className="modal-markdown">
+              <h1 className="markdown-h1">Inhalt aktuell nicht verfügbar</h1>
+              <p className="markdown-p">
+                Die Quellen-Dokumentation ist momentan nicht verfügbar.
+              </p>
+              <p className="markdown-p">
+                Bitte später erneut versuchen.
+              </p>
             </div>
           )}
         </div>

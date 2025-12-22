@@ -33,6 +33,10 @@ export interface Database {
           avatar_url: string | null
           avatar_seed: string | null
           avatar_style: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
+          goal_direction: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
+          slots_article: number | null
+          slots_podcast: number | null
+          slots_quote: number | null
           created_at: string
           updated_at: string
         }
@@ -59,6 +63,10 @@ export interface Database {
           avatar_url?: string | null
           avatar_seed?: string | null
           avatar_style?: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
+          goal_direction?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
+          slots_article?: number | null
+          slots_podcast?: number | null
+          slots_quote?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -85,6 +93,10 @@ export interface Database {
           avatar_url?: string | null
           avatar_seed?: string | null
           avatar_style?: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
+          goal_direction?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
+          slots_article?: number | null
+          slots_podcast?: number | null
+          slots_quote?: number | null
           created_at?: string
           updated_at?: string
         }

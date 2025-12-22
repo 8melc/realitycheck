@@ -16,10 +16,10 @@ const GUIDE_TONES = [
 ] as const;
 
 const FOCUS_WINDOWS = [
-  { value: 'morning', label: 'Morgen', desc: '6:00 - 12:00 Uhr', icon: '🌅' },
-  { value: 'afternoon', label: 'Nachmittag', desc: '12:00 - 18:00 Uhr', icon: '☀️' },
-  { value: 'evening', label: 'Abend', desc: '18:00 - 22:00 Uhr', icon: '🌆' },
-  { value: 'late_night', label: 'Spät', desc: '22:00 - 6:00 Uhr', icon: '🌙' }
+  { value: 'morning', label: 'Morgen', desc: '6:00 - 12:00 Uhr' },
+  { value: 'afternoon', label: 'Nachmittag', desc: '12:00 - 18:00 Uhr' },
+  { value: 'evening', label: 'Abend', desc: '18:00 - 22:00 Uhr' },
+  { value: 'late_night', label: 'Spät', desc: '22:00 - 6:00 Uhr' }
 ] as const;
 
 const NUDGING_FREQUENCIES = [
@@ -61,21 +61,49 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
       setLoadError(null);
       
       try {
-        // Try to load profile with all possible column names (for compatibility)
-        const { data, error: fetchError } = await supabase
+        // Try to load profile - first load basic columns that should always exist
+        const { data: basicData, error: basicError } = await supabase
           .from('user_profiles')
-          .select('answer_style, guide_tone, focus_window, nudging_frequency, guide_nudging_frequency, nudging_paused_until, guide_muted, nudging_enabled')
+          .select('answer_style, guide_tone, focus_window')
           .eq('user_id', userId)
           .maybeSingle<{
             answer_style: string | null;
             guide_tone: string | null;
             focus_window: string | null;
+          }>();
+
+        // Then try to load nudging columns (may not exist yet)
+        const { data: nudgingData, error: nudgingError } = await supabase
+          .from('user_profiles')
+          .select('nudging_frequency, guide_nudging_frequency, nudging_paused_until')
+          .eq('user_id', userId)
+          .maybeSingle<{
             nudging_frequency: string | null;
             guide_nudging_frequency?: string | null;
             nudging_paused_until: string | null;
-            guide_muted?: boolean | null;
-            nudging_enabled?: boolean | null;
           }>();
+
+        // Combine data
+        const fetchError = basicError || null;
+        const data: {
+          answer_style: string | null;
+          guide_tone: string | null;
+          focus_window: string | null;
+          nudging_frequency: string | null;
+          guide_nudging_frequency?: string | null;
+          nudging_paused_until: string | null;
+          guide_muted?: boolean | null;
+          nudging_enabled?: boolean | null;
+        } | null = basicData ? {
+          answer_style: basicData.answer_style,
+          guide_tone: basicData.guide_tone,
+          focus_window: basicData.focus_window,
+          nudging_frequency: nudgingData?.nudging_frequency || null,
+          guide_nudging_frequency: nudgingData?.guide_nudging_frequency || null,
+          nudging_paused_until: nudgingData?.nudging_paused_until || null,
+          guide_muted: null,
+          nudging_enabled: null,
+        } : null;
         
         if (fetchError) {
           // Check if error is "no rows returned" (PGRST116)
@@ -90,15 +118,24 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
               return;
             }
 
+            // Try to insert without nudging_frequency first (if column doesn't exist)
+            const insertData: any = {
+              user_id: userId,
+              answer_style: 'medium',
+              guide_tone: 'Straight',
+              focus_window: 'evening',
+            };
+            
+            // Only add nudging_frequency if it doesn't cause error
+            try {
+              insertData.nudging_frequency = 'standard';
+            } catch (e) {
+              // Ignore - column may not exist
+            }
+
             const { error: insertError } = await supabase
               .from('user_profiles')
-              .insert({
-                user_id: userId,
-                answer_style: 'medium',
-                guide_tone: 'Straight',
-                focus_window: 'evening',
-                nudging_frequency: 'standard',
-              } as any);
+              .insert(insertData);
 
             if (insertError) {
               console.error('[GuideSettings] Error creating profile:', insertError);
@@ -107,21 +144,43 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
               return;
             }
 
-            // Retry fetch after creating profile
-            const { data: newData, error: retryError } = await supabase
+            // Retry fetch after creating profile (same robust approach)
+            const { data: retryBasic, error: retryBasicError } = await supabase
               .from('user_profiles')
-              .select('answer_style, guide_tone, focus_window, nudging_frequency, guide_nudging_frequency, nudging_paused_until, guide_muted, nudging_enabled')
+              .select('answer_style, guide_tone, focus_window')
               .eq('user_id', userId)
               .maybeSingle<{
                 answer_style: string | null;
                 guide_tone: string | null;
                 focus_window: string | null;
-                nudging_frequency: string | null;
-                guide_nudging_frequency?: string | null;
-                nudging_paused_until: string | null;
-                guide_muted?: boolean | null;
-                nudging_enabled?: boolean | null;
               }>();
+
+            const { data: retryNudging } = await supabase
+              .from('user_profiles')
+              .select('nudging_frequency, guide_nudging_frequency, nudging_paused_until')
+              .eq('user_id', userId)
+              .maybeSingle<{
+                nudging_frequency?: string | null;
+                guide_nudging_frequency?: string | null;
+                nudging_paused_until?: string | null;
+              }>();
+
+            const retryError = retryBasicError;
+            const newData: {
+              answer_style: string | null;
+              guide_tone: string | null;
+              focus_window: string | null;
+              nudging_frequency: string | null;
+              guide_nudging_frequency?: string | null;
+              nudging_paused_until: string | null;
+            } | null = retryBasic ? {
+              answer_style: retryBasic.answer_style,
+              guide_tone: retryBasic.guide_tone,
+              focus_window: retryBasic.focus_window,
+              nudging_frequency: retryNudging?.nudging_frequency || null,
+              guide_nudging_frequency: retryNudging?.guide_nudging_frequency || null,
+              nudging_paused_until: retryNudging?.nudging_paused_until || null,
+            } : null;
 
             if (retryError || !newData) {
               console.error('[GuideSettings] Error fetching after create:', retryError);
@@ -144,16 +203,28 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
             return;
           }
 
-          // Other error
-          console.error('[GuideSettings] Error fetching settings:', {
-            message: fetchError.message,
-            code: fetchError.code,
-            details: fetchError.details,
-            hint: fetchError.hint
-          });
-          setLoadError(`Fehler beim Laden der Einstellungen: ${fetchError.message || 'Unbekannter Fehler'}. Bitte Seite neu laden.`);
-          setLoading(false);
-          return;
+          // Other error - but continue with defaults if basic columns failed
+          if (basicError && basicError.code !== 'PGRST116') {
+            // Only show error if basic columns failed
+            console.error('[GuideSettings] Error fetching basic settings:', {
+              message: basicError.message,
+              code: basicError.code,
+            });
+            // Don't set loadError - use defaults instead
+            // setLoadError(`Fehler beim Laden: ${basicError.message}. Verwende Standardwerte.`);
+          }
+          
+          // Continue with defaults even if nudging columns don't exist
+          if (!basicData) {
+            // Couldn't load basic profile - use defaults
+            setAnswerStyle('medium');
+            setGuideTone('Straight');
+            setFocusWindow('evening');
+            setNudgingFrequency('standard');
+            setNudgingPausedUntil(null);
+            setLoading(false);
+            return;
+          }
         }
         
         if (data) {
@@ -237,10 +308,6 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
           throw new Error(fallbackError.message || 'Fehler beim Speichern');
         }
       } else if (updateError) {
-        throw new Error(updateError.message || 'Fehler beim Speichern');
-      }
-
-      if (updateError) {
         throw new Error(updateError.message || 'Fehler beim Speichern');
       }
       
@@ -455,7 +522,6 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
                 opacity: saving ? 0.6 : 1
               }}
             >
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{window.icon}</div>
               <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{window.label}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--rc-steel, #9ca3af)' }}>{window.desc}</div>
             </button>
@@ -463,73 +529,88 @@ export default function GuideSettings({ userId }: GuideSettingsProps) {
         </div>
       </div>
 
-      {/* Halt die Fresse Button */}
+      {/* Nudging Pause Button */}
       <div className="form-group" style={{ marginTop: '2rem' }}>
         <label className="form-label">Nudging Pausieren</label>
         <p className="form-hint" style={{ marginBottom: '1rem' }}>
           {nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
             ? `Nudging ist pausiert bis ${new Date(nudgingPausedUntil).toLocaleString('de-DE')}`
-            : 'Guide komplett stumm schalten für 24 Stunden'}
+            : 'Nudging für 24 Stunden pausieren'}
         </p>
         <button
           type="button"
           onClick={async () => {
             if (!userId) return;
             
-            const isCurrentlyPaused = nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date();
+            setSaving(true);
+            setError(null);
             
-            if (isCurrentlyPaused) {
-              // Unpause
-              const { error } = await (supabase
-                .from('user_profiles') as any)
-                .update({ nudging_paused_until: null })
-                .eq('user_id', userId);
+            try {
+              const isCurrentlyPaused = nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date();
               
-              if (!error) {
+              if (isCurrentlyPaused) {
+                // Unpause
+                const { error } = await (supabase
+                  .from('user_profiles') as any)
+                  .update({ nudging_paused_until: null })
+                  .eq('user_id', userId);
+                
+                if (error) {
+                  throw new Error(error.message || 'Fehler beim Aktivieren');
+                }
+                
                 setNudgingPausedUntil(null);
                 setSuccess(true);
                 setTimeout(() => setSuccess(false), 3000);
-              }
-            } else {
-              // Pause for 24 hours
-              const pauseUntil = new Date();
-              pauseUntil.setHours(pauseUntil.getHours() + 24);
-              
-              const { error } = await (supabase
-                .from('user_profiles') as any)
-                .update({ nudging_paused_until: pauseUntil.toISOString() })
-                .eq('user_id', userId);
-              
-              if (!error) {
+              } else {
+                // Pause for 24 hours
+                const pauseUntil = new Date();
+                pauseUntil.setHours(pauseUntil.getHours() + 24);
+                
+                const { error } = await (supabase
+                  .from('user_profiles') as any)
+                  .update({ nudging_paused_until: pauseUntil.toISOString() })
+                  .eq('user_id', userId);
+                
+                if (error) {
+                  throw new Error(error.message || 'Fehler beim Pausieren');
+                }
+                
                 setNudgingPausedUntil(pauseUntil.toISOString());
                 setSuccess(true);
                 setTimeout(() => setSuccess(false), 3000);
               }
+            } catch (err: any) {
+              console.error('[GuideSettings] Error pausing nudging:', err);
+              setError(err.message || 'Fehler beim Pausieren');
+              setTimeout(() => setError(null), 5000);
+            } finally {
+              setSaving(false);
             }
           }}
           disabled={saving}
-          className={`btn ${nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date() ? 'btn-secondary' : 'btn-danger'}`}
+          className={`btn ${nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date() ? 'btn-secondary' : 'btn-outline'}`}
           style={{
             width: '100%',
             padding: '0.75rem',
             backgroundColor: nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date() 
               ? 'rgba(156, 163, 175, 0.3)' 
-              : 'rgba(220, 38, 38, 0.2)',
+              : 'transparent',
             color: nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
               ? 'var(--rc-steel, #9ca3af)'
-              : '#FCA5A5',
+              : 'var(--rc-cream, #f3efe8)',
             borderRadius: '0.5rem',
             fontWeight: 600,
             cursor: saving ? 'not-allowed' : 'pointer',
             opacity: saving ? 0.6 : 1,
             border: nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
               ? '2px solid rgba(255, 255, 255, 0.1)'
-              : '2px solid rgba(220, 38, 38, 0.3)'
+              : '2px solid rgba(255, 255, 255, 0.3)'
           }}
         >
           {nudgingPausedUntil && new Date(nudgingPausedUntil) > new Date()
-            ? 'Guide aktivieren'
-            : 'HALT DIE FRESSE'}
+            ? 'Nudging aktivieren'
+            : '24h pausieren'}
         </button>
       </div>
 

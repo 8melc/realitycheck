@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { TrashIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ChevronRightIcon } from '@/components/profile/icons';
 
 type Conversation = {
   id: string;
@@ -27,10 +29,10 @@ const formatTime = (iso: string | null | undefined) =>
 
 export default function GuideHistory() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<Record<string, LogEntry[]>>({});
   const [loadingConvos, setLoadingConvos] = useState(false);
-  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [loadingLogs, setLoadingLogs] = useState<Record<string, boolean>>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadConversations = async () => {
@@ -39,9 +41,6 @@ export default function GuideHistory() {
       const res = await fetch('/api/guide/conversations', { cache: 'no-store' });
       const data = await res.json();
       setConversations(data.conversations || []);
-      if (!selectedId && data.conversations?.[0]) {
-        setSelectedId(data.conversations[0].id);
-      }
     } catch (error) {
       console.error('Error loading conversations', error);
     } finally {
@@ -50,14 +49,19 @@ export default function GuideHistory() {
   };
 
   const loadLogs = async (id: string) => {
-    setLoadingLogs(true);
+    // If logs already loaded for this conversation, don't reload
+    if (logs[id]) {
+      return;
+    }
+
+    setLoadingLogs(prev => ({ ...prev, [id]: true }));
     try {
       // id is now a date string (e.g. "Mon Jan 15 2024"), load all messages for that date
       const res = await fetch(`/api/profile/guide-conversations`, { cache: 'no-store' });
       const data = await res.json();
       
       if (!data || !Array.isArray(data)) {
-        setLogs([]);
+        setLogs(prev => ({ ...prev, [id]: [] }));
         return;
       }
 
@@ -93,12 +97,12 @@ export default function GuideHistory() {
         }
       }
 
-      setLogs(pairedLogs);
+      setLogs(prev => ({ ...prev, [id]: pairedLogs }));
     } catch (error) {
       console.error('Error loading logs', error);
-      setLogs([]);
+      setLogs(prev => ({ ...prev, [id]: [] }));
     } finally {
-      setLoadingLogs(false);
+      setLoadingLogs(prev => ({ ...prev, [id]: false }));
     }
   };
 
@@ -107,10 +111,10 @@ export default function GuideHistory() {
   }, []);
 
   useEffect(() => {
-    if (selectedId) {
-      loadLogs(selectedId);
+    if (expandedId) {
+      loadLogs(expandedId);
     }
-  }, [selectedId]);
+  }, [expandedId]);
 
   const handleDeleteConversation = async (conversationId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent selecting the conversation when clicking delete
@@ -128,10 +132,14 @@ export default function GuideHistory() {
       if (res.ok) {
         // Reload conversations
         await loadConversations();
-        // Clear selected if it was deleted
-        if (selectedId === conversationId) {
-          setSelectedId(null);
-          setLogs([]);
+        // Clear expanded if it was deleted
+        if (expandedId === conversationId) {
+          setExpandedId(null);
+          setLogs(prev => {
+            const newLogs = { ...prev };
+            delete newLogs[conversationId];
+            return newLogs;
+          });
         }
       } else {
         const error = await res.json();
@@ -157,8 +165,8 @@ export default function GuideHistory() {
       
       if (res.ok) {
         await loadConversations();
-        setSelectedId(null);
-        setLogs([]);
+        setExpandedId(null);
+        setLogs({});
       } else {
         const error = await res.json();
         alert(`Fehler beim Löschen: ${error.error || 'Unbekannter Fehler'}`);
@@ -189,76 +197,118 @@ export default function GuideHistory() {
         )}
       </header>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[320px,1fr]">
-        <div className="rc-subcard rc-subcard--muted flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="rc-subcard__title text-sm">Sessions</span>
-            {loadingConvos && <span className="rc-microcopy">lädt…</span>}
-          </div>
-          <div className="flex flex-col gap-2 max-h-[320px] overflow-y-auto">
-            {conversations.length === 0 && (
-              <span className="rc-chip rc-chip--ghost">Keine Gespräche</span>
-            )}
-            {conversations.map((c) => (
+      <div className="mt-6 flex flex-col gap-2">
+        <div className="flex items-center justify-between mb-2">
+          <span className="rc-subcard__title text-sm">Sessions</span>
+          {loadingConvos && <span className="rc-microcopy">lädt…</span>}
+        </div>
+        {conversations.length === 0 && (
+          <span className="rc-chip rc-chip--ghost">Keine Gespräche</span>
+        )}
+        {conversations.map((c) => {
+          const isExpanded = expandedId === c.id;
+          const conversationLogs = logs[c.id] || [];
+          const isLoading = loadingLogs[c.id] || false;
+
+          return (
+            <div
+              key={c.id}
+              className="rounded-md border border-rc-border bg-transparent overflow-hidden"
+            >
+              {/* Session Header - Clickable */}
               <div
-                key={c.id}
-                className={`relative rounded-md border px-3 py-2 text-sm ${
-                  selectedId === c.id
-                    ? 'border-rc-mint bg-rc-layer text-rc-cream'
-                    : 'border-rc-border bg-transparent text-rc-steel'
+                className={`relative flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer transition-colors ${
+                  isExpanded
+                    ? 'bg-rc-layer border-b border-rc-border'
+                    : 'hover:bg-rc-layer/50'
                 }`}
+                onClick={() => {
+                  if (isExpanded) {
+                    setExpandedId(null);
+                  } else {
+                    setExpandedId(c.id);
+                  }
+                }}
               >
-                <button
-                  onClick={() => setSelectedId(c.id)}
-                  className="text-left w-full pr-8"
-                >
-                  <div className="font-semibold">{c.title || 'Ohne Titel'}</div>
-                  <div className="rc-microcopy">
+                {/* Chevron Icon */}
+                <div className="flex-shrink-0 text-rc-steel">
+                  {isExpanded ? (
+                    <ChevronDownIcon className="w-4 h-4" />
+                  ) : (
+                    <ChevronRightIcon className="w-4 h-4" />
+                  )}
+                </div>
+
+                {/* Session Info */}
+                <div className="flex-1 text-left min-w-0">
+                  <div className="font-semibold text-rc-cream truncate">
+                    {c.title || 'Ohne Titel'}
+                  </div>
+                  <div className="rc-microcopy text-rc-steel">
                     {formatTime((c as any).last_message_at || c.updated_at || c.created_at)} ·{' '}
                     {c.turn_count ?? (c as any).turns_count ?? 0} Turns
                   </div>
-                </button>
+                </div>
+
+                {/* Delete Button */}
                 <button
                   onClick={(e) => handleDeleteConversation(c.id, e)}
                   disabled={deletingId === c.id}
-                  className="absolute top-2 right-2 text-rc-steel hover:text-rc-coral transition disabled:opacity-50"
+                  className="flex-shrink-0 text-rc-steel hover:text-rc-coral transition disabled:opacity-50 p-1"
                   title="Konversation löschen"
                   aria-label="Konversation löschen"
                 >
-                  {deletingId === c.id ? '…' : '🗑️'}
+                  {deletingId === c.id ? '…' : <TrashIcon className="w-4 h-4" />}
                 </button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="rc-subcard flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="rc-subcard__title text-sm">Turns</span>
-            {loadingLogs && <span className="rc-microcopy">lädt…</span>}
-          </div>
-          <div className="flex flex-col gap-3 max-h-[420px] overflow-y-auto pr-1">
-            {logs.length === 0 && (
-              <span className="rc-chip rc-chip--ghost">Keine Nachrichten</span>
-            )}
-            {logs.map((log) => (
-              <div key={log.id} className="rounded-md border border-rc-border bg-rc-layer p-3 text-sm">
-                <div className="text-rc-steel rc-microcopy mb-1">{formatTime(log.created_at)}</div>
-                <div className="mb-2">
-                  <span className="font-semibold text-rc-cream">User:</span>{' '}
-                  {log.prompt ?? log.user_message ?? '—'}
+              {/* Expanded Content - Turns */}
+              {isExpanded && (
+                <div className="bg-rc-layer/30 border-t border-rc-border">
+                  <div className="p-3">
+                    {isLoading ? (
+                      <div className="text-center py-4">
+                        <span className="rc-microcopy text-rc-steel">Lade Turns…</span>
+                      </div>
+                    ) : conversationLogs.length === 0 ? (
+                      <span className="rc-chip rc-chip--ghost">Keine Nachrichten</span>
+                    ) : (
+                      <div className="flex flex-col gap-3 max-h-[420px] overflow-y-auto pr-1">
+                        {conversationLogs.map((log) => (
+                          <div
+                            key={log.id}
+                            className="rounded-md border border-rc-border bg-rc-layer/50 p-3 text-sm"
+                          >
+                            <div className="text-rc-steel rc-microcopy mb-1">
+                              {formatTime(log.created_at)}
+                            </div>
+                            <div className="mb-2 break-words">
+                              <span className="font-semibold text-rc-cream">User:</span>{' '}
+                              <span className="text-rc-cream">
+                                {log.prompt ?? log.user_message ?? '—'}
+                              </span>
+                            </div>
+                            <div className="mb-2 break-words">
+                              <span className="font-semibold text-rc-cream">Guide:</span>{' '}
+                              <span className="text-rc-cream">
+                                {log.response ?? log.guide_response ?? '—'}
+                              </span>
+                            </div>
+                            {log.feedback_tags && log.feedback_tags.length > 0 && (
+                              <div className="rc-microcopy text-rc-steel">
+                                Feedback: {log.feedback_tags.join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="mb-2">
-                  <span className="font-semibold text-rc-cream">Guide:</span>{' '}
-                  {log.response ?? log.guide_response ?? '—'}
-                </div>
-                {log.feedback_tags && log.feedback_tags.length > 0 && (
-                  <div className="rc-microcopy text-rc-steel">Feedback: {log.feedback_tags.join(', ')}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

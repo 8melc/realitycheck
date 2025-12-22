@@ -1,6 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { TargetIcon, ClockIcon, GlobeIcon, MusicIcon } from '@/components/profile/icons';
+import { 
+  LightBulbIcon,
+  RocketLaunchIcon,
+  ChatBubbleLeftRightIcon,
+  BellIcon
+} from '@heroicons/react/24/outline';
 
 interface TransparencyWidgetProps {
   userGoal: string | null;
@@ -28,7 +35,7 @@ export default function TransparencyWidget({
       <div className="rc-card rc-card--hero p-8">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <span className="guide-kicker">Transparenz</span>
+            <span className="guide-kicker">So arbeitet dein Guide</span>
             <h3 className="rc-heading text-2xl">Was dein Guide aktuell weiß</h3>
             <p className="rc-microcopy mt-2">
               Deine Datenbasis für personalisierte Impulse
@@ -40,7 +47,7 @@ export default function TransparencyWidget({
           {/* Ziel */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🎯</span>
+              <TargetIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Ziel</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -51,7 +58,7 @@ export default function TransparencyWidget({
           {/* Interessen */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">💡</span>
+              <LightBulbIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Interessen</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -68,7 +75,7 @@ export default function TransparencyWidget({
           {/* Projekte */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🚀</span>
+              <RocketLaunchIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Projekte</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -85,7 +92,7 @@ export default function TransparencyWidget({
           {/* Zeit-Philosophie */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">⏰</span>
+              <ClockIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Zeit-Philosophie</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -96,7 +103,7 @@ export default function TransparencyWidget({
           {/* Lebensstil */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🌍</span>
+              <GlobeIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Lebensstil</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -107,7 +114,7 @@ export default function TransparencyWidget({
           {/* Musik-DNA */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🎵</span>
+              <MusicIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Musik-DNA</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -118,7 +125,7 @@ export default function TransparencyWidget({
           {/* Guide-Ton */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🗣️</span>
+              <ChatBubbleLeftRightIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Guide-Ton</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -129,7 +136,7 @@ export default function TransparencyWidget({
           {/* Nudging-Frequenz */}
           <div className="data-point">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🔔</span>
+              <BellIcon className="w-5 h-5 text-[var(--fyf-steel)]" />
               <span className="text-[10px] font-bold uppercase text-[var(--fyf-steel)]">Nudging</span>
             </div>
             <p className="text-sm text-[var(--fyf-cream)]">
@@ -140,10 +147,10 @@ export default function TransparencyWidget({
 
         <div className="mt-6 pt-6 border-t border-white/10">
           <Link 
-            href="/user/settings#energie-feeds" 
+            href="/user/settings/guide" 
             className="text-[var(--fyf-mint)] hover:underline text-xs uppercase font-bold inline-flex items-center gap-2"
           >
-            📝 BEARBEITEN →
+            Einstellungen öffnen →
           </Link>
         </div>
       </div>

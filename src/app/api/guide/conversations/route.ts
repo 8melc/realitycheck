@@ -15,11 +15,31 @@ export async function GET(req: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error loading conversations:', error);
+      console.error('[Guide Conversations] Error loading conversations:', {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        user_id: user.id
+      });
       return NextResponse.json({ conversations: [] });
     }
 
+    console.log('[Guide Conversations] Loaded messages:', {
+      count: messages?.length || 0,
+      user_id: user.id,
+      sample_messages: messages?.slice(0, 2).map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        session_id: m.session_id,
+        created_at: m.created_at,
+        message_preview: m.message?.substring(0, 50)
+      }))
+    });
+
     if (!messages || messages.length === 0) {
+      console.log('[Guide Conversations] No messages found for user:', user.id);
       return NextResponse.json({ conversations: [] });
     }
 
@@ -73,6 +93,16 @@ export async function GET(req: NextRequest) {
     conversations.sort((a, b) => 
       new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
     );
+
+    console.log('[Guide Conversations] Returning conversations:', {
+      count: conversations.length,
+      conversations: conversations.map(c => ({
+        id: c.id,
+        title: c.title,
+        turn_count: c.turn_count,
+        last_message_at: c.last_message_at
+      }))
+    });
 
     return NextResponse.json({ conversations });
   } catch (err) {

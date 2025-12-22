@@ -13,12 +13,13 @@ interface ProfileSummaryProps {
     daysRemaining: number;
   };
   onEditGoal: () => void;
+  hideEditButton?: boolean;
 }
 
 const formatNumber = (value: number) =>
   Intl.NumberFormat('de-DE').format(Math.max(0, Math.floor(value)));
 
-const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProps) => {
+const ProfileSummary = ({ profile, timeMetrics, onEditGoal, hideEditButton = false }: ProfileSummaryProps) => {
   const { identity, goal } = profile;
   const { guideTone } = useGuideStore();
 
@@ -61,16 +62,18 @@ const ProfileSummary = ({ profile, timeMetrics, onEditGoal }: ProfileSummaryProp
             </div>
           </dl>
 
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end">
-            <button
-              type="button"
-              onClick={onEditGoal}
-              className="rc-btn rc-btn--outline inline-flex items-center gap-2"
-            >
-              <PenSquareIcon className="h-4 w-4" aria-hidden="true" />
-              Ziel bearbeiten
-            </button>
-          </div>
+          {!hideEditButton && (
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-end">
+              <button
+                type="button"
+                onClick={onEditGoal}
+                className="rc-btn rc-btn--outline inline-flex items-center gap-2"
+              >
+                <PenSquareIcon className="h-4 w-4" aria-hidden="true" />
+                Ziel bearbeiten
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -71,29 +71,42 @@ export default function UserAvatar({
 
     async function fetchProfile() {
       try {
-        const { data, error: fetchError } = await supabase
+        // First try to get basic profile info (these columns should always exist)
+        const { data: basicData, error: basicError } = await supabase
           .from('user_profiles')
-          .select('avatar_type, avatar_url, avatar_seed, avatar_style, display_name, user_id')
+          .select('display_name, user_id')
           .eq('user_id', userId)
-          .maybeSingle<UserProfile>();
+          .maybeSingle();
 
-        if (fetchError) {
-          console.error('[UserAvatar] Error fetching profile:', fetchError);
+        if (basicError && basicError.code !== 'PGRST116') {
+          // Only log non-"not found" errors
           if (isMounted) {
-            setError(fetchError.message);
+            setProfile(null);
             setLoading(false);
           }
           return;
         }
 
+        // Now try to get avatar columns (may not exist yet)
+        const { data: avatarData, error: avatarError } = await supabase
+          .from('user_profiles')
+          .select('avatar_type, avatar_url, avatar_seed, avatar_style')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        // Combine data if available, otherwise just use basic data
+        const combinedData = avatarError 
+          ? basicData // If avatar columns don't exist, use basic data
+          : { ...basicData, ...avatarData };
+
         if (isMounted) {
-          setProfile(data);
+          setProfile(combinedData as any);
           setLoading(false);
         }
       } catch (err: any) {
-        console.error('[UserAvatar] Error:', err);
+        // Silently fallback to initials
         if (isMounted) {
-          setError(err.message || 'Fehler beim Laden');
+          setProfile(null);
           setLoading(false);
         }
       }

@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
       target_age,
       goal,
       goals,
+      goalDirection,
+      goal_direction,
       timePhilosophy,
       lifestyle,
       guidePersonality,
@@ -48,6 +50,7 @@ export async function POST(request: NextRequest) {
     const final_birth_date = birthDate || birth_date;
     const final_target_age = targetAge || target_age;
     const final_focus_topic = focusTopic || focus_topic;
+    const final_goal_direction = goalDirection || goal_direction || null;
 
     // Parse target age to number
     const targetAgeNum = typeof final_target_age === 'string' ? parseInt(final_target_age, 10) : final_target_age;
@@ -67,6 +70,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate goal_direction if goal is provided
+    const allowedDirections = new Set(['freedom', 'clarity', 'growth', 'balance', 'meaning']);
+    if (goal && (!final_goal_direction || !allowedDirections.has(final_goal_direction))) {
+      return NextResponse.json(
+        { error: 'Ziel-Richtung fehlt oder ist ungültig' },
+        { status: 400 }
+      );
+    }
+
     // 6. Profile-Daten
     // WICHTIG: birth_date ist optional (nullable in DB)
     // Kann null sein, wenn User noch kein Geburtsdatum angegeben hat
@@ -80,6 +92,7 @@ export async function POST(request: NextRequest) {
       focus_topic: final_focus_topic || null,
       will_learn: Array.isArray(will_learn) ? will_learn : [],
       will_share: Array.isArray(will_share) ? will_share : [],
+      goal_direction: final_goal_direction,
       is_public: true,
       updated_at: new Date().toISOString(),
     };

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface Impulse {
   id: string;
@@ -75,7 +76,7 @@ export default function GuideFeedWidget() {
 
   if (loading) {
     return (
-      <section className="guide-section" id="guide-feed">
+      <section className="guide-section" id="guide-heute">
         <div className="rc-card rc-card--hero p-8">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -94,7 +95,7 @@ export default function GuideFeedWidget() {
 
   if (error) {
     return (
-      <section className="guide-section" id="guide-feed">
+      <section className="guide-section" id="guide-heute">
         <div className="rc-card rc-card--hero p-8">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -120,7 +121,7 @@ export default function GuideFeedWidget() {
     const isEmpty = !feedData?.userContext?.goal || feedData?.userContext?.goal === 'Noch nicht gesetzt';
     
     return (
-      <section className="guide-section" id="guide-feed">
+      <section className="guide-section" id="guide-heute">
         <div className="rc-card rc-card--hero p-8">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -135,7 +136,7 @@ export default function GuideFeedWidget() {
           {isEmpty && (
             <div className="mt-6">
               <Link 
-                href="/user/settings#profil-daten"
+                href="/user/settings/ziel"
                 className="text-[var(--rc-mint)] hover:underline text-sm uppercase font-bold inline-flex items-center gap-2"
               >
                 Ziel setzen →
@@ -148,16 +149,21 @@ export default function GuideFeedWidget() {
   }
 
   return (
-    <section className="guide-section" id="guide-feed">
+    <section className="guide-section" id="guide-heute">
       <div className="rc-card rc-card--hero p-8">
         <div className="flex justify-between items-start mb-6">
-          <div>
-            <span className="guide-kicker">Dein Guide heute</span>
-            <h3 className="rc-heading text-2xl">Personalisiert für dich</h3>
-            <p className="rc-microcopy mt-2">
-              Basierend auf deinen Interessen und deinem Ziel
-            </p>
-          </div>
+            <div>
+              <span className="guide-kicker">Dein Guide heute</span>
+              <h3 className="rc-heading text-2xl">Personalisiert für dich</h3>
+              <div className="mt-2">
+                <Link 
+                  href="/so-arbeitet-dein-guide" 
+                  className="text-[var(--rc-mint)] hover:underline text-xs uppercase font-bold inline-flex items-center gap-2"
+                >
+                  Warum sehe ich das?
+                </Link>
+              </div>
+            </div>
         </div>
 
         <div className="space-y-4 mt-6">
@@ -182,7 +188,8 @@ export default function GuideFeedWidget() {
             className="text-[var(--rc-mint)] hover:underline text-xs uppercase font-bold inline-flex items-center gap-2"
             disabled={loading}
           >
-            🔄 Neue Impulse generieren
+            <ArrowPathIcon className="w-4 h-4" />
+            Neue Impulse generieren
           </button>
         </div>
       </div>

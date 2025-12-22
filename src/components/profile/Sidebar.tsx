@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Profile } from '@/types/profile';
-import { CompassIcon, TargetIcon, PenSquareIcon, GaugeIcon } from './icons';
+import { PenSquareIcon } from './icons';
 import UserAvatar from '@/components/UserAvatar';
 
 interface SidebarProps {
@@ -11,9 +11,6 @@ interface SidebarProps {
   activeSection: 'overview' | 'profile';
   setActiveSection: (section: 'overview' | 'profile') => void;
   hasUnsavedChanges?: boolean;
-  creditsBalance?: number;
-  creditsValue?: number;
-  creditsConsumedThisWeek?: number;
 }
 
 const Sidebar = ({ 
@@ -22,9 +19,6 @@ const Sidebar = ({
   activeSection, 
   setActiveSection, 
   hasUnsavedChanges, 
-  creditsBalance = 0,
-  creditsValue = 0,
-  creditsConsumedThisWeek = 0,
 }: SidebarProps) => {
   const [isClient, setIsClient] = useState(false);
   
@@ -67,70 +61,9 @@ const Sidebar = ({
     setIsClient(true);
   }, []);
 
-  // Core navigation - minimal, situational
-  const coreActions = [
-    { href: '#life-weeks', label: 'Zeit-Grid', icon: CompassIcon, urgent: true },
-  ];
-
-  const modeActions = [
-    { href: '#conversation', label: 'Guide', icon: PenSquareIcon, isGuidePrefs: true },
-    { href: '#tageslimit', label: 'Limit', icon: GaugeIcon, urgent: false },
-    { href: '#filter', label: 'Filter', icon: TargetIcon, urgent: false },
-  ];
 
   return (
     <aside className="rc-floating-sidebar">
-      {/* Credits Section - Complete in Sidebar */}
-      <div className={`rc-credits-section ${creditsBalance === 0 ? 'rc-credits-section--urgent' : ''}`}>
-        <div className="rc-credits-header">
-          <h3 className="rc-section-title">Credits</h3>
-          <a 
-            href="/credits#purchase" 
-            className={`rc-btn rc-btn--primary rc-btn--small inline-flex items-center gap-1 ${creditsBalance === 0 ? 'rc-btn--pulse' : ''}`}
-            title={creditsBalance === 0 ? 'Keine Credits mehr!' : undefined}
-          >
-            <span className="inline-flex items-center gap-1">
-              Credits holen
-              {creditsBalance === 0 && (
-                <span className="rc-credits-badge" aria-label="Keine Credits">⚠️</span>
-              )}
-            </span>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        </div>
-        
-        <div className="rc-credits-stats">
-          <div className="rc-credits-stat">
-            <div className="rc-credits-stat-label">Verfügbar</div>
-            <div className={`rc-credits-stat-value rc-credits-stat-value--mint ${creditsBalance === 0 ? 'rc-credits-stat-value--urgent' : ''}`}>
-              <span className="inline-flex items-center">
-                {creditsBalance}
-                {creditsBalance === 0 && (
-                  <span className="rc-credits-dot" aria-label="Keine Credits verfügbar"></span>
-                )}
-              </span>
-            </div>
-            <div className="rc-credits-stat-subtitle">Credits für Sessions</div>
-          </div>
-          
-          <div className="rc-credits-stat">
-            <div className="rc-credits-stat-label">Wert</div>
-            <div className="rc-credits-stat-value rc-credits-stat-value--cream">
-              {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(creditsValue)}
-            </div>
-            <div className="rc-credits-stat-subtitle">Aktueller Wert</div>
-          </div>
-          
-          <div className="rc-credits-stat">
-            <div className="rc-credits-stat-label">Verbraucht</div>
-            <div className="rc-credits-stat-value rc-credits-stat-value--coral">{creditsConsumedThisWeek}</div>
-            <div className="rc-credits-stat-subtitle">Diese Woche</div>
-          </div>
-        </div>
-      </div>
-
       {/* Profile & Ziel-Block - Lebendiges Dashboard */}
       <div className="rc-profile-block">
         <div className="rc-profile-header">
@@ -153,52 +86,10 @@ const Sidebar = ({
           <div className="rc-goal-text">{profile.primaryGoalTitle || 'Noch kein Ziel gesetzt'}</div>
         </div>
 
-        <button onClick={onEditGoal} className="rc-btn rc-btn--primary rc-btn--statement">
+        <a href="/user/settings/ziel" className="rc-btn rc-btn--primary rc-btn--statement">
           <PenSquareIcon className="h-4 w-4" />
           Ziel ändern
-        </button>
-      </div>
-
-
-      {/* Core Actions - Situational */}
-      <div className="rc-actions-section">
-        <div className="rc-section-title">Was jetzt?</div>
-        <div className="rc-action-grid">
-          {coreActions.map(({ href, label, icon: Icon, urgent }) => (
-            <button
-              key={label}
-              onClick={() => handleLinkClick(href)}
-              className={`rc-action-card ${urgent ? 'urgent' : ''}`}
-            >
-              <Icon className="rc-action-icon" />
-              <span className="rc-action-label">{label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Mode Actions - Contextual */}
-      <div className="rc-mode-section">
-        <div className="rc-section-title">Einstellungen</div>
-        <div className="rc-mode-grid">
-          <a
-            href="/user/settings"
-            className="rc-mode-card"
-          >
-            <CompassIcon className="rc-mode-icon" />
-            <span className="rc-mode-label">Account-Einstellungen</span>
-          </a>
-          {modeActions.map(({ href, label, icon: Icon, isGuidePrefs, urgent }) => (
-            <button
-              key={label}
-              onClick={() => handleLinkClick(href, isGuidePrefs)}
-              className={`rc-mode-card ${urgent ? 'urgent' : ''}`}
-            >
-              <Icon className="rc-mode-icon" />
-              <span className="rc-mode-label">{label}</span>
-            </button>
-          ))}
-        </div>
+        </a>
       </div>
     </aside>
   );

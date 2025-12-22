@@ -1,8 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PenSquareIcon } from './icons';
 
 interface FilterTodoCardProps {
   onEdit?: () => void;
+}
+
+interface FormatPreference {
+  format: string;
+  maxPerDay: number;
+}
+
+interface FormatPreferences {
+  rank1: FormatPreference;
+  rank2: FormatPreference;
+  rank3: FormatPreference;
 }
 
 const formatOptions = ['Artikel', 'Podcast', 'Video', 'People', 'Event', 'Zitat', 'Song'];
@@ -16,6 +27,88 @@ const FilterTodoCard = ({ onEdit }: FilterTodoCardProps) => {
   const [countOne, setCountOne] = useState(3);
   const [countTwo, setCountTwo] = useState(4);
   const [countThree, setCountThree] = useState(5);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load format preferences from backend
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const response = await fetch('/api/profile/content-preferences');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.formatPreferences) {
+            setRankOne(data.formatPreferences.rank1?.format || 'Artikel');
+            setCountOne(data.formatPreferences.rank1?.maxPerDay || 3);
+            setRankTwo(data.formatPreferences.rank2?.format || 'Podcast');
+            setCountTwo(data.formatPreferences.rank2?.maxPerDay || 4);
+            setRankThree(data.formatPreferences.rank3?.format || 'Video');
+            setCountThree(data.formatPreferences.rank3?.maxPerDay || 5);
+          }
+        }
+      } catch (error) {
+        console.error('[FilterTodoCard] Error loading preferences:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPreferences();
+  }, []);
+
+  // Save preferences to backend
+  const savePreferences = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/profile/content-preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formatPreferences: {
+            rank1: { format: rankOne, maxPerDay: countOne },
+            rank2: { format: rankTwo, maxPerDay: countTwo },
+            rank3: { format: rankThree, maxPerDay: countThree },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save preferences');
+      }
+    } catch (error) {
+      console.error('[FilterTodoCard] Error saving preferences:', error);
+      alert('Fehler beim Speichern der Einstellungen. Bitte versuche es erneut.');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [rankOne, rankTwo, rankThree, countOne, countTwo, countThree]);
+
+  // Auto-save when preferences change (with debounce)
+  useEffect(() => {
+    if (isLoading) return;
+
+    const timeoutId = setTimeout(() => {
+      savePreferences();
+    }, 1000); // Debounce: save 1 second after last change
+
+    return () => clearTimeout(timeoutId);
+  }, [rankOne, rankTwo, rankThree, countOne, countTwo, countThree, isLoading, savePreferences]);
+
+  if (isLoading) {
+    return (
+      <section id="filter-todo" className="rc-card motion-fade-up" aria-labelledby="filter-todo-heading">
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <h2 id="filter-todo-heading" className="rc-subheading">
+              Filter-Funktion
+            </h2>
+            <p className="rc-microcopy">Lade Einstellungen...</p>
+          </div>
+        </header>
+      </section>
+    );
+  }
 
   return (
     <section id="filter-todo" className="rc-card motion-fade-up" aria-labelledby="filter-todo-heading">
@@ -35,6 +128,11 @@ const FilterTodoCard = ({ onEdit }: FilterTodoCardProps) => {
           </button>
         )}
       </header>
+      {isSaving && (
+        <div className="mt-4 text-sm text-rc-cream/70">
+          Speichere...
+        </div>
+      )}
 
       <div className="mt-8 grid gap-6 md:grid-cols-3">
         <FormatPreferenceCard

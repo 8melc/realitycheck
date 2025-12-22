@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
 
     if (!sessionId) {
       // Neue Session erstellen
+      console.log('[Guide Chat] Creating new session for user:', user.id);
       const { data: session, error: sessionError } = await supabase
         .from('guide_sessions')
         .insert({
@@ -83,41 +84,94 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (sessionError || !session) {
-        console.error('[Guide Chat] Error creating session:', sessionError);
+        console.error('[Guide Chat] ERROR creating session:', {
+          error: sessionError,
+          code: sessionError?.code,
+          message: sessionError?.message,
+          details: sessionError?.details,
+          hint: sessionError?.hint
+        });
         throw sessionError || new Error('Could not create session');
       }
 
       activeSessionId = session.id;
+      console.log('[Guide Chat] Successfully created session:', activeSessionId);
     } else {
       // Bestehende Session prüfen und fortführen
-      // Prüfe Max. Chat-Länge
-      const { count: messageCount, error: countError } = await supabase
-        .from('guide_conversations')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('session_id', sessionId);
-
-      if (countError) {
-        console.error('[Guide Chat] Error counting messages:', countError);
-      }
-
-      if (messageCount !== null && messageCount >= MAX_MESSAGES_PER_SESSION) {
-        return NextResponse.json({
-          error: 'Session limit reached',
-          message: `Diese Session hat bereits ${messageCount} Nachrichten erreicht. Bitte starte ein neues Gespräch.`,
-          max_messages: MAX_MESSAGES_PER_SESSION,
-          current_count: messageCount
-        }, { status: 400 });
-      }
-
-      // Session updated_at aktualisieren
-      await supabase
+      console.log('[Guide Chat] Checking existing session:', sessionId);
+      
+      // WICHTIG: Prüfe zuerst, ob die Session überhaupt existiert
+      const { data: existingSession, error: sessionCheckError } = await supabase
         .from('guide_sessions')
-        .update({ updated_at: new Date().toISOString() })
+        .select('id, user_id')
         .eq('id', sessionId)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
-      activeSessionId = sessionId;
+      if (sessionCheckError || !existingSession) {
+        // Session existiert nicht → neue Session erstellen
+        console.warn('[Guide Chat] Session not found, creating new session:', {
+          provided_session_id: sessionId,
+          error: sessionCheckError
+        });
+        
+        const { data: newSession, error: newSessionError } = await supabase
+          .from('guide_sessions')
+          .insert({
+            user_id: user.id,
+            title: message.slice(0, 80),
+          })
+          .select('id')
+          .single();
+
+        if (newSessionError || !newSession) {
+          console.error('[Guide Chat] ERROR creating fallback session:', {
+            error: newSessionError,
+            code: newSessionError?.code,
+            message: newSessionError?.message
+          });
+          throw newSessionError || new Error('Could not create fallback session');
+        }
+
+        activeSessionId = newSession.id;
+        console.log('[Guide Chat] Created fallback session:', activeSessionId);
+      } else {
+        // Session existiert → fortführen
+        console.log('[Guide Chat] Session exists, continuing:', sessionId);
+        
+        // Prüfe Max. Chat-Länge
+        const { count: messageCount, error: countError } = await supabase
+          .from('guide_conversations')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('session_id', sessionId);
+
+        if (countError) {
+          console.error('[Guide Chat] Error counting messages:', countError);
+        }
+
+        if (messageCount !== null && messageCount >= MAX_MESSAGES_PER_SESSION) {
+          return NextResponse.json({
+            error: 'Session limit reached',
+            message: `Diese Session hat bereits ${messageCount} Nachrichten erreicht. Bitte starte ein neues Gespräch.`,
+            max_messages: MAX_MESSAGES_PER_SESSION,
+            current_count: messageCount
+          }, { status: 400 });
+        }
+
+        // Session updated_at aktualisieren
+        const { error: updateError } = await supabase
+          .from('guide_sessions')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', sessionId)
+          .eq('user_id', user.id);
+
+        if (updateError) {
+          console.warn('[Guide Chat] Warning: Could not update session timestamp:', updateError);
+        }
+
+        activeSessionId = sessionId;
+      }
     }
 
     // Profil + Ziel laden
@@ -444,39 +498,122 @@ export async function POST(req: NextRequest) {
 
     // Save conversation to guide_conversations table for dashboard history
     try {
-      const now = new Date().toISOString();
-      
-      // Save user message first
-      const { error: userMsgError } = await supabase
-        .from('guide_conversations')
-        .insert({
+      // Validate session_id before saving
+      if (!activeSessionId) {
+        console.error('[Guide Chat] ERROR: activeSessionId is missing! Cannot save conversation.');
+      } else {
+        const now = new Date().toISOString();
+        
+        console.log('[Guide Chat] Saving conversation:', {
           user_id: user.id,
           session_id: activeSessionId,
-          role: 'user',
-          message: message,
-          created_at: now,
+          message_length: message.length,
+          response_length: cleanResponse.length
         });
+        
+        // Helper function to save message with fallback session creation
+        const saveMessageWithFallback = async (
+          role: 'user' | 'guide',
+          msg: string,
+          isRetry = false
+        ): Promise<{ success: boolean; messageId?: string }> => {
+          const { data: msgData, error: msgError } = await supabase
+            .from('guide_conversations')
+            .insert({
+              user_id: user.id,
+              session_id: activeSessionId,
+              role,
+              message: msg,
+              created_at: now,
+            })
+            .select('id')
+            .single();
 
-      if (userMsgError) {
-        console.error('[Guide Chat] Error saving user message:', userMsgError);
-      }
+          if (msgError) {
+            // Check if it's a foreign key violation (23503)
+            if (msgError.code === '23503' && !isRetry) {
+              console.warn('[Guide Chat] Foreign key violation detected, verifying session exists...');
+              
+              // Verify session exists
+              const { data: sessionCheck, error: checkError } = await supabase
+                .from('guide_sessions')
+                .select('id')
+                .eq('id', activeSessionId)
+                .eq('user_id', user.id)
+                .single();
 
-      // Save guide response immediately after (same timestamp for grouping)
-      const { error: guideMsgError } = await supabase
-        .from('guide_conversations')
-        .insert({
-          user_id: user.id,
-          session_id: activeSessionId,
-          role: 'guide',
-          message: cleanResponse,
-          created_at: now,
-        });
+              if (checkError || !sessionCheck) {
+                console.warn('[Guide Chat] Session does not exist, creating new session as fallback...');
+                
+                // Create new session
+                const { data: newSession, error: newSessionError } = await supabase
+                  .from('guide_sessions')
+                  .insert({
+                    user_id: user.id,
+                    title: message.slice(0, 80),
+                  })
+                  .select('id')
+                  .single();
 
-      if (guideMsgError) {
-        console.error('[Guide Chat] Error saving guide message:', guideMsgError);
+                if (newSessionError || !newSession) {
+                  console.error('[Guide Chat] ERROR: Could not create fallback session:', newSessionError);
+                  return { success: false };
+                }
+
+                // Retry with new session ID
+                console.log('[Guide Chat] Retrying message save with new session:', newSession.id);
+                const { data: retryData, error: retryError } = await supabase
+                  .from('guide_conversations')
+                  .insert({
+                    user_id: user.id,
+                    session_id: newSession.id,
+                    role,
+                    message: msg,
+                    created_at: now,
+                  })
+                  .select('id')
+                  .single();
+
+                if (retryError) {
+                  console.error(`[Guide Chat] ERROR saving ${role} message (retry):`, {
+                    error: retryError,
+                    code: retryError.code,
+                    message: retryError.message
+                  });
+                  return { success: false };
+                }
+
+                return { success: true, messageId: retryData?.id };
+              }
+            }
+
+            console.error(`[Guide Chat] ERROR saving ${role} message:`, {
+              error: msgError,
+              code: msgError.code,
+              message: msgError.message,
+              details: msgError.details,
+              hint: msgError.hint
+            });
+            return { success: false };
+          }
+
+          return { success: true, messageId: msgData?.id };
+        };
+
+        // Save user message first
+        const userResult = await saveMessageWithFallback('user', message);
+        if (userResult.success) {
+          console.log('[Guide Chat] Successfully saved user message:', userResult.messageId);
+        }
+
+        // Save guide response immediately after (same timestamp for grouping)
+        const guideResult = await saveMessageWithFallback('guide', cleanResponse);
+        if (guideResult.success) {
+          console.log('[Guide Chat] Successfully saved guide message:', guideResult.messageId);
+        }
       }
     } catch (conversationError) {
-      console.error('[Guide Chat] Error saving conversation:', conversationError);
+      console.error('[Guide Chat] ERROR saving conversation (catch block):', conversationError);
       // Don't fail the request if conversation saving fails
     }
 

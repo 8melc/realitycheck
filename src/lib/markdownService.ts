@@ -13,7 +13,7 @@ const markdownCache = new Map<string, string>();
 /**
  * Lädt Markdown-Inhalt aus dem Public-Ordner
  */
-export async function loadMarkdownContent(filename: string): Promise<string> {
+export async function loadMarkdownContent(filename: string): Promise<string | null> {
   // Prüfe Cache zuerst
   if (markdownCache.has(filename)) {
     return markdownCache.get(filename)!;
@@ -21,10 +21,13 @@ export async function loadMarkdownContent(filename: string): Promise<string> {
 
   try {
     // Lade Markdown-Datei aus dem Public-Ordner
-    const response = await fetch(`/content/${filename}`);
+    // Wichtig: encodeURIComponent für Dateinamen mit Leerzeichen
+    const encodedFilename = encodeURIComponent(filename);
+    const response = await fetch(`/markdown/${encodedFilename}`);
     
     if (!response.ok) {
-      throw new Error(`Failed to load ${filename}: ${response.statusText}`);
+      console.warn(`Markdown file not found: ${filename} (${response.status})`);
+      return null;
     }
 
     const content = await response.text();
@@ -35,7 +38,7 @@ export async function loadMarkdownContent(filename: string): Promise<string> {
     return content;
   } catch (error) {
     console.error(`Error loading markdown file ${filename}:`, error);
-    return `# Fehler beim Laden der Quelle\n\nDie Datei "${filename}" konnte nicht geladen werden.\n\nBitte versuche es später erneut.`;
+    return null;
   }
 }
 
@@ -50,17 +53,40 @@ export async function loadSourcesContent(): Promise<MarkdownContent> {
       loadMarkdownContent('Reality Check-Transparenz-Extern.md')
     ]);
 
-    // Kombiniere die Inhalte
-    const combinedContent = `${sourcesContent}
+    // Prüfe ob beide Dateien geladen wurden
+    if (!sourcesContent && !transparencyContent) {
+      return {
+        content: `# Inhalt aktuell nicht verfügbar\n\nDie Quellen-Dokumentation ist momentan nicht verfügbar.\n\nBitte später erneut versuchen.`,
+        metadata: {
+          title: 'Reality Check Quellen & Transparenz'
+        }
+      };
+    }
 
----
+    // Kombiniere die Inhalte (falls verfügbar)
+    const parts: string[] = [];
+    
+    if (sourcesContent) {
+      parts.push(sourcesContent);
+    }
+    
+    if (transparencyContent) {
+      if (parts.length > 0) {
+        parts.push('---');
+      }
+      parts.push(transparencyContent);
+    }
 
-${transparencyContent}
+    if (parts.length === 0) {
+      return {
+        content: `# Inhalt aktuell nicht verfügbar\n\nDie Quellen-Dokumentation ist momentan nicht verfügbar.\n\nBitte später erneut versuchen.`,
+        metadata: {
+          title: 'Reality Check Quellen & Transparenz'
+        }
+      };
+    }
 
----
-
-**Letzte Aktualisierung:** ${new Date().toLocaleDateString('de-DE')}
-`;
+    const combinedContent = `${parts.join('\n\n')}\n\n---\n\n**Letzte Aktualisierung:** ${new Date().toLocaleDateString('de-DE')}`;
 
     return {
       content: combinedContent,
@@ -72,7 +98,7 @@ ${transparencyContent}
   } catch (error) {
     console.error('Error loading sources content:', error);
     return {
-      content: `# Quellen nicht verfügbar\n\nDie Quellen-Dokumentation ist momentan nicht verfügbar. Bitte versuche es später erneut.`,
+      content: `# Inhalt aktuell nicht verfügbar\n\nDie Quellen-Dokumentation ist momentan nicht verfügbar.\n\nBitte später erneut versuchen.`,
       metadata: {
         title: 'Reality Check Quellen & Transparenz'
       }

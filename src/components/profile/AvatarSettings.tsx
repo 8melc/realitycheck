@@ -57,7 +57,13 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
           .from('user_profiles')
           .select('avatar_type, avatar_style, avatar_seed, avatar_url, display_name')
           .eq('user_id', userId)
-          .maybeSingle();
+          .maybeSingle<{
+            avatar_type?: string | null;
+            avatar_style?: string | null;
+            avatar_seed?: string | null;
+            avatar_url?: string | null;
+            display_name?: string | null;
+          }>();
 
         if (profileError) {
           console.error('[AvatarSettings] Error fetching profile:', profileError);
@@ -71,8 +77,8 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
           setUserEmail(user.email);
         }
 
-        const currentType = (profile?.avatar_type || 'initials') as AvatarType;
-        const currentStyle = (profile?.avatar_style || 'avataaars') as AvatarStyle;
+        const currentType = ((profile?.avatar_type as AvatarType) || 'initials') as AvatarType;
+        const currentStyle = ((profile?.avatar_style as AvatarStyle) || 'avataaars') as AvatarStyle;
         const currentSeed = profile?.avatar_seed || user?.email || userId;
 
         setAvatarType(currentType);
@@ -181,9 +187,29 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
           body: formData,
         });
 
+        // Check content type before parsing JSON
+        const contentType = uploadResponse.headers.get('content-type') || '';
         if (!uploadResponse.ok) {
-          const uploadError = await uploadResponse.json();
-          throw new Error(uploadError.error || 'Fehler beim Hochladen');
+          let errorMessage = 'Fehler beim Hochladen';
+          if (contentType.includes('application/json')) {
+            try {
+              const uploadError = await uploadResponse.json();
+              errorMessage = uploadError.error || errorMessage;
+            } catch (parseError) {
+              const text = await uploadResponse.text();
+              errorMessage = `Upload fehlgeschlagen (${uploadResponse.status}): ${text.slice(0, 100)}`;
+            }
+          } else {
+            const text = await uploadResponse.text();
+            errorMessage = `Unerwartete Antwort (${uploadResponse.status}): ${text.slice(0, 100)}`;
+          }
+          throw new Error(errorMessage);
+        }
+
+        // Ensure response is JSON before parsing
+        if (!contentType.includes('application/json')) {
+          const text = await uploadResponse.text();
+          throw new Error(`Server antwortete nicht mit JSON: ${text.slice(0, 100)}`);
         }
 
         setUploading(false);
@@ -224,9 +250,29 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
         body: JSON.stringify(updateData),
       });
 
+      // Check content type before parsing JSON
+      const contentType = response.headers.get('content-type') || '';
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Fehler beim Speichern');
+        let errorMessage = 'Fehler beim Speichern';
+        if (contentType.includes('application/json')) {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (parseError) {
+            const text = await response.text();
+            errorMessage = `Speichern fehlgeschlagen (${response.status}): ${text.slice(0, 100)}`;
+          }
+        } else {
+          const text = await response.text();
+          errorMessage = `Unerwartete Antwort (${response.status}): ${text.slice(0, 100)}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Ensure response is JSON
+      if (!contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Server antwortete nicht mit JSON: ${text.slice(0, 100)}`);
       }
 
       setSuccess(true);
@@ -261,9 +307,23 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
         method: 'DELETE',
       });
 
+      // Check content type before parsing JSON
+      const contentType = response.headers.get('content-type') || '';
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Fehler beim Löschen');
+        let errorMessage = 'Fehler beim Löschen';
+        if (contentType.includes('application/json')) {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (parseError) {
+            const text = await response.text();
+            errorMessage = `Löschen fehlgeschlagen (${response.status}): ${text.slice(0, 100)}`;
+          }
+        } else {
+          const text = await response.text();
+          errorMessage = `Unerwartete Antwort (${response.status}): ${text.slice(0, 100)}`;
+        }
+        throw new Error(errorMessage);
       }
 
       setPreviewUrl(null);

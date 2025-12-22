@@ -16,6 +16,14 @@ const goalChips = [
   'Mehr sehen als Insta mir zeigt'
 ]
 
+const goalDirections = [
+  { value: 'freedom', label: 'Freiheit' },
+  { value: 'clarity', label: 'Klarheit' },
+  { value: 'growth', label: 'Wachstum' },
+  { value: 'balance', label: 'Balance' },
+  { value: 'meaning', label: 'Sinn' },
+] as const
+
 export default function GoalStep({ formData, updateFormData }: GoalStepProps) {
   const selectGoalChip = (goalText: string) => {
     const newGoals = formData.goals.includes(goalText)
@@ -27,6 +35,12 @@ export default function GoalStep({ formData, updateFormData }: GoalStepProps) {
 
   const updateGoal = (value: string) => {
     updateFormData({ goal: value })
+  }
+
+  const selectGoalDirection = (direction: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning') => {
+    updateFormData({ 
+      goalDirection: formData.goalDirection === direction ? null : direction 
+    })
   }
 
   return (
@@ -71,6 +85,24 @@ export default function GoalStep({ formData, updateFormData }: GoalStepProps) {
           <p className="step-subtitle" style={{ color: 'var(--fyf-mint)', fontWeight: 600 }}>
             Dein Fokus = dein Vermögen. Mehr Ownership gibt's nicht.
           </p>
+
+          {/* Goal Direction Selection */}
+          <div style={{ marginTop: '2rem' }}>
+            <p className="step-subtitle" style={{ marginBottom: '1rem' }}>
+              Welche Richtung beschreibt dein Ziel am besten?
+            </p>
+            <div className="goal-grid">
+              {goalDirections.map(direction => (
+                <div
+                  key={direction.value}
+                  className={`option-card ${formData.goalDirection === direction.value ? 'selected' : ''}`}
+                  onClick={() => selectGoalDirection(direction.value)}
+                >
+                  <div className="option-card-text">{direction.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

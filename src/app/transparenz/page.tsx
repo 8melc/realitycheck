@@ -59,17 +59,12 @@ export default function Transparenz() {
         </p>
       </div>
 
-            {/* Transparency Grid - Compact Lexicon Pattern */}
-            <section className="px-6" style={{ padding: '40px clamp(20px, 4vw, 56px) 40px' }}>
-              <div className="max-w-7xl mx-auto">
-                <TransparencyGrid tiles={transparencyContent.tiles} />
-              </div>
-            </section>
+      {/* Transparency Grid - Compact Lexicon Pattern */}
+      <section className="px-6" style={{ padding: '40px clamp(20px, 4vw, 56px) 40px' }}>
+        <div className="max-w-7xl mx-auto">
+          <TransparencyGrid tiles={transparencyContent.tiles} />
+        </div>
+      </section>
     </div>
   )
 }
-
-
-
-
-

@@ -110,6 +110,7 @@ export interface UserProfile {
   will_share?: string[];
   is_public: boolean;
   avatar_url?: string;
+  goal_direction?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null;
   created_at?: string;
 }
 

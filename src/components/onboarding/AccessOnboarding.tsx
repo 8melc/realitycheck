@@ -22,6 +22,7 @@ export interface AccessFormData {
   targetAge: string
   goal: string
   goals: string[]
+  goalDirection?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
   timePhilosophy: string
   musicTaste: string
   lifestyle: string
@@ -113,6 +114,7 @@ export default function AccessOnboarding() {
     targetAge: '',
     goal: '',
     goals: [],
+    goalDirection: null,
     timePhilosophy: '',
     musicTaste: '',
     lifestyle: '',
@@ -145,6 +147,7 @@ export default function AccessOnboarding() {
               targetAge: formData.targetAge || '80',
               goal: formData.goal,
               goals: formData.goals,
+              goalDirection: formData.goalDirection,
               timePhilosophy: formData.timePhilosophy,
               lifestyle: formData.lifestyle,
               guidePersonality: formData.timePhilosophy, // Use timePhilosophy as guide personality for now

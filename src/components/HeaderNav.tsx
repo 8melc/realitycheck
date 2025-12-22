@@ -184,19 +184,21 @@ export default function HeaderNav() {
             {isAuthenticated ? (
               <>
                 {displayName && (
-                  <div style={{ color: '#70B1AF', marginBottom: '8px', fontSize: '0.9rem' }}>
+                  <div style={{ color: '#70B1AF', marginBottom: '12px', fontSize: '0.9rem', fontWeight: '500' }}>
                     {displayName}
                   </div>
                 )}
-                <Link 
-                  href="/user/dashboard" 
-                  className="mobile-cta-button" 
-                  onClick={toggleMobileMenu}
-                >
-                  Dashboard
-                </Link>
-                <div style={{ marginTop: '12px' }}>
-                  <LogoutButton />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                  <Link 
+                    href="/user/dashboard" 
+                    className="mobile-cta-button" 
+                    onClick={toggleMobileMenu}
+                  >
+                    Dashboard
+                  </Link>
+                  <div style={{ marginTop: '4px' }}>
+                    <LogoutButton />
+                  </div>
                 </div>
               </>
             ) : (
