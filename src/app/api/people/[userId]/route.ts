@@ -12,10 +12,10 @@ export async function GET(
   try {
     const supabase = await createClient();
 
-    // 1. Profil laden
+    // 1. Profil laden (nur öffentlich beobachtbare Felder)
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('user_id, display_name, birth_date, target_age, guide_personality, bio, focus_topic, will_learn, will_share, avatar_type, avatar_url, avatar_seed, avatar_style, is_public, created_at, updated_at')
+      .select('user_id, display_name, birth_date, target_age, goal_direction, avatar_type, avatar_url, avatar_seed, avatar_style, is_public, created_at, updated_at')
       .eq('user_id', userId)
       .single();
 
@@ -78,8 +78,7 @@ export async function GET(
       userId,
       displayName: profile.display_name,
       hasGoal: !!primaryGoal,
-      hasBio: !!profile.bio,
-      hasFocusTopic: !!profile.focus_topic
+      hasGoalDirection: !!profile.goal_direction
     });
 
     return NextResponse.json(response);
@@ -95,5 +94,6 @@ export async function GET(
     );
   }
 }
+
 
 

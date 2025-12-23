@@ -108,6 +108,22 @@ export default async function DashboardPage() {
           {primaryGoal?.title || 'Noch keines gesetzt'}
         </p>
       </div>
+
+      {/* Observatory CTA */}
+      {!profile.observatory_onboarding_completed && (
+        <div className="bg-gradient-to-r from-rc-mint/10 to-rc-coral/10 p-6 rounded-xl border border-rc-mint/20">
+          <h3 className="text-xl font-semibold mb-2 text-rc-cream">People</h3>
+          <p className="text-rc-steel mb-4">
+            Teile deine Zeitperspektive mit anderen Menschen im People-Bereich.
+          </p>
+          <a
+            href="/onboarding/observatory"
+            className="inline-block px-6 py-3 bg-rc-mint text-rc-noir font-semibold rounded-lg hover:bg-rc-mint/90 transition-colors"
+          >
+            Teil des People-Bereichs werden
+          </a>
+        </div>
+      )}
     </div>
   );
 }

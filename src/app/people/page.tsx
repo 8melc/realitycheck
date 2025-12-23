@@ -26,7 +26,9 @@ interface PeopleProfile extends UserProfile {
   primary_goal?: {
     title: string
   } | null
+  goal_direction?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
   timeFacts?: {
+    weeksLived: number
     weeksRemaining: number
     percentageLived: number
     remainingSummers: number
@@ -38,6 +40,32 @@ export default function People() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [similarGoal, setSimilarGoal] = useState(false)
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true)
+
+  // Check if user has completed observatory onboarding
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const response = await fetch('/api/profile', { cache: 'no-store' })
+        if (response.ok) {
+          const data = await response.json()
+          const profile = data.rawProfile || data.profile
+          
+          if (profile && !profile.observatory_onboarding_completed) {
+            // Redirect to observatory onboarding
+            window.location.href = '/onboarding/observatory'
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Error checking onboarding:', error)
+      } finally {
+        setCheckingOnboarding(false)
+      }
+    }
+
+    checkOnboarding()
+  }, [])
 
   const fetchPeople = async (useSimilarGoal: boolean = false) => {
     try {
@@ -123,7 +151,9 @@ export default function People() {
         return {
           ...profile,
           primary_goal: profile.primary_goal || null,
+          goal_direction: profile.goal_direction || null,
           timeFacts: lifeData ? {
+            weeksLived: lifeData.weeksLived,
             weeksRemaining: lifeData.weeksRemaining,
             percentageLived: lifeData.percentageLived,
             remainingSummers: lifeData.remainingSummers,
@@ -146,10 +176,12 @@ export default function People() {
   }
 
   useEffect(() => {
-    fetchPeople(similarGoal)
-  }, [similarGoal])
+    if (!checkingOnboarding) {
+      fetchPeople(similarGoal)
+    }
+  }, [similarGoal, checkingOnboarding])
 
-  if (loading) {
+  if (checkingOnboarding || loading) {
     return (
       <div style={{
         maxWidth: '1280px',
@@ -369,10 +401,10 @@ export default function People() {
                   marginBottom: '12px',
                   lineHeight: '1.3'
                 }}>
-                  {person.display_name || 'Unbekannt'}
+                  {person.display_name || 'Anonym'}
                 </h3>
 
-                {/* Alter / Lebensphase */}
+                {/* Alter / Restjahre */}
                 {person.birth_date && person.target_age && (() => {
                   const age = calculateAge(person.birth_date)
                   const yearsLeft = age !== null ? person.target_age - age : null
@@ -387,53 +419,61 @@ export default function People() {
                   ) : null
                 })()}
 
-                {/* Primärziel */}
+                {/* Wochen gelebt / übrig */}
+                {person.timeFacts && (
+                  <div style={{
+                    fontSize: '0.95rem',
+                    color: '#B8BCC8',
+                    marginBottom: '16px'
+                  }}>
+                    {person.timeFacts.weeksLived.toLocaleString('de-DE')} / {person.timeFacts.weeksRemaining.toLocaleString('de-DE')} Wochen
+                  </div>
+                )}
+
+                {/* Prozent gelebt */}
+                {person.timeFacts && (
+                  <div style={{
+                    fontSize: '0.95rem',
+                    color: '#B8BCC8',
+                    marginBottom: '16px'
+                  }}>
+                    {person.timeFacts.percentageLived}% gelebt
+                  </div>
+                )}
+
+                {/* Ziel / Fokus */}
                 <div style={{
                   marginBottom: '16px'
                 }}>
-                  <div style={{
-                    fontSize: '0.9rem',
-                    color: '#70B1AF',
-                    fontWeight: '600',
-                    marginBottom: '6px'
-                  }}>
-                    Primärziel
-                  </div>
-                  <p style={{
-                    fontSize: '0.95rem',
-                    color: '#B8BCC8',
-                    lineHeight: '1.5',
-                    margin: 0
-                  }}>
-                    {person.primary_goal?.title || 'Kein Ziel gesetzt'}
-                  </p>
+                  {(() => {
+                    const goalText = person.primary_goal?.title || 
+                      (person.goal_direction === 'freedom' ? 'Freiheit' :
+                       person.goal_direction === 'clarity' ? 'Klarheit' :
+                       person.goal_direction === 'growth' ? 'Wachstum' :
+                       person.goal_direction === 'balance' ? 'Balance' :
+                       person.goal_direction === 'meaning' ? 'Sinn' : null)
+                    
+                    return goalText ? (
+                      <p style={{
+                        fontSize: '0.95rem',
+                        color: '#B8BCC8',
+                        lineHeight: '1.5',
+                        margin: 0
+                      }}>
+                        {goalText}
+                      </p>
+                    ) : (
+                      <p style={{
+                        fontSize: '0.95rem',
+                        color: 'rgba(184, 188, 200, 0.5)',
+                        lineHeight: '1.5',
+                        margin: 0
+                      }}>
+                        Kein Fokus definiert
+                      </p>
+                    )
+                  })()}
                 </div>
-
-                {/* Life-in-Weeks Snapshot */}
-                {person.timeFacts && (
-                  <div style={{
-                    padding: '12px',
-                    background: 'rgba(240, 138, 143, 0.1)',
-                    border: '1px solid rgba(240, 138, 143, 0.2)',
-                    borderRadius: '8px',
-                    marginTop: '12px'
-                  }}>
-                    <div style={{
-                      fontSize: '1.5rem',
-                      fontWeight: '700',
-                      color: '#F08A8F',
-                      marginBottom: '4px'
-                    }}>
-                      {person.timeFacts.percentageLived}%
-                    </div>
-                    <div style={{
-                      fontSize: '0.85rem',
-                      color: '#B8BCC8'
-                    }}>
-                      gelebt
-                    </div>
-                  </div>
-                )}
             </div>
           </Link>
         ))}

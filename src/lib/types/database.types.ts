@@ -37,6 +37,10 @@ export interface Database {
           slots_article: number | null
           slots_podcast: number | null
           slots_quote: number | null
+          music_taste: string | null
+          lifestyle: string | null
+          interests: string[] | null
+          observatory_onboarding_completed: boolean
           created_at: string
           updated_at: string
         }
@@ -67,6 +71,10 @@ export interface Database {
           slots_article?: number | null
           slots_podcast?: number | null
           slots_quote?: number | null
+          music_taste?: string | null
+          lifestyle?: string | null
+          interests?: string[] | null
+          observatory_onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -97,6 +105,10 @@ export interface Database {
           slots_article?: number | null
           slots_podcast?: number | null
           slots_quote?: number | null
+          music_taste?: string | null
+          lifestyle?: string | null
+          interests?: string[] | null
+          observatory_onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
         }

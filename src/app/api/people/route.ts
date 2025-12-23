@@ -20,14 +20,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const similarGoal = searchParams.get('similar_goal') === '1';
     
-    // Basis-Query: public profiles
+    // Basis-Query: public profiles that have completed observatory onboarding
     let query = supabase
       .from('user_profiles')
       .select('*, avatar_type, avatar_url, avatar_seed, avatar_style')
       .not('display_name', 'is', null)
       .not('birth_date', 'is', null)
       .not('target_age', 'is', null)
-      .eq('is_public', true);
+      .eq('is_public', true)
+      .eq('observatory_onboarding_completed', true);
 
     if (similarGoal) {
       // Similar goal filter: authenticate and filter by goal_direction + life phase

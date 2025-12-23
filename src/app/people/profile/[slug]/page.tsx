@@ -11,6 +11,7 @@ interface ProfileData extends UserProfile {
   primary_goal?: {
     title: string;
   } | null;
+  goal_direction?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null;
 }
 
 // Helper function to calculate age from birth_date
@@ -109,7 +110,7 @@ export default function ProfilePage() {
 
         <header className="profile-hero">
           <div className="profile-hero__left">
-            <h1 className="profile-name">{profile.display_name || 'Unbekannt'}</h1>
+            <h1 className="profile-name">{profile.display_name || 'Anonym'}</h1>
             {age !== null && yearsLeft !== null && (
               <p style={{
                 color: 'rgba(255, 255, 255, 0.7)',
@@ -118,12 +119,6 @@ export default function ProfilePage() {
               }}>
                 {age} / {yearsLeft} Jahre übrig
               </p>
-            )}
-            {lifeData && (
-              <div className="life-chip" style={{ marginTop: '12px' }}>
-                <span className="life-chip__label">Leben gelebt</span>
-                <span className="life-chip__value">{lifeData.percentageLived}%</span>
-              </div>
             )}
           </div>
           <div className="profile-hero__right">
@@ -137,12 +132,10 @@ export default function ProfilePage() {
                   <div className="metric__label">Wochen übrig</div>
                   <div className="metric__value">{lifeData.weeksRemaining.toLocaleString('de-DE')}</div>
                 </div>
-                {age !== null && yearsLeft !== null && (
+                {lifeData && (
                   <div className="metric">
-                    <div className="metric__label">Alter / Restjahre</div>
-                    <div className="metric__value">
-                      {age} / {yearsLeft}
-                    </div>
+                    <div className="metric__label">Gelebt</div>
+                    <div className="metric__value">{lifeData.percentageLived}%</div>
                   </div>
                 )}
               </div>
@@ -151,54 +144,26 @@ export default function ProfilePage() {
         </header>
 
         <div className="profile-grid">
-          {/* Ziel-Bereich */}
+          {/* Ziel / Fokus */}
           <section className="card">
-            <div className="card__label">Woran diese Person arbeitet</div>
-            <p className="card__body">
-              {profile.primary_goal?.title || 'Diese Person hat noch kein Ziel definiert.'}
-            </p>
+            <div className="card__label">Fokus</div>
+            {(() => {
+              const goalText = profile.primary_goal?.title || 
+                (profile.goal_direction === 'freedom' ? 'Freiheit' :
+                 profile.goal_direction === 'clarity' ? 'Klarheit' :
+                 profile.goal_direction === 'growth' ? 'Wachstum' :
+                 profile.goal_direction === 'balance' ? 'Balance' :
+                 profile.goal_direction === 'meaning' ? 'Sinn' : null)
+              
+              return goalText ? (
+                <p className="card__body">{goalText}</p>
+              ) : (
+                <p className="card__body" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                  Kein Fokus definiert
+                </p>
+              )
+            })()}
           </section>
-
-          {/* Aktueller Fokus */}
-          <section className="card">
-            <div className="card__label">Aktueller Fokus</div>
-            {profile.focus_topic ? (
-              <p className="card__body">{profile.focus_topic}</p>
-            ) : (
-              <p className="card__body" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                Kein Fokus definiert.
-              </p>
-            )}
-          </section>
-
-          {/* Leben in Zahlen */}
-          {lifeData && (
-            <section className="card">
-              <div className="card__label">Leben in Zahlen</div>
-              <div className="life-grid">
-                {age !== null && (
-                  <div className="mini-metric">
-                    <div className="mini-metric__value">{age}</div>
-                    <div className="mini-metric__label">Jahre gelebt</div>
-                  </div>
-                )}
-                {yearsLeft !== null && (
-                  <div className="mini-metric">
-                    <div className="mini-metric__value">{yearsLeft}</div>
-                    <div className="mini-metric__label">Jahre übrig</div>
-                  </div>
-                )}
-                <div className="mini-metric">
-                  <div className="mini-metric__value">{lifeData.weeksLived.toLocaleString('de-DE')}</div>
-                  <div className="mini-metric__label">Wochen gelebt</div>
-                </div>
-                <div className="mini-metric">
-                  <div className="mini-metric__value">{lifeData.weeksRemaining.toLocaleString('de-DE')}</div>
-                  <div className="mini-metric__label">Wochen übrig</div>
-                </div>
-              </div>
-            </section>
-          )}
         </div>
       </div>
     </div>
