@@ -60,3 +60,4 @@ JOIN auth.users au ON up.user_id = au.id
 LEFT JOIN user_goals ug ON ug.user_id = up.user_id AND ug.is_primary = true
 WHERE au.email = 'testdemo@test.com';
 
+

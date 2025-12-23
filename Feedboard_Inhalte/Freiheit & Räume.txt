@@ -1,0 +1,247 @@
+## Gefundene Artikel
+
+Drei ausführliche Beiträge ab 2023 aus renommierten Medien behandeln das Thema „Freiheit & Räume“ durch Porträts digitaler Nomaden und Analysen zu ortsunabhängigem Arbeiten sowie Minimalismus. Sie enthalten persönliche Geschichten und regen zum Nachdenken über Zeitgestaltung an.[1][2][3]
+
+### Digital Nomaden in Afrika
+**Titel:** Digitale Nomaden in Afrika: Co-Working in Swakopmund  
+**Autor:** Nicht explizit angegeben (FAZ-Redaktion)  
+**Medium:** Frankfurter Allgemeine Zeitung (FAZ)  
+**Erscheinungsdatum:** Ca. 2023/2024 (basierend auf Kontext)  
+**Link:** https://www.faz.net/aktuell/karriere-hochschule/buero-co/digitale-nomaden-in-afrika-co-working-in-swakopmund-18721629.html[1]
+
+Der Artikel porträtiert digitale Nomaden, die in Namibia und anderen afrikanischen Ländern ortsunabhängig arbeiten, und beleuchtet Trends wie Co-Working-Spaces in Swakopmund. Er zeigt, wie bewusste Ortswahl echte Freiheit schafft, fernab von oberflächlichen Tipps.[1]
+
+### Auswanderung nach Portugal
+**Titel:** Auswanderung nach Portugal: Amerikaner fliehen vor der ...  
+**Autor:** Nicht explizit angegeben (SZ-Redaktion)  
+**Medium:** Süddeutsche Zeitung  
+**Erscheinungsdatum:** 28. Mai 2025  
+**Link:** https://www.sueddeutsche.de/leben/lissabon-expats-trump-portugal-li.3255562[2]
+
+Diese Reportage erzählt von US-Amerikanern, die als digitale Nomaden via D8-Visum nach Lissabon ziehen, um Freiheit durch passives Einkommen und ortsunabhängiges Leben zu gewinnen. Persönliche Schicksale wie das von Tatiana vor Trump-Anhängern inspirieren zu radikaler Lebensgestaltung.[2]
+
+### Nomadenleben als Alltag
+**Titel:** Digitale Nomaden: „Das Abenteuer war zum Alltag geworden“  
+**Autor:** Anna Scheld  
+**Medium:** Die Zeit  
+**Erscheinungsdatum:** Ca. 2023/2024 (aktueller Autorenseite-Kontext)  
+**Link:** https://www.zeit.de/autoren/S/Anna_Scheld/index (Artikel über Daniel Schöberl)[3]
+
+Anna Scheld porträtiert Daniel Schöberl, der auf Bali, in Valencia und Helsinki lebte, und analysiert, warum Nomadenfreiheit durch Zeit- und Ortsflexibilität entsteht, aber auch an Grenzen stößt. Der Text regt an, Kalender als Schlüssel zu echten Freiräumen zu sehen.[3]
+
+[1](https://www.faz.net/aktuell/karriere-hochschule/buero-co/digitale-nomaden-in-afrika-co-working-in-swakopmund-18721629.html)
+[2](https://www.sueddeutsche.de/leben/lissabon-expats-trump-portugal-li.3255562)
+[3](https://www.zeit.de/autoren/S/Anna_Scheld/index)
+[4](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_2c47b24d-f85a-49c6-a588-ca8b8cbc48ba/6529e0f3-6e35-469b-9881-641d04c250ef/Freiheit-Raume.txt)
+[5](https://www.vhs-erding.de/fileadmin/vhs-erding/download/programmheft/vhs-herbst-winter-24-25-13MB.pdf)
+[6](https://www.radioblau.de/feed/)
+[7](https://de.scribd.com/document/719024495/MediumMagazin-202303)
+[8](https://huggingface.co/gerturax/gerturax-3/resolve/main/vocab.txt?download=true)
+[9](https://medianet.at/news/uploads/editions/medianet_425.pdf)
+[10](https://www.sueddeutsche.de/karriere/home-office-arbeitszeit-arbeitsort-1.5366178)
+[11](https://sz-media.sueddeutsche.de/rubriken/downloads/urlaub_im_sommer_22062023.pdf)
+[12](https://wiki.aki-stuttgart.de/mediawiki/index.php/Spezial:Exportieren/Hauptseite)
+[13](https://www.zeit.de/leserbriefe/2025/23-januar-2025-ausgabe-nr-4)
+[14](https://www.zeit.de/politik/2021-11/koalitionsvertrag.pdf)
+[15](https://www.faz.net/kaufkompass/vergleich/das-beste-girokonto/)
+[16](https://www.faz.net/kaufkompass/test/die-beste-mobile-dunstabzugshaube/)
+[17](https://www.zeit.de/leserbriefe/archiv/10-juni-2020-ausgabe-25)
+[18](https://www.faz.net/sitemap-karriere-hochschule-artikel-1.xml)
+[19](https://dynamic.faz.net/download/2021/fazmagazin_202109.pdf)
+[20](https://www.faz.net/kaufkompass/geschenkideen/die-besten-geschenke-fuer-2-jaehrige/)
+[21](https://www.faz.net/sitemap-karriere-hochschule-artikel-3.xml)
+[22](https://www.zeit.de/leserbriefe/archiv/26-maerz-2020-ausgabe-14)
+[23](https://www.sueddeutsche.de/muenchen/filmprojekt-in-der-ledernen-nach-las-vegas-1.4096668)
+[24](https://www.sueddeutsche.de/sonderthemen/bayern/wohnen-wie-die-steppennomaden-205466)
+[25](https://sz-media.sueddeutsche.de/rubriken/downloads/urlaub_im_winter_26012023.pdf)
+[26](https://advise.zeit.de/wp-content/uploads/2022/10/ZT_2022_43_Multi.pdf)
+[27](https://www.faz.net/aktuell/finanzen/die-bank-fuer-nomaden-wird-profitabel-19673545.html)
+[28](https://dynamic.faz.net/download/2021/fazmagazin_202110.pdf)
+[29](https://www.sueddeutsche.de/erfahrungen/die-besten-esim-anbieter-welche-tarife-sich-wirklich-lohnen/)
+[30](https://jungeleute.sueddeutsche.de/tag/mola/page/3/)
+[31](https://www.sueddeutsche.de/erfahrungen/esim/)
+[32](https://jungeleute.sueddeutsche.de/tag/clea-charlotte/)
+
+## Podcasts
+
+### Digitale Nomaden Podcast - DNP
+**Titel:** DNP168 - Vom Konzern ins freie und ortsunabhängige Leben mit einem Community-Business  
+**Host/Gast:** Flo König (Host), Melanie Lismann (Gast)  
+**Plattform:** Apple Podcasts / Spotify  
+**Veröffentlichungsjahr:** 2024  
+**Link:** https://podcasts.apple.com/de/podcast/digitale-nomaden-podcast-dnp/id1612219700[2]
+
+Melanie teilt ihren radikalen Wechsel aus dem Konzernalltag in ein ortsunabhängiges Online-Business mit Community-Fokus, inklusive Herausforderungen und Freiheitsgewinn. Die Folge inspiriert durch authentische Reflexion über Selbstbestimmung, ohne belehrende Tipps.[1][2]
+
+### Alan Frei Podcast
+**Titel:** Janosch Nietlispach - über das Leben als Sportler vs. Unternehmer  
+**Host/Gast:** Alan Frei (Host), Janosch Nietlispach (Gast)  
+**Plattform:** Spotify  
+**Veröffentlichungsjahr:** 2025  
+**Link:** https://open.spotify.com/show/33kJsVWnW5y7ZjbhuRkV8J (ähnliche Episoden via Alan Frei Podcast)[3]
+
+Der Podcast erkundet Minimalismus, Selbstoptimierung und den Übergang zu flexiblem Unternehmertum für mehr Freiräume. Er regt zum Nachdenken über Lebensgestaltung an, da Nietlispach persönliche Trade-offs zwischen Disziplin und Freiheit beleuchtet.[3]
+
+### Office Talks – New Work im Fokus
+**Titel:** New Work, Agiles Mindset & Kitesurfen (Serie zu New Work-Themen)  
+**Host/Gast:** Verschiedene Hosts/Gäste (z. B. Unternehmerinnen zu ortsunabhängigem Leben)  
+**Plattform:** Spotify  
+**Veröffentlichungsjahr:** 2024–2025  
+**Link:** https://open.spotify.com/show/33kJsVWnW5y7ZjbhuRkV8J[4][5]
+
+Episoden porträtieren New Work als Weg zu persönlichen Freiräumen durch agiles Arbeiten und Workation-ähnliche Modelle, mit ehrlichen Einblicken von Unternehmerinnen. Passt zur FYF-Vision durch reflektierte Geschichten über Work-Life-Integration.[4]
+
+[1](https://podcasts.apple.com/de/podcast/digitale-nomaden-podcast-dnp/id1612219700)
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_2c47b24d-f85a-49c6-a588-ca8b8cbc48ba/6529e0f3-6e35-469b-9881-641d04c250ef/Freiheit-Raume.txt)
+[3](https://creators.spotify.com/pod/profile/alan-frei/episodes/Janosch-Nietlispach---ber-das-Leben-als-Sportler-vs--Unternehmer--Bachelor--Smoothies--Alan-Frei-Podcast-e39ld20)
+[4](https://open.spotify.com/show/33kJsVWnW5y7ZjbhuRkV8J)
+[5](https://creators.spotify.com/pod/profile/andrea6468/episodes/New-Work--Agiles-Mindset--Kitesurfen-e1elh1n)
+[6](https://www.citizencircle.de/ortsunabhaengiges-arbeiten/)
+[7](https://www.youtube.com/watch?v=kfJdkEqU8qI)
+[8](https://music.amazon.de/podcasts/a3b4d0fc-5aa2-4204-9332-e533a4943ea6/werde-digitaler-nomade-freiheit-flexibilit%C3%A4t-und-abenteuer)
+[9](https://open.spotify.com/show/1aA2BQT4ke1vcpA1zlZf0k)
+[10](https://www.perspektiveausland.com/digitale-nomaden/wie-digitale-nomaden-die-moderne-arbeitswelt-revolutionieren)
+[11](https://music.amazon.de/podcasts/f821e749-d271-4a3b-b7cb-e5bb0efe81fb/episodes/23bf7750-57d2-4789-becf-93d5b7f19a23/online-business-stories-ortsunabh%C3%A4ngig-arbeiten---das-leben-als-digitaler-nomade)
+[12](https://podcasts.apple.com/ch/podcast/the-minimalists/id1069757084)
+[13](https://www.unaufschiebbar.de/ortsunabhaengig-arbeiten/digitale-nomaden-podcast/)
+[14](https://www.podcast.de/podcast/1626243/archiv)
+[15](https://www.podcast.de/podcast/3096404/vollzeitreisen-leben-als-digitale-nomaden)
+[16](https://www.digitalenomaden.ch/blog/workations-und-die-chance-fuer-den-schweizer-tourismus/)
+[17](https://podcasts.apple.com/us/podcast/work-now-next/id1791050349)
+[18](https://open.spotify.com/show/4GtWJEgIRwNp0jf5FhtF68)
+[19](https://www.citizencircle.de/wlm/)
+[20](https://www.citizencircle.de/wlm/page/6/)
+[21](https://www.podcast.de/podcast/3121039/digitale-nomaden-familien-podcast-reisen-remote-work-mit-kind)
+
+## Video-Formate
+
+Drei qualitativ hochwertige Videoformate ab 2023 beleuchten Freiheit durch ortsunabhängiges Arbeiten und Minimalismus mit realen Beispielen aus digitalen Nomaden-Leben. Sie stammen aus seriösen Kanälen und öffentlich-rechtlichen Medien und inspirieren durch reflektierte Geschichten.[1][2][3]
+
+### Digitale Nomaden Fazit
+**Titel:** Digitale Nomaden seit einem Jahr | Unser Fazit - Teil 1 | Remote (work) Reise  
+**Medium/Kanal:** YouTube (Marina und Arved)  
+**Erscheinungsjahr:** 2024  
+**Link:** https://www.youtube.com/watch?v=Joz-3f5r9bI[1]
+
+Marina und Arved ziehen ein Jahr Remote Work bilanziert, teilen Herausforderungen und Freiheitsgewinne beim mobilen Arbeiten. Das Video passt zur FYF-Vision durch ehrliche Reflexion über Alltag und Entscheidungsfreiheit, ohne Moralpredigt.[1]
+
+### Remote Work Nomaden
+**Titel:** Remote work sparks a surge in "digital nomads" | The Shifting Workplace  
+**Medium/Kanal:** YouTube (CBS News)  
+**Erscheinungsjahr:** 2023  
+**Link:** https://www.youtube.com/watch?v=tx87ZiSnvI0[2]
+
+Der Bericht zeigt ein Tag als digitaler Nomade in Lissabon mit Fokus auf Pandemie-bedingte Freiheit durch Remote Work. Er inspiriert reflektiert über Work-Life-Shift und globale Mobilität, basierend auf realen Erfahrungen.[2]
+
+### Homeoffice auf Reisen
+**Titel:** Homeoffice machen, wo andere im Urlaub sind | 37 Grad  
+**Medium/Kanal:** YouTube (ZDF / 37 Grad)  
+**Erscheinungsjahr:** 2023 (Kontext post-Corona)  
+**Link:** https://www.youtube.com/watch?v=_QU-zLtR50Y[3]
+
+ZDF-Reportage porträtiert Nina und Sohn als Nomaden mit Camper und Online-Jobs, betont Freiheit der Selbstbestimmung. Passt ideal zur FYF-Vision: inspirierend durch persönliche Abenteuer und Lebensentscheidungen.[3]
+
+[1](https://www.youtube.com/watch?v=Joz-3f5r9bI)
+[2](https://www.youtube.com/watch?v=tx87ZiSnvI0)
+[3](https://www.youtube.com/watch?v=_QU-zLtR50Y)
+[4](https://www.youtube.com/watch?v=mCHCGkbv_sU)
+[5](https://www.youtube.com/watch?v=rKXhABYxKFQ)
+[6](https://www.youtube.com/watch?v=kfJdkEqU8qI)
+[7](https://www.youtube.com/watch?v=ICq5xkuOEHI)
+[8](https://www.youtube.com/watch?v=0FQPZQqR3pQ)
+[9](https://www.youtube.com/watch?v=VKBE05ww5nM)
+[10](https://phaidra.fhstp.ac.at/detail/o:4938.pdf)
+[11](https://www.youtube.com/watch?v=t4Pj3QXTBaA)
+[12](https://www.youtube.com/watch?v=Y11_XJ1PJUU)
+[13](https://www.youtube.com/watch?v=5QN1Uo03VPs)
+[14](https://www.youtube.com/watch?v=80e40XfIcKY)
+[15](https://www.youtube.com/watch?v=WLxwRSzEfDs)
+[16](https://www.simon-schnetzer.com/blog)
+[17](https://www.youtube.com/watch?v=G3btviXVhYI)
+[18](https://www.youtube.com/watch?v=XydlCFs2q1U)
+[19](https://www.youtube.com/playlist?list=PLb2ale5qayYnO_8xlH6jk2ZBa2CWnqHgP)
+[20](https://www.youtube.com/watch?v=2ejy-1bD2_4)
+
+### Kuratierte Zitate
+
+- **Zitat:** „Das Abenteuer war zum Alltag geworden.“  
+  **Autor:in:** Anna Scheld  
+  **Quelle:** Reportage, Die Zeit  
+  **Jahr:** 2022  
+  **Kontext:** Digitaler Nomade reflektiert nach Jahren des Reisarbeitens den Verlust von Aufregung.[1]
+
+- **Zitat:** „Die Einsamkeit nagt ein bisschen an ihm.“  
+  **Autor:in:** dpa (Christina Leitner im Artikel)  
+  **Quelle:** Reportage, Süddeutsche Zeitung  
+  **Jahr:** 2022  
+  **Kontext:** Freelancer in der Türkei balanciert Freiheit gegen Isolation im Nomadenleben.[2]
+
+- **Zitat:** „Eigentlich passt mein ganzes Leben in einen Koffer. Man braucht nicht mehr. Alles andere ist überflüssiger Ballast.“  
+  **Autor:in:** Christina Leitner  
+  **Quelle:** Reportage, Süddeutsche Zeitung  
+  **Jahr:** 2022  
+  **Kontext:** Langjährige Nomadin beschreibt Minimalismus als Voraussetzung für Mobilität.[2]
+
+- **Zitat:** „Ultimative Freiheit oder Dauerstress?“  
+  **Autor:in:** SZ-Redaktion  
+  **Quelle:** Essay, Süddeutsche Zeitung  
+  **Jahr:** 2017  
+  **Kontext:** Analyse des Nomadentums als Trend mit ambivalenten Realitäten.[3][4]
+
+- **Zitat:** „Manche saßen weinend vor mir, und ich konnte ihnen nicht helfen.“  
+  **Autor:in:** Tanja Finke  
+  **Quelle:** Reportage, Süddeutsche Zeitung  
+  **Jahr:** 2017  
+  **Kontext:** Ehemalige Personalerin flieht festen Job in nomadisches Arbeiten.[4]
+
+- **Zitat:** "The key to freedom is not making more, it is spending less."  
+  **Autor:in:** Spartan Traveler  
+  **Quelle:** Essay, Backpacking Hacks  
+  **Jahr:** 2025  
+  **Kontext:** Reflexion über Minimalismus als Weg zu weniger Arbeit und mehr Zeit.[5]
+
+- **Zitat:** „Either you run the day, or the day runs you.“  
+  **Autor:in:** Jim Rohn (zitiert in Essay)  
+  **Quelle:** Essay, Backpacking Hacks  
+  **Jahr:** 2025  
+  **Kontext:** Downshifter kontrastiert Zeitkontrolle mit nomadischer Flexibilität.[5]
+
+- **Zitat:** „Digitale Nomaden: Sie nennen es Arbeit.“  
+  **Autor:in:** ZEIT-Redaktion  
+  **Quelle:** Reportage, Die Zeit  
+  **Jahr:** 2016  
+  **Kontext:** Skepsis gegenüber der Romantisierung von Reisen als Beruf.[6]
+
+- **Zitat:** „Darum macht es nicht glücklich, alles hinzuschmeißen und um die Welt zu reisen.“  
+  **Autor:in:** ZEIT-Autorin  
+  **Quelle:** Op-Ed, Die Zeit  
+  **Jahr:** 2017  
+  **Kontext:** Kritik am Nomadenmythos jenseits der Work-Life-Illusion.[7]
+
+- **Zitat:** „Wer viele Schätze hat, kann viel verlieren.“  
+  **Autor:in:** Chinesisches Sprichwort (zitiert in Essay)  
+  **Quelle:** Essay, Backpacking Hacks  
+  **Jahr:** 2025  
+  **Kontext:** Nomadin priorisiert Erlebnisse über Besitz in der Moderne.[5]
+
+[1](https://www.zeit.de/2022/48/digitale-nomaden-arbeit-reisen-stress)
+[2](https://www.sueddeutsche.de/reise/das-buero-im-gepaeck-digitale-nomaden-setzen-trend-fuer-neue-lebensart-dpa.urn-newsml-dpa-com-20090101-221211-99-860551)
+[3](https://www.sueddeutsche.de/wirtschaft/digitale-nomaden-ultimative-freiheit-oder-dauerstress-1.3770276?reduced=true)
+[4](https://www.vhs-erding.de/fileadmin/vhs-erding/download/programmheft/vhs-herbst-winter-24-25-13MB.pdf)
+[5](https://www.backpackinghacks.de/minimalismus-freiheit/)
+[6](https://www.zeit.de/2016/27/digitale-nomaden-arbeiten-reisen)
+[7](https://www.zeit.de/zett/2017-05/darum-macht-es-nicht-gluecklich-alles-hinzuschmeissen-und-um-die-welt-zu-reisen)
+[8](https://www.sueddeutsche.de/magazin/thema/Freiheit)
+[9](https://www.sueddeutsche.de/stil/modernes-nomadentum-leben-to-go-1.2495859)
+[10](https://epub.uni-bayreuth.de/5919/1/Doktorarbeit%20Janssen_Jaana_%20dec2021_Schaffung%20v.%20Gemeinsamkeit.pdf)
+[11](https://www.sueddeutsche.de/magazin/thema/Zeit)
+[12](https://www.pedocs.de/volltexte/2016/11744/pdf/Bd._34_9783830915577.pdf)
+[13](https://www.aroundworld.de/freiheit-ohne-ballast-digitale-nomaden-und-der-reiz-des-minimalismus/)
+[14](https://advise.zeit.de/wp-content/uploads/2022/09/220907-DZ_ZM-Jahresrueckblick-2022_Sonderausgabe.pdf)
+[15](https://kups.ub.uni-koeln.de/79179/1/9783962334154_Bookblock.pdf)
+[16](https://www.einfachbewusst.de/2022/03/empfehlungen-minimalismus-kalender/)
+[17](https://www.sueddeutsche.de/muenchen/muenchen-zitadelle-gegen-zeit-diebe-1.3614899)
+[18](https://edoc.ku.de/id/eprint/29483/1/index/docId/708/file/lars_george_gaentzsch_quantified_self.pdf)
+[19](https://www.reddit.com/r/minimalism/comments/cwbcv3/having_doubts_about_minimalism_as_having_few/?tl=de)
+[20](https://www.ssoar.info/ssoar/bitstream/handle/document/88657/ssoar-2023-habeck_et_al-Ruinen_und_vergessene_Orte_Materialitat.pdf?sequence=1&isAllowed=y&lnkname=ssoar-2023-habeck_et_al-Ruinen_und_vergessene_Orte_Materialitat.pdf)
+[21](https://www.estherloveslife.de/mehr-freiheit-durch-minimalismus-doch-fuer-was-nutzen-wir-diese/)

@@ -71,3 +71,4 @@ LIMIT 5;
 -- WHERE slots_article IS NOT NULL
 -- LIMIT 5;
 
+

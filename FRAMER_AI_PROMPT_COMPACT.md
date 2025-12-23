@@ -69,3 +69,4 @@ Desktop: #2D1B69 background, centered. Mobile: **Sticky bottom bar** (fixed, bot
 **Style:** Urban, provokant, modern. Zeit als wertvolles Gut visualisieren. Kein Corporate-Design.
 
 
+

@@ -1014,6 +1014,11 @@ html, body {
   overflow: auto;
 }
 
+/* Prevent layout shift when scrollbar appears/disappears */
+html {
+  scrollbar-gutter: stable;
+}
+
 .guide-shell {
   cursor: grab;
 }

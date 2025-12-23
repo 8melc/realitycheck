@@ -19,3 +19,4 @@ WHERE nudging_frequency IS NULL;
 
 COMMENT ON COLUMN user_profiles.nudging_frequency IS 'Nudging frequency: minimal (1/day), standard (2-3/day), frequent (3-4/day)';
 
+

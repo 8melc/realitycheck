@@ -24,3 +24,4 @@ create index if not exists idx_user_profiles_public_goal_direction
 
 COMMENT ON COLUMN public.user_profiles.goal_direction IS 'Internal goal direction category for matching users with similar goals';
 
+

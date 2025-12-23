@@ -1,19 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import ProgressBar from './ProgressBar'
 import StepHeader from './StepHeader'
 import IntroStep from './steps/IntroStep'
 import BasicsStep from './steps/BasicsStep'
-import FocusStep from '@/components/onboarding/steps/FocusStep'
-import BioStep from '@/components/onboarding/steps/BioStep'
-import ZeitPhilosophyStep from './steps/ZeitPhilosophyStep'
 import GoalStep from './steps/GoalStep'
-import MusicStep from './steps/MusicStep'
-import LifestyleStep from './steps/LifestyleStep'
-import InterestsStep from './steps/InterestsStep'
-import CompleteStep from './steps/CompleteStep'
+import GuideStyleStep from './steps/GuideStyleStep'
 
 export interface AccessFormData {
   name: string
@@ -21,51 +15,25 @@ export interface AccessFormData {
   birthDate: string
   targetAge: string
   goal: string
-  goals: string[]
   goalDirection?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
-  timePhilosophy: string
-  musicTaste: string
-  lifestyle: string
-  interests: string[]
-  focusTopic: string
-  bio: string
+  answerStyle: 'short' | 'medium' | 'long'
+  guideTone: 'soft' | 'straight' | 'hard'
 }
 
 const steps = [
   {
     id: 'intro',
     navLabel: 'Start',
-    heading: 'Willkommen bei FYF',
+    heading: 'Willkommen bei RealityCheck',
     microcopy: 'Deine Zeit läuft. Entscheide, was zählt.',
     content: 'intro'
   },
   {
     id: 'basics',
-    navLabel: 'Basics',
+    navLabel: 'Identität',
     heading: 'Wer bist du?',
     microcopy: 'Die Basis für dein Profil – kurz, klar, ohne Schnickschnack.',
     content: 'basics'
-  },
-  {
-    id: 'focus',
-    navLabel: 'Fokus',
-    heading: 'Was ist dein Fokus?',
-    microcopy: 'Ein Satz, der beschreibt, was dich aktuell antreibt.',
-    content: 'focus'
-  },
-  {
-    id: 'bio',
-    navLabel: 'Bio',
-    heading: 'Über dich',
-    microcopy: 'Kurzer Steckbrief – max. 280 Zeichen für die People-Liste.',
-    content: 'bio'
-  },
-  {
-    id: 'zeit',
-    navLabel: 'Zeit-Philosophie',
-    heading: 'Wie denkst du über Zeit?',
-    microcopy: 'Deine Haltung zur Zeit prägt jeden Impuls, den wir dir geben.',
-    content: 'zeit'
   },
   {
     id: 'goal',
@@ -75,32 +43,11 @@ const steps = [
     content: 'goal'
   },
   {
-    id: 'musik',
-    navLabel: 'Musik-DNA',
-    heading: 'Was hörst du?',
-    microcopy: 'Was dich bewegt, formt deinen Flow.',
-    content: 'musik'
-  },
-  {
-    id: 'lifestyle',
-    navLabel: 'Lebensstil',
-    heading: 'Wie lebst du?',
-    microcopy: 'Dein Stil. Deine Zeitlogik. Wir justieren den Guide so, dass er in deinem Alltag wirkt.',
-    content: 'lifestyle'
-  },
-  {
-    id: 'interests',
-    navLabel: 'Interessen',
-    heading: 'Was interessiert dich?',
-    microcopy: 'Mehr Klarheit, besserer Feed, weniger Algorithmus.',
-    content: 'interests'
-  },
-  {
-    id: 'complete',
-    navLabel: 'Abschluss',
-    heading: 'Das ist FYF.',
-    microcopy: 'Keine App. Kein Tool. Dein System, um Zeit als Vermögen zu verstehen – und bewusst einzusetzen.',
-    content: 'complete'
+    id: 'guide-style',
+    navLabel: 'Guide-Stil',
+    heading: 'Wie soll dein Guide sein?',
+    microcopy: 'Wähle, wie dein Guide mit dir kommuniziert.',
+    content: 'guide-style'
   }
 ]
 
@@ -113,17 +60,51 @@ export default function AccessOnboarding() {
     birthDate: '',
     targetAge: '',
     goal: '',
-    goals: [],
     goalDirection: null,
-    timePhilosophy: '',
-    musicTaste: '',
-    lifestyle: '',
-    interests: [],
-    focusTopic: '',
-    bio: ''
+    answerStyle: 'medium',
+    guideTone: 'straight'
   })
 
   const step = steps[currentStep]
+
+  // Prefill: Load existing profile data on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const data = await response.json();
+          const profile = data.rawProfile || data.profile;
+          if (profile) {
+            setFormData(prev => ({
+              ...prev,
+              name: profile.display_name || prev.name,
+              birthDate: profile.birth_date || prev.birthDate,
+              targetAge: profile.target_age?.toString() || prev.targetAge,
+              goalDirection: profile.goal_direction || prev.goalDirection,
+              answerStyle: (profile.answer_style as 'short' | 'medium' | 'long') || 'medium',
+              guideTone: profile.guide_tone === 'Soft Touch' ? 'soft' : 
+                         profile.guide_tone === 'Hard Truth' ? 'hard' : 
+                         'straight',
+            }));
+            
+            // Load primary goal if exists
+            if (data.primaryGoalTitle) {
+              setFormData(prev => ({
+                ...prev,
+                goal: data.primaryGoalTitle,
+              }));
+            }
+          }
+        }
+      } catch (error) {
+        // Silently fail - user might not have a profile yet
+        console.log('[Onboarding] No existing profile to prefill');
+      }
+    };
+    
+    loadProfile();
+  }, []);
 
   const updateFormData = (updates: Partial<AccessFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -131,8 +112,8 @@ export default function AccessOnboarding() {
 
   const nextStep = async () => {
     if (validateCurrentStep()) {
-      // Step 9 (interests) ist der letzte Schritt - speichere Profil und leite weiter
-      if (currentStep === 8) { // Step 9 ist Index 8 (0-basiert)
+      // Last step (guide-style) - save profile and redirect
+      if (currentStep === steps.length - 1) {
         try {
           // Save profile to Supabase
           const response = await fetch('/api/profile/onboarding', {
@@ -146,26 +127,34 @@ export default function AccessOnboarding() {
               birthDate: formData.birthDate,
               targetAge: formData.targetAge || '80',
               goal: formData.goal,
-              goals: formData.goals,
               goalDirection: formData.goalDirection,
-              timePhilosophy: formData.timePhilosophy,
-              lifestyle: formData.lifestyle,
-              guidePersonality: formData.timePhilosophy, // Use timePhilosophy as guide personality for now
-              focusTopic: formData.focusTopic,
-              bio: formData.bio,
+              answerStyle: formData.answerStyle,
+              guideTone: formData.guideTone,
             }),
           });
 
           if (!response.ok) {
             const error = await response.json();
-            console.error('Failed to save profile:', error);
-            // Still redirect even if save fails (graceful degradation)
+            console.error('[Onboarding] Failed to save profile:', {
+              status: response.status,
+              statusText: response.statusText,
+              error: error,
+            });
+            
+            // Show user-friendly error message
+            alert(`Fehler beim Speichern: ${error.error || 'Unbekannter Fehler'}\n\nDetails: ${error.details || 'Keine Details verfügbar'}`);
+            
+            // Don't redirect if save fails - let user try again
+            return;
           }
         } catch (error) {
-          console.error('Error saving profile:', error);
-          // Still redirect even if save fails (graceful degradation)
+          console.error('[Onboarding] Error saving profile:', error);
+          alert(`Fehler beim Speichern: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`);
+          // Don't redirect if save fails
+          return;
         }
         
+        // Only redirect if save was successful
         router.push('/user/dashboard')
       } else if (currentStep < steps.length - 1) {
         setCurrentStep(prev => prev + 1)
@@ -182,19 +171,11 @@ export default function AccessOnboarding() {
   const validateCurrentStep = (): boolean => {
     switch (step.id) {
       case 'basics':
-        return !!(formData.name && formData.email && formData.birthDate)
-      case 'focus':
-        return !!formData.focusTopic
-      case 'bio':
-        return !!formData.bio
-      case 'zeit':
-        return !!formData.timePhilosophy
+        return !!(formData.name && formData.email && formData.birthDate && formData.targetAge)
       case 'goal':
-        return !!(formData.goal.trim() || formData.goals.length > 0)
-      case 'lifestyle':
-        return !!formData.lifestyle
-      case 'interests':
-        return formData.interests.length > 0
+        return !!(formData.goal.trim() || formData.goalDirection)
+      case 'guide-style':
+        return !!(formData.answerStyle && formData.guideTone)
       default:
         return true
     }
@@ -206,22 +187,10 @@ export default function AccessOnboarding() {
         return <IntroStep />
       case 'basics':
         return <BasicsStep formData={formData} updateFormData={updateFormData} />
-      case 'focus':
-        return <FocusStep formData={formData} updateFormData={updateFormData} />
-      case 'bio':
-        return <BioStep formData={formData} updateFormData={updateFormData} />
-      case 'zeit':
-        return <ZeitPhilosophyStep formData={formData} updateFormData={updateFormData} />
       case 'goal':
         return <GoalStep formData={formData} updateFormData={updateFormData} />
-      case 'musik':
-        return <MusicStep formData={formData} updateFormData={updateFormData} />
-      case 'lifestyle':
-        return <LifestyleStep formData={formData} updateFormData={updateFormData} />
-      case 'interests':
-        return <InterestsStep formData={formData} updateFormData={updateFormData} />
-      case 'complete':
-        return <CompleteStep formData={formData} />
+      case 'guide-style':
+        return <GuideStyleStep formData={formData} updateFormData={updateFormData} />
       default:
         return null
     }
@@ -231,13 +200,11 @@ export default function AccessOnboarding() {
     <div className="access-container">
       <ProgressBar currentStep={currentStep} totalSteps={steps.length} />
       
-      {step.id !== 'complete' && (
-        <StepHeader 
-          step={step} 
-          formData={formData}
-          showGoalBadge={currentStep >= 3}
-        />
-      )}
+      <StepHeader 
+        step={step} 
+        formData={formData}
+        showGoalBadge={currentStep >= 2}
+      />
 
       <div className="step-container">
         <div className="step-content">
@@ -245,7 +212,7 @@ export default function AccessOnboarding() {
         </div>
       </div>
 
-      {(currentStep < steps.length - 1 || currentStep === 8) && (
+      {currentStep < steps.length && (
         <div className="navigation-buttons">
           {currentStep === 0 ? (
             <button className="nav-button next" onClick={nextStep}>
@@ -261,7 +228,7 @@ export default function AccessOnboarding() {
                 onClick={nextStep}
                 disabled={!validateCurrentStep()}
               >
-                {currentStep === 8 ? 'Abschließen →' : 'Weiter →'}
+                {currentStep === steps.length - 1 ? 'Abschließen →' : 'Weiter →'}
               </button>
             </>
           )}

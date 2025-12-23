@@ -180,3 +180,4 @@
 2. **Tag-System** (`tags`) – Bessere Filterung, ähnlich wie Cluster
 3. **Thumbnail-Images** (`thumbnail_url`) – Visuelle Verbesserung, hoher Impact
 
+

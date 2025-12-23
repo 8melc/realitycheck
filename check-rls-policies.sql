@@ -45,3 +45,4 @@ WHERE tablename = 'feed_interactions'
 -- TO authenticated
 -- WITH CHECK (auth.uid() = user_id);
 
+

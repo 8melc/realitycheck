@@ -18,3 +18,4 @@ COMMENT ON COLUMN user_profiles.avatar_url IS 'URL to uploaded avatar image in S
 COMMENT ON COLUMN user_profiles.avatar_seed IS 'Seed for generated avatars (email or UUID)';
 COMMENT ON COLUMN user_profiles.avatar_style IS 'Style for generated avatars from DiceBear API';
 
+

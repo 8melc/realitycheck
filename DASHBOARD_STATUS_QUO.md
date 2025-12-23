@@ -279,3 +279,4 @@
 2. **guide_logs Tabelle:** Prüfen, ob Tabelle existiert (wird in Code verwendet, aber nicht in Types)
 3. **daily_time_limit_minutes:** Prüfen, ob echte DB-Integration gewünscht ist (aktuell nur Mock)
 
+

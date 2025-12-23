@@ -144,7 +144,17 @@ export default function FeedboardPage() {
           return;
         }
         const data = await response.json();
-        setFeedItems(data.items || []);
+        const items = data.items || [];
+        console.log('[FeedboardPage] Fetched items from API:', items.length);
+        if (items.length > 0) {
+          const themeCounts = items.reduce((acc: Record<string, number>, item: FeedItem) => {
+            acc[item.theme] = (acc[item.theme] || 0) + 1;
+            return acc;
+          }, {});
+          console.log('[FeedboardPage] Theme distribution:', themeCounts);
+          console.log('[FeedboardPage] Sample items:', items.slice(0, 3).map(item => ({ id: item.id, title: item.title, theme: item.theme, format: item.format })));
+        }
+        setFeedItems(items);
       } catch (error) {
         console.error('Error fetching feed items:', error);
         // Fallback to mock data on error
@@ -347,12 +357,30 @@ export default function FeedboardPage() {
       result = Object.values(formatGroups).map(items => items[0]).filter(Boolean);
     }
     
+    // Debug logging
+    console.log('[FeedboardPage] Filtered items:', {
+      activeMode,
+      activeCluster,
+      activeFormat,
+      allItemsCount: allItems.length,
+      standardItemsCount: standardItems.length,
+      modeItemsCount: modeItems.length,
+      sourceItemsCount: sourceItems.length,
+      partnerItemsCount: partnerItems.length,
+      clusterFilteredCount: clusterFiltered.length,
+      itemsWithPartnersCount: itemsWithPartners.length,
+      finalResultCount: result.length,
+      overrideItemsActive: !!overrideItems,
+    });
+    
     return result;
-  }, [overrideItems, modeItems, activeCluster, activeFormat, allItems]);
+  }, [overrideItems, modeItems, activeCluster, activeFormat, allItems, standardItems, activeMode]);
 
   const gridItems: GridItem[] = useMemo(() => {
     const result: GridItem[] = [];
+    console.log('[FeedboardPage] Building gridItems from filteredItems:', filteredItems.length);
     if (!filteredItems.length) {
+      console.warn('[FeedboardPage] No filtered items - empty grid will be shown');
       return result;
     }
 
@@ -743,7 +771,39 @@ export default function FeedboardPage() {
 
           {!gridItems.length && (
             <div className="feedboard-empty">
-              <p>Keine Inhalte für dieses Cluster. Wähl ein anderes Terrain.</p>
+              <div className="feedboard-empty__icon" aria-hidden="true">
+                ◯
+              </div>
+              <h3 className="feedboard-empty__title">
+                {activeCluster 
+                  ? `Keine Inhalte in "${activeCluster}"`
+                  : 'Keine Inhalte gefunden'
+                }
+              </h3>
+              <p className="feedboard-empty__message">
+                {activeCluster
+                  ? 'Dieses Territorium ist gerade leer. Frag den Guide oder wähl ein anderes Terrain.'
+                  : 'Frag den Guide nach spezifischen Inhalten oder wähl ein Territorium aus.'
+                }
+              </p>
+              <div className="feedboard-empty__actions">
+                <button
+                  type="button"
+                  className="feedboard-empty__button feedboard-empty__button--primary"
+                  onClick={() => setIsSidebarOpen(true)}
+                >
+                  Guide fragen
+                </button>
+                {activeCluster && (
+                  <button
+                    type="button"
+                    className="feedboard-empty__button feedboard-empty__button--secondary"
+                    onClick={() => setActiveCluster(null)}
+                  >
+                    Alle Territorien anzeigen
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </section>

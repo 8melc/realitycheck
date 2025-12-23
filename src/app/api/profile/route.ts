@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Get user profile
     // WICHTIG: birth_date kann null sein (nullable in DB)
+    // Select all fields including new ones: music_taste, lifestyle, interests
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('*')
@@ -120,6 +121,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       profile: fullProfile,
       rawProfile: profile,
+      primaryGoalTitle: goalText,
       lifeInWeeks: lifeInWeeksData,
     });
   } catch (error) {

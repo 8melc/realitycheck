@@ -19,3 +19,4 @@ echo "1. Server logs for Supabase errors"
 echo "2. RLS policies in Supabase"
 echo "3. Whether user_profiles table has data"
 
+

@@ -365,7 +365,13 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
       {/* Live Preview */}
       <div className="form-group" style={{ marginBottom: '2rem' }}>
         <label className="form-label">Vorschau</label>
-        <div className="flex items-center gap-4" style={{ marginTop: '1rem' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '1rem', 
+          marginTop: '1rem',
+          flexWrap: 'wrap'
+        }}>
           <UserAvatar
             userId={userId}
             size="lg"
@@ -373,11 +379,17 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
             email={userEmail}
           />
           {avatarType === 'upload' && previewUrl && (
-            <div className="relative">
+            <div style={{ position: 'relative' }}>
               <img
                 src={previewUrl}
                 alt="Avatar Vorschau"
-                className="w-32 h-32 rounded-full border border-rc-mint/60 object-cover"
+                style={{
+                  width: '128px',
+                  height: '128px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(78, 205, 196, 0.6)',
+                  objectFit: 'cover'
+                }}
               />
             </div>
           )}
@@ -387,7 +399,7 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
       {/* Avatar Type Selection */}
       <div className="form-group">
         <label className="form-label">Avatar-Typ</label>
-        <div className="space-y-2" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
           {/* Initials Option */}
           <button
             type="button"
@@ -485,6 +497,12 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
               cursor: 'pointer',
               transition: 'all 0.2s',
               backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              minHeight: '200px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'var(--rc-mint, #00D9FF)';
@@ -508,18 +526,33 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
               style={{ display: 'none' }}
             />
             {previewUrl ? (
-              <div>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                gap: '1rem',
+                width: '100%'
+              }}>
                 <img
                   src={previewUrl}
                   alt="Vorschau"
                   style={{
                     maxWidth: '200px',
                     maxHeight: '200px',
+                    width: 'auto',
+                    height: 'auto',
                     borderRadius: '0.5rem',
-                    marginBottom: '1rem',
+                    objectFit: 'contain',
+                    display: 'block'
                   }}
                 />
-                <div>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  width: '100%'
+                }}>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -529,7 +562,6 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
                       fileInputRef.current!.value = '';
                     }}
                     className="btn btn-secondary"
-                    style={{ marginRight: '0.5rem' }}
                   >
                     Anderes Bild wählen
                   </button>
@@ -549,12 +581,17 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
                 </div>
               </div>
             ) : (
-              <div>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📸</div>
-                <div style={{ color: 'var(--rc-cream, #f3efe8)', marginBottom: '0.5rem' }}>
+                <div style={{ color: 'var(--rc-cream, #f3efe8)', marginBottom: '0.5rem', textAlign: 'center' }}>
                   Klicke hier oder ziehe ein Bild hierher
                 </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)', textAlign: 'center' }}>
                   JPG, PNG oder WEBP, max. 2MB
                 </div>
               </div>
@@ -573,6 +610,8 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
               gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
               gap: '0.75rem',
               marginTop: '1rem',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             {AVATAR_STYLES.map((style) => (
@@ -592,7 +631,13 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
                   textAlign: 'center',
                   color: 'var(--rc-cream, #f3efe8)',
                   minHeight: '120px',
-                  opacity: saving || uploading ? 0.6 : 1
+                  opacity: saving || uploading ? 0.6 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 <img
@@ -603,6 +648,8 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
                     height: '60px',
                     marginBottom: '0.5rem',
                     borderRadius: '50%',
+                    display: 'block',
+                    margin: '0 auto 0.5rem auto'
                   }}
                 />
                 <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem' }}>{style.label}</div>

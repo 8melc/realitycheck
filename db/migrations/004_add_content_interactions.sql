@@ -29,3 +29,4 @@ COMMENT ON COLUMN content_interactions.content_id IS 'Reference to content item 
 COMMENT ON COLUMN content_interactions.interaction_type IS 'Type of interaction: like, dislike, pin, completed, skip';
 
 
+

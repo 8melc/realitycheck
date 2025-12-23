@@ -2,8 +2,14 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
-import { applySlotGuard, buildFYFPrompt, GuidePromptContext, GuideRecommendation, logGuideTurn, detectClusterFromIntent } from '@/lib/guidePrompt';
+import { applySlotGuard, buildFYFPrompt, GuidePromptContext, GuideRecommendation, logGuideTurn, detectClusterFromIntent, computeContentEligibility, getGlobalBestMatchRecommendation, isInFocusWindow } from '@/lib/guidePrompt';
 import { fetchCodex } from '@/lib/codexAdapter';
+import type { Database } from '@/lib/types/database.types';
+
+type GuideConversation = Database['public']['Tables']['guide_conversations']['Row'];
+type GuideSession = Database['public']['Tables']['guide_sessions']['Row'];
+type GuideConversationInsert = Database['public']['Tables']['guide_conversations']['Insert'];
+type GuideSessionInsert = Database['public']['Tables']['guide_sessions']['Insert'];
 
 export type GuideChatRequest = {
   message: string;
@@ -29,6 +35,29 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
+/**
+ * POST /api/guide/chat
+ * 
+ * Guide chat endpoint with user profile context.
+ * 
+ * OWNERSHIP: This API reads specific profile fields needed for Guide functionality.
+ * 
+ * Fields read from user_profiles:
+ * - display_name (for personalization)
+ * - focus_topic (for context)
+ * - bio (for context)
+ * - slots_article, slots_podcast, slots_quote (for content slot management)
+ * - answer_style (for response length)
+ * - guide_tone (for response tone)
+ * - focus_window (for time-based recommendations)
+ * - nudging_frequency (for nudging behavior)
+ * 
+ * Plus from user_goals (join): title (as primary_goal)
+ * 
+ * This API does NOT read birth_date, target_age, is_public (not needed for Guide).
+ * 
+ * See FIELD_MATRIX.md and API_OWNERSHIP.md for complete field ownership rules.
+ */
 export async function POST(req: NextRequest) {
   try {
     const { message, sessionId } = await req.json() as {
@@ -60,6 +89,7 @@ export async function POST(req: NextRequest) {
       answer_style: 'short' | 'medium' | 'long' | null;
       guide_tone: 'Soft Touch' | 'Straight' | 'Hard Truth' | null;
       focus_window: 'morning' | 'afternoon' | 'evening' | 'late_night' | null;
+      nudging_frequency: 'minimal' | 'standard' | 'frequent' | null;
     };
 
     type UserGoal = {
@@ -74,14 +104,14 @@ export async function POST(req: NextRequest) {
     if (!sessionId) {
       // Neue Session erstellen
       console.log('[Guide Chat] Creating new session for user:', user.id);
-      const { data: session, error: sessionError } = await supabase
+      const { data: session, error: sessionError } = await (supabase
         .from('guide_sessions')
         .insert({
           user_id: user.id,
           title: message.slice(0, 80), // Erste 80 Zeichen als Titel
-        })
+        } as any)
         .select('id')
-        .single();
+        .single()) as { data: { id: string } | null; error: any };
 
       if (sessionError || !session) {
         console.error('[Guide Chat] ERROR creating session:', {
@@ -101,12 +131,12 @@ export async function POST(req: NextRequest) {
       console.log('[Guide Chat] Checking existing session:', sessionId);
       
       // WICHTIG: Prüfe zuerst, ob die Session überhaupt existiert
-      const { data: existingSession, error: sessionCheckError } = await supabase
+      const { data: existingSession, error: sessionCheckError } = await (supabase
         .from('guide_sessions')
         .select('id, user_id')
         .eq('id', sessionId)
         .eq('user_id', user.id)
-        .single();
+        .single()) as { data: { id: string; user_id: string } | null; error: any };
 
       if (sessionCheckError || !existingSession) {
         // Session existiert nicht → neue Session erstellen
@@ -115,14 +145,14 @@ export async function POST(req: NextRequest) {
           error: sessionCheckError
         });
         
-        const { data: newSession, error: newSessionError } = await supabase
+        const { data: newSession, error: newSessionError } = await (supabase
           .from('guide_sessions')
           .insert({
             user_id: user.id,
             title: message.slice(0, 80),
-          })
+          } as any)
           .select('id')
-          .single();
+          .single()) as { data: { id: string } | null; error: any };
 
         if (newSessionError || !newSession) {
           console.error('[Guide Chat] ERROR creating fallback session:', {
@@ -160,8 +190,9 @@ export async function POST(req: NextRequest) {
         }
 
         // Session updated_at aktualisieren
-        const { error: updateError } = await supabase
-          .from('guide_sessions')
+        // @ts-ignore - Supabase type inference issue with guide_sessions table
+        const { error: updateError } = await (supabase
+          .from('guide_sessions') as any)
           .update({ updated_at: new Date().toISOString() })
           .eq('id', sessionId)
           .eq('user_id', user.id);
@@ -184,7 +215,8 @@ export async function POST(req: NextRequest) {
       .select('role, message, created_at')
       .eq('user_id', user.id)
       .eq('session_id', activeSessionId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .returns<Pick<GuideConversation, 'role' | 'message' | 'created_at'>[]>();
 
     if (convError) {
       console.error('[Guide Chat] Error loading conversation history:', convError);
@@ -216,12 +248,31 @@ export async function POST(req: NextRequest) {
     // User-Turn-Count nur aus aktueller Session
     const userTurnCountInSession = messagesForContext.filter((m) => m.role === 'user').length;
 
+    // Load user profile for Guide context
+    // EXPLICIT select list - only fields needed for Guide functionality (see FIELD_MATRIX.md)
+    // This API reads private + public fields needed for Guide responses:
+    // - display_name, focus_topic, bio (for personalization)
+    // - slots_article, slots_podcast, slots_quote (for content recommendations)
+    // - answer_style, guide_tone, focus_window, nudging_frequency (for Guide behavior)
     if (user) {
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
-        .select('display_name, focus_topic, bio, slots_article, slots_podcast, slots_quote, answer_style, guide_tone, focus_window')
+        .select('display_name, focus_topic, bio, slots_article, slots_podcast, slots_quote, answer_style, guide_tone, focus_window, nudging_frequency')
         .eq('user_id', user.id)
         .maybeSingle<UserProfile>();
+      
+      if (profileError) {
+        console.error('[Guide Chat] Error loading profile:', profileError);
+      }
+      
+      console.log('[Guide Chat] Profile data from DB:', {
+        hasProfile: !!profileData,
+        answer_style: profileData?.answer_style,
+        guide_tone: profileData?.guide_tone,
+        focus_window: profileData?.focus_window,
+        nudging_frequency: profileData?.nudging_frequency,
+      });
+      
       profile = profileData ?? null;
 
       const { data: goalData } = await supabase
@@ -254,142 +305,121 @@ export async function POST(req: NextRequest) {
       allowedFormats.push('Zitat', 'quote', 'Quote');
     }
 
-    // Empfehlungen holen - nur veröffentlichte Items
-    type ContentItemRow = {
-      id: string;
-      title: string;
-      cluster: string | null;
-      format: string | null;
-      url: string | null;
-      read_time_minutes: number | null;
-      subtitle: string | null;
-      transparency_reason: string | null;
+    // A) Eligibility berechnen (vor Content Query)
+    const suggestAfterMessages = 3;
+    const userTurnsInSession = userTurnCountInSession;
+    const hasSlots = slots.article > 0 || slots.podcast > 0 || slots.quote > 0;
+    // falls es ein User-Setting gibt, hier rein:
+    const noContentUserSetting = false;
+
+    // Load settings early for focus window check
+    const answerStyle = profile?.answer_style || 'medium';
+    const guideTone = profile?.guide_tone || 'Straight';
+    const focusWindow = profile?.focus_window || 'evening';
+    const nudgingFrequency = profile?.nudging_frequency || 'standard';
+
+    // Mapping: DB values (English) → German labels for prompt
+    const mapAnswerStyleToGerman = (style: 'short' | 'medium' | 'long'): 'Kurz' | 'Medium' | 'Ausführlich' => {
+      const map: Record<'short' | 'medium' | 'long', 'Kurz' | 'Medium' | 'Ausführlich'> = {
+        short: 'Kurz',
+        medium: 'Medium',
+        long: 'Ausführlich',
+      };
+      return map[style];
     };
 
-    // Erkenne Cluster aus User-Intent
+    const mapFocusWindowToGerman = (window: 'morning' | 'afternoon' | 'evening' | 'late_night'): 'Morgen' | 'Nachmittag' | 'Abend' | 'Spät' => {
+      const map: Record<'morning' | 'afternoon' | 'evening' | 'late_night', 'Morgen' | 'Nachmittag' | 'Abend' | 'Spät'> = {
+        morning: 'Morgen',
+        afternoon: 'Nachmittag',
+        evening: 'Abend',
+        late_night: 'Spät',
+      };
+      return map[window];
+    };
+
+    const mapNudgingFrequencyToGerman = (freq: 'minimal' | 'standard' | 'frequent'): 'Minimal' | 'Standard' | 'Häufig' => {
+      const map: Record<'minimal' | 'standard' | 'frequent', 'Minimal' | 'Standard' | 'Häufig'> = {
+        minimal: 'Minimal',
+        standard: 'Standard',
+        frequent: 'Häufig',
+      };
+      return map[freq];
+    };
+
+    const answerLength = mapAnswerStyleToGerman(answerStyle);
+    const focusTime = mapFocusWindowToGerman(focusWindow);
+    const nudgingFrequencyGerman = mapNudgingFrequencyToGerman(nudgingFrequency);
+
+    const eligibility = computeContentEligibility({
+      message,
+      userTurnsInSession,
+      suggestAfterMessages,
+      hasSlots,
+      noContentUserSetting,
+    });
+
+    // Check focus window and combine with eligibility
+    const inFocusWindow = isInFocusWindow(new Date(), focusTime);
+    // Content is only eligible if both eligibility check AND focus window check pass
+    const contentEligible = eligibility.eligible && inFocusWindow;
+
+    console.log('[Guide Chat] Content eligibility:', {
+      eligible: contentEligible,
+      eligibilityCheck: eligibility.eligible,
+      inFocusWindow,
+      focusTime,
+      reason: eligibility.reason,
+      explicitAsk: eligibility.explicitAsk,
+      stuckSignal: eligibility.stuckSignal,
+      userTurns: userTurnsInSession,
+    });
+
+    // Erkenne Cluster aus User-Intent (immer, auch wenn nicht eligible, für Response)
     const detectedCluster = detectClusterFromIntent(message);
     console.log('[Guide Chat] Detected cluster from intent:', detectedCluster || 'none');
 
-    // FYF Architektur: Nur 1 Item für den Chat (selected_item)
-    // Die AI wählt das beste Item aus, daher reicht 1 Item aus der DB
-    const itemLimit = detectedCluster ? 1 : 1;
-
+    // B) Nur dann 1 Item holen (global best match)
     let recommendations: GuideRecommendation[] = [];
-    if (allowedFormats.length > 0) {
-      console.log('[Guide Chat] Fetching items with formats:', allowedFormats);
-      
-      let query = supabase
-        .from('content_items')
-        .select('id, title, cluster, format, url, read_time_minutes, subtitle, transparency_reason')
-        .eq('is_published', true)
-        .in('format', allowedFormats);
-      
-      // Filter nach Cluster, wenn erkannt
-      if (detectedCluster) {
-        query = query.eq('cluster', detectedCluster);
-        console.log(`[Guide Chat] Filtering by cluster: ${detectedCluster} (limit: ${itemLimit})`);
-      }
-      
-      const { data, error: itemsError } = await query
-        .order('created_at', { ascending: false })
-        .limit(itemLimit)
-        .returns<ContentItemRow[]>();
-      
-      if (itemsError) {
-        console.error('[Guide Chat] Error fetching content items:', itemsError);
+
+    if (contentEligible && allowedFormats.length > 0) {
+
+      const best = await getGlobalBestMatchRecommendation({
+        supabase,
+        message,
+        detectedCluster,
+        allowedFormats,
+        explicitAsk: eligibility.explicitAsk,
+        limitCandidates: 30,
+      });
+
+      if (best) {
+        recommendations = [best];
+        console.log('[Guide Chat] Global best match found:', {
+          id: best.id,
+          title: best.title,
+          format: best.format,
+          cluster: best.cluster,
+        });
       } else {
-        console.log(`[Guide Chat] Found ${data?.length || 0} items:`, data?.map(r => ({ id: r.id, title: r.title, format: r.format })));
-      }
-      
-      recommendations =
-        (data || []).map((r) => {
-          // Fallback: Wenn kein transparency_reason, generiere minimalen Text
-          const fallbackWhy = r.cluster 
-            ? (detectedCluster ? `Cluster ${r.cluster} (erkannt aus deiner Nachricht).` : `Cluster ${r.cluster}.`)
-            : (r.subtitle || null);
-          
-          return {
-            id: String(r.id),
-            title: r.title,
-            format: r.format || 'Artikel',
-            cluster: r.cluster,
-            read_time_minutes: r.read_time_minutes,
-            url: r.url,
-            subtitle: r.subtitle,
-            why: r.transparency_reason || fallbackWhy,
-          };
-        }) || [];
-      
-      // Fallback: Wenn keine Items mit Cluster-Filter gefunden, versuche ohne Cluster-Filter
-      if (recommendations.length === 0 && detectedCluster && allowedFormats.length > 0) {
-        console.log('[Guide Chat] No items found with cluster filter, trying without cluster filter...');
-        const { data: fallbackData } = await supabase
-          .from('content_items')
-          .select('id, title, cluster, format, url, read_time_minutes, subtitle, transparency_reason')
-          .eq('is_published', true)
-          .in('format', allowedFormats)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .returns<ContentItemRow[]>();
-        
-        if (fallbackData && fallbackData.length > 0) {
-          console.log(`[Guide Chat] Fallback found ${fallbackData.length} items`);
-          recommendations = fallbackData.map((r) => {
-            const fallbackWhy = r.cluster ? `Cluster ${r.cluster}.` : (r.subtitle || null);
-            return {
-              id: String(r.id),
-              title: r.title,
-              format: r.format || 'Artikel',
-              cluster: r.cluster,
-              read_time_minutes: r.read_time_minutes,
-              url: r.url,
-              subtitle: r.subtitle,
-              why: r.transparency_reason || fallbackWhy,
-            };
-          });
-        }
-      }
-      
-      // Finaler Fallback: Wenn immer noch keine Items, versuche ohne Format-Filter
-      if (recommendations.length === 0 && allowedFormats.length > 0) {
-        console.log('[Guide Chat] No items found, trying without format filter...');
-        const { data: finalFallbackData } = await supabase
-          .from('content_items')
-          .select('id, title, cluster, format, url, read_time_minutes, subtitle, transparency_reason')
-          .eq('is_published', true)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .returns<ContentItemRow[]>();
-        
-        if (finalFallbackData && finalFallbackData.length > 0) {
-          console.log(`[Guide Chat] Final fallback found ${finalFallbackData.length} items`);
-          recommendations = finalFallbackData.map((r) => {
-            const fallbackWhy = r.cluster ? `Cluster ${r.cluster}.` : (r.subtitle || null);
-            return {
-              id: String(r.id),
-              title: r.title,
-              format: r.format || 'Artikel',
-              cluster: r.cluster,
-              read_time_minutes: r.read_time_minutes,
-              url: r.url,
-              subtitle: r.subtitle,
-              why: r.transparency_reason || fallbackWhy,
-            };
-          });
-        }
+        console.log('[Guide Chat] No matching item found (score too low or no items)');
       }
     } else {
-      console.log('[Guide Chat] No allowed formats - skipping item fetch (all slots are 0)');
+      if (!contentEligible) {
+        console.log('[Guide Chat] Content not eligible - skipping item fetch');
+      } else if (allowedFormats.length === 0) {
+        console.log('[Guide Chat] No allowed formats - skipping item fetch (all slots are 0)');
+      }
     }
 
-    // Build prompt context
-    const answerStyle = profile?.answer_style || 'medium';
-    const guideTone = profile?.guide_tone || 'Straight';
-
+    // C) PromptContext so setzen, dass Inventory wirklich "AUS" ist wenn nicht eligible
     const promptContext: GuidePromptContext & {
       state: GuidePromptContext['state'] & {
         suggestAfterMessages?: number;
         userTurnCountInSession?: number;
+        answerLength?: string;
+        focusTime?: string;
+        nudgingFrequency?: string;
       };
     } = {
       profile: {
@@ -415,19 +445,22 @@ export async function POST(req: NextRequest) {
         percentageLived: null,
       },
       lastMessages,
-      recommendations,
+      recommendations, // ist [] wenn nicht eligible oder kein Match
       state: {
-        no_content: false,
+        no_content: !contentEligible || recommendations.length === 0, // Wichtig: true wenn nicht eligible ODER kein Match
         tone: guideTone,
         avoidClusters: [],
         preferFormats: [],
         guardMessage: undefined,
-        suggestAfterMessages: 3,
-        userTurnCountInSession: userTurnCountInSession,
+        suggestAfterMessages,
+        userTurnCountInSession: userTurnsInSession,
+        answerLength,
+        focusTime,
+        nudgingFrequency: nudgingFrequencyGerman,
       },
     };
 
-    // Guard against zero slots or explicit no-content flag
+    // Guard against zero slots or explicit no-content flag (zusätzliche Sicherheit)
     const guard = applySlotGuard(promptContext);
     if (guard.override) {
       promptContext.state = {
@@ -445,21 +478,39 @@ export async function POST(req: NextRequest) {
       codexText,
     });
 
-    // Antwortlänge aus Profil bestimmen
+    // Antwortlänge aus Profil bestimmen (stärkere Differenzierung)
     const maxTokensByStyle: Record<'short' | 'medium' | 'long', number> = {
-      short: 250,
+      short: 150,  // Deutlich niedriger für wirklich kurze Antworten
       medium: 450,
-      long: 800,
+      long: 1000,  // Höher für ausführliche Antworten
     };
 
     const maxTokens = maxTokensByStyle[answerStyle];
 
+    // Logging: Guide Settings (erweitert für Debugging)
+    console.log('[Guide Settings]', {
+      tone: guideTone,
+      toneFromProfile: profile?.guide_tone,
+      answerLength,
+      answerStyleFromProfile: profile?.answer_style,
+      nudgingFrequency: nudgingFrequencyGerman,
+      focusTime,
+      inFocusWindow,
+      contentEligible,
+      max_output_tokens: maxTokens,
+      promptContextState: {
+        tone: promptContext.state.tone,
+        answerLength: promptContext.state.answerLength,
+        focusTime: promptContext.state.focusTime,
+      },
+    });
+
     // OpenAI Messages mit optionaler Summary
     const openAiMessages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: fyfPrompt.system },
-      ...(summaryMessage ? [{ role: 'assistant', content: summaryMessage }] : []),
+      ...(summaryMessage ? [{ role: 'assistant' as const, content: summaryMessage }] : []),
       ...fyfPrompt.history,
-      { role: 'user', content: message },
+      { role: 'user' as const, content: message },
     ];
 
     const completion = await openai.chat.completions.create({
@@ -517,7 +568,7 @@ export async function POST(req: NextRequest) {
           msg: string,
           isRetry = false
         ): Promise<{ success: boolean; messageId?: string }> => {
-          const { data: msgData, error: msgError } = await supabase
+          const { data: msgData, error: msgError } = await (supabase
             .from('guide_conversations')
             .insert({
               user_id: user.id,
@@ -525,9 +576,9 @@ export async function POST(req: NextRequest) {
               role,
               message: msg,
               created_at: now,
-            })
+            } as any)
             .select('id')
-            .single();
+            .single()) as { data: { id: string } | null; error: any };
 
           if (msgError) {
             // Check if it's a foreign key violation (23503)
@@ -546,14 +597,14 @@ export async function POST(req: NextRequest) {
                 console.warn('[Guide Chat] Session does not exist, creating new session as fallback...');
                 
                 // Create new session
-                const { data: newSession, error: newSessionError } = await supabase
+                const { data: newSession, error: newSessionError } = await (supabase
                   .from('guide_sessions')
                   .insert({
                     user_id: user.id,
                     title: message.slice(0, 80),
-                  })
+                  } as any)
                   .select('id')
-                  .single();
+                  .single()) as { data: { id: string } | null; error: any };
 
                 if (newSessionError || !newSession) {
                   console.error('[Guide Chat] ERROR: Could not create fallback session:', newSessionError);
@@ -562,7 +613,7 @@ export async function POST(req: NextRequest) {
 
                 // Retry with new session ID
                 console.log('[Guide Chat] Retrying message save with new session:', newSession.id);
-                const { data: retryData, error: retryError } = await supabase
+                const { data: retryData, error: retryError } = await (supabase
                   .from('guide_conversations')
                   .insert({
                     user_id: user.id,
@@ -570,9 +621,9 @@ export async function POST(req: NextRequest) {
                     role,
                     message: msg,
                     created_at: now,
-                  })
+                  } as any)
                   .select('id')
-                  .single();
+                  .single()) as { data: { id: string } | null; error: any };
 
                 if (retryError) {
                   console.error(`[Guide Chat] ERROR saving ${role} message (retry):`, {

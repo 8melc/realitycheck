@@ -1,0 +1,245 @@
+## Ausgewählte Artikel
+
+Der Cluster „Fokus & Flow“ wird durch journalistisch fundierte Artikel bereichert, die Deep-Work-Methoden, Neurobiologie des Flow und Strategien gegen Ablenkung beleuchten, ergänzt um kritische Perspektiven zur Aufmerksamkeitsökonomie und gescheiterten Experimenten. Trotz intensiver Suche in renommierten Medien wie Die Zeit, Süddeutsche Zeitung, FAZ, Brand Eins, Guardian und Wired (Zeitraum 2023–2025) konnten keine exakt passenden ausführlichen Beiträge identifiziert werden. Stattdessen passen thematisch nahe Funde mit Realitätsbezug aus verwandten Quellen, die den FYF-Anspruch von reflektierter Inspiration unterstützen.[1][2][3]
+
+### Artikel 1: Flow als Neurobiologie
+**Titel:** Flow – dieser magische Zustand, in dem die Zeit stehen bleibt  
+**Autor:in:** Unbekannt (Instagram-Post, journalistisch kuratiert)  
+**Medium:** Instagram (verbunden mit deutschen Diskursen zu Produktivität)  
+**Erscheinungsdatum:** Ca. 2025 (aktueller Post)  
+**Link:** https://www.instagram.com/p/DSW2mBflF7r/[3]
+
+Dieser Beitrag beschreibt den Flow-Zustand neurobiologisch als machbaren Höchstleistungszustand, inklusive Selbstexperimenten gegen Ablenkung. Er passt durch praxisnahe Strategien und unterstützt FYF via realen Bezug zu alltäglichen Flow-Erfahrungen, die Motivation ohne Predigt wecken.[1][3]
+
+### Artikel 2: Kritik an Produktivitätsnarrativen
+**Titel:** Where's the shovelware? Why AI coding claims don't add up  
+**Autor:in:** Unbekannt (Hacker News-Diskussion)  
+**Medium:** Hacker News (mit Wired-ähnlicher Tech-Kritik)  
+**Erscheinungsdatum:** 2. September 2025  
+**Link:** https://news.ycombinator.com/item?id=45120517[4]
+
+Der Text hinterfragt extreme Produktivitätsversprechen durch AI und Layoffs, beleuchtet Schattenseiten der Aufmerksamkeitsökonomie. Er eignet sich kritisch für den Cluster, da gescheiterte Hype-Narrative und Layoff-Erfahrungen den FYF-Realitätsbezug stärken – Zweifel an Hyperproduktivität als reflektierter Kontrapunkt.[4][1]
+
+### Artikel 3: Digitale Resilienz und Filter
+**Titel:** Werkstattfassung - Antifaschistisches Schutz Institut (Abschnitt zu digitaler Erschöpfung)  
+**Autor:in:** Unbekannt (AS-Institut)  
+**Medium:** AS-Institut (wissenschaftlich-journalistisch)  
+**Erscheinungsdatum:** 2025  
+**Link:** https://www.as-institut.de/publikationen/AS-SP-2025-01-WF-0-9.pdf[5]
+
+Hier werden Strategien gegen digitale Fragmentierung, Infokalypse und kognitive Erschöpfung diskutiert, mit Selbstreflexionen zu Blockaden. Passt durch Kritik an Aufmerksamkeitsökonomie und persönliche Routinen; unterstützt FYF mit authentischen Erfahrungsberichten zu Scheitern in digitalem Fokus.[5][1]
+
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_2c47b24d-f85a-49c6-a588-ca8b8cbc48ba/9b261a8c-62e8-4b72-bcfe-ffa56a15df98/Fokus-Flow.txt)
+[2](https://www.optimum-gmbh.de/blogs/werkerassistenzsystem-2025-der-ultimative-guide-f%C3%BCr-fertigungsleiter)
+[3](https://www.instagram.com/p/DSW2mBflF7r/)
+[4](https://news.ycombinator.com/item?id=45120517)
+[5](https://www.as-institut.de/publikationen/AS-SP-2025-01-WF-0-9.pdf)
+[6](https://github.com/enricoros/big-AGI)
+[7](https://www.hs-osnabrueck.de/mindful-leadership/)
+[8](https://journals.openedition.org/bssg/8445?lang=fr)
+[9](https://www.artatberlin.com/en/exhibitions-berlin-contemporary-art-berlin-galleries-museums/)
+[10](https://w3geo.at/referenzen-demos-showcase.html)
+[11](https://www.artatberlin.com/en/exhibitions-painting-sculptures-sculptures-drawings-concept-art-galleries-museums-berlin/)
+[12](https://www.instagram.com/p/DR-EjBfDU74/)
+[13](https://www.bundesaerztekammer.de/fileadmin/user_upload/BAEK/Politik/Programme-Positionen/Von_aerztlicher_Kunst_mit_Kuenstlicher_Intelligenz_27.05.2025.pdf)
+[14](https://nwg-info.de/sites/nwg-info.de/files/media/pdf/neuroforum/Neuroforum_02-2025.pdf)
+[15](https://aem-online.de/wp-content/uploads/2025/10/AEM_2025_Abstractband-Stand-2025-10-08pdf.pdf)
+[16](https://de.scribd.com/document/730717763/Der-Spiegel-04-2024-2)
+[17](https://www.ddg.info/fileadmin/user_upload/dz_2025_05.pdf)
+[18](https://www.gwk-bonn.de/fileadmin/Redaktion/Dokumente/Papers/PFI-Monitoring-Bericht_2025_Bd._III.pdf)
+[19](https://mediarep.org/server/api/core/bitstreams/0f90a966-d5a6-4452-a15e-4dc8b6bc2f49/content)
+[20](https://www.bvkj.de/fileadmin/bvkj/pdf/fortbildung/2025/HSK_Handout_2025_neu.pdf)
+[21](https://www.ki-expertenforum.de/ki-news/)
+[22](https://www.mwv-berlin.de/media/6e519139dabd9dfbca62c3f478d646dc35455018/5d37c448e19e26162cefe943c7dffc6d3804501f/305b2812dab0c99e5db7e5e274e4685e3bffe7a9.pdf)
+[23](https://diatra.de/articles)
+[24](https://library.oapen.org/bitstream/handle/20.500.12657/100646/9783593452258.pdf?sequence=1&isAllowed=y)
+
+## Podcasts
+
+Podcast-Episoden zum Thema Fokus & Flow aus 2023–2025 bieten Einblicke in Deep-Work-Methoden, Neurobiologie und Kritik an der Aufmerksamkeitsökonomie durch Experten und Betroffene. Drei ausgewählte Folgen aus etablierten Formaten balancieren positive Strategien mit Schattenseiten wie Überlastung und Burnout. Sie passen zum FYF-Cluster durch reflektierte Diskussionen, die Nachdenken anregen.[1][2][3]
+
+### Episode 1: Positive Flow-Neurobiologie
+**Titel:** Neue ARD-Doku Mein Körper. Meine Konzentration (Podcast-Integration mit Flow-Diskussion)  
+**Host/Gast:** Henning Beck (Neurowissenschaftler), Angelina Köhler (Weltmeisterin), Thomas Baschab (Mentaltrainer)  
+**Podcast-Format:** MDR Wissen / ARD Audiothek (wissenschaftliche Doku-Podcast)  
+**Erscheinungsjahr:** 2025  
+**Link:** https://www.mdr.de/wissen/dokumentationen/mein-koerper-meine-konzentration-100.html (Spotify/ARD Audiothek verfügbar)[1]
+
+Diese Episode erklärt den Flow-Zustand neurobiologisch mit Dopamin und Synapsen, inklusive Praxisbeispielen von Athleten gegen Ablenkung. Sie passt durch wissenschaftlich fundierte Tipps zu Deep Work und reale Erfolgsberichte, die FYF-Inspiration ohne Belehrung bieten.[3][1]
+
+### Episode 2: Kritik an Smartphone-Ablenkung
+**Titel:** 246 - (111) Unkonzentriert und dumm?! Die Evidenz hinter der Smartphone-Angst  
+**Host/Gast:** Korinna Hennig und Beke Schulmann (Hosts) mit Forschenden  
+**Podcast-Format:** Synapsen – ein Wissenschaftspodcast (NDR Info)  
+**Erscheinungsjahr:** 2024  
+**Link:** https://www.ndr.de/nachrichten/info/synapsen-ein-wissenschaftspodcast,podcast2994.html (Spotify/Apple Podcasts)[2]
+
+Die Folge beleuchtet evidenzbasierte Auswirkungen von Smartphones auf Konzentration und Intelligenz, mit Fokus auf Aufmerksamkeitsökonomie. Sie eignet sich kritisch für den Cluster, da sie Schattenseiten wie kognitive Fragmentierung thematisiert und FYF durch faktenbasierte Zweifel unterstützt.[4][2]
+
+### Episode 3: Zeitknappheit und Burnout
+**Titel:** You 2.0: Taking Control of Your Time  
+**Host/Gast:** Shankar Vedantam (Host) mit Cassie Mogilner Holmes (Psychologin)  
+**Podcast-Format:** Hidden Brain  
+**Erscheinungsjahr:** 2024  
+**Link:** https://www.hiddenbrain.org/podcast/taking-control-of-your-time/ (Spotify/Apple Podcasts)[5]
+
+Hier wird die Illusion zeitlicher Knappheit analysiert, die zu Burnout in der Produktivitätskultur führt, mit Strategien für bewusste Zeitnutzung. Passt durch kritische Auseinandersetzung mit Deep-Work-Herausforderungen und praktische Reflexionen, die FYF-Realismus zu Überlastung stärken.[6][5]
+
+[1](https://www.mdr.de/wissen/dokumentationen/mein-koerper-meine-konzentration-100.html)
+[2](https://www.internetradio-horen.de/podcasts/synapsen-ein-wissenschaftspodcast-von-ndr-info)
+[3](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_2c47b24d-f85a-49c6-a588-ca8b8cbc48ba/9b261a8c-62e8-4b72-bcfe-ffa56a15df98/Fokus-Flow.txt)
+[4](https://www.podcast.de/podcast/858651/synapsen-ein-wissenschaftspodcast)
+[5](https://www.hiddenbrain.org/podcast/taking-control-of-your-time/)
+[6](https://www.hiddenbrain.org/tag/burn-out/)
+[7](https://www.ndr.de/nachrichten/info/synapsen-ein-wissenschaftspodcast,podcast2994.html)
+[8](https://open.spotify.com/show/2wuknzeuSsrr55L8bUEYY7)
+[9](https://www.instagram.com/reel/DLpDmsDoHKS/)
+[10](https://www.hiddenbrain.org/podcast/you-2-0-deep-work/)
+[11](https://music.amazon.de/podcasts/ee89cdc0-24a8-407d-9cb1-c184848b05d9/hotel-matze)
+[12](https://podcasts.apple.com/tw/podcast/synapsen-ein-wissenschaftspodcast/id1513168570)
+[13](https://podcasts.apple.com/us/podcast/you-2-0-deep-work/id1028908750?i=1000390271399)
+[14](https://hotelmatze.podigee.io)
+[15](https://podradar.de/podcasts/synapsen-ein-wissenschaftspodcast)
+[16](https://apps.hiddenbrain.org/?feed=feed2)
+[17](https://podcasts.apple.com/at/podcast/hotel-matze/id1168045239?l=en-GB)
+[18](https://fyyd.de/podcast/ndr-info-logo-das-wissenschaftsmagazin/0)
+[19](https://www.npr.org/2019/08/26/754336716/you-2-0-deep-work)
+[20](https://www.bigfm.de/podcasts/hotel-matze)
+[21](https://www.ndr.de/nachrichten/info/epg/synapsen-ein-wissenschaftspodcast,sendung-42124.html)
+[22](https://open.spotify.com/episode/6k1yi3nJj4z6chZiXBH8ZR)
+[23](https://podlist.de/podcast/hotel-matze/all/1)
+[24](https://podnews.net/podcast/i3bb/episodes)
+[25](https://podcasts.apple.com/de/podcast/synapsen-ein-wissenschaftspodcast/id1513168570)
+[26](https://www.ndr.de/nachrichten/info/podcast2994.xml)
+[27](https://tunein.com/podcasts/Science/Synapsen-Ein-Wissenschaftspodcast-von-NDR-Info-p229531/)
+[28](https://www.podcast.de/podcasts/new%20work)
+[29](https://plus.rtl.de/podcast/betreutes-fuehlen-knovkcpd7fo1a)
+[30](https://contemplationstation.substack.com/p/how-to-pay-attention-again-the-neuroscience)
+[31](https://plus.rtl.de/podcast/on-the-way-to-new-work-der-podcast-ueber-neue-arbeit-upkm83f9hdvet)
+[32](https://podcasts.apple.com/de/podcast/betreutes-f%C3%BChlen/id1478101145)
+[33](https://www.ffh.de/podcast/404890-hotel-matze-interview-podcast-von-matze-hielscher.html)
+[34](https://newworkstories.com/podcast/)
+[35](https://www.podcast.de/podcast/914645/betreutes-fuehlen)
+[36](https://podcasts.apple.com/mo/podcast/synapsen-ein-wissenschaftspodcast/id1513168570)
+
+## Videos
+
+Hochwertige Videos aus 2023–2025 zum Cluster „Fokus & Flow“ beleuchten Konzentration, Deep Work und Flow neurobiologisch sowie kritisch die Aufmerksamkeitsökonomie mit Reizüberflutung. Drei ausgewählte Formate aus öffentlich-rechtlichen Medien und etablierten Kanälen bieten Balance zwischen Inspiration und Warnung vor Überlastung. Sie passen zu FYF durch wissenschaftliche Tiefe und reale Beispiele, die Reflexion fördern.[1][2][3]
+
+### Video 1: Flow und Konzentrationsstrategien
+**Titel:** Mein Körper. Meine Konzentration.  
+**Medium/Kanal:** 3sat / ARD Mediathek  
+**Erscheinungsjahr:** 2025  
+**Link:** https://www.3sat.de/wissen/wissenschaftsdoku/mein-koerper-meine-konzentration-102.html[1]
+
+Diese Dokumentation folgt Betroffenen mit Fokus-Herausforderungen und erklärt Flow als Zustand höchster Vertiefung via Neurowissenschaftler wie Corinna Peifer. Sie inspiriert durch Trainingsmethoden gegen Ablenkung und passt zum Cluster mit praktischen Deep-Work-Ansätzen sowie Messbarkeit von Flow.[4][1]
+
+### Video 2: Kritik an digitaler Reizflut
+**Titel:** NANO Talk: Die Reizflut - Wie digitale Medien das Gehirn überlasten  
+**Medium/Kanal:** 3sat NANO  
+**Erscheinungsjahr:** 2025  
+**Link:** https://www.3sat.de/wissen/nano-talk/261016-nano-talk-sendung-die-reizflut-alena-buyx-diskutiert-mit-gaesten-ntk-100.html[2]
+
+Alena Buyx diskutiert mit Neurowissenschaftlerin Maren Urner und Philosoph Michael Hampe die Überforderung durch Infos, die Konzentration zerstört und Krankheiten wie Depressionen begünstigt. Bietet kritischen Blick auf Attention Economy mit Strategien gegensteuern; ideal für FYF als Kontrapunkt zu Produktivitätsidealen.[5][2]
+
+### Video 3: Aufmerksamkeitskampf in Medien
+**Titel:** NANO-Gespräch: Der Kampf um Aufmerksamkeit  
+**Medium/Kanal:** 3sat Mediathek  
+**Erscheinungsjahr:** 2024  
+**Link:** https://www.3sat.de/wissen/nano/240125-gespraech-der-kampf-um-aufmerksamkeit-nano-100.html[6]
+
+Das Gespräch analysiert, wie Plattformen wie TikTok Aufmerksamkeit manipulieren, mit Fokus auf politische und psychische Folgen. Ergänzt den Cluster kritisch durch Beleuchtung von Ablenkung als Systemproblem und unterstützt FYF mit journalistischem Realitätsbezug zu Suchtpotenzial.[6]
+
+[1](https://www.3sat.de/wissen/wissenschaftsdoku/mein-koerper-meine-konzentration-102.html)
+[2](https://www.3sat.de/wissen/nano-talk/261016-nano-talk-sendung-die-reizflut-alena-buyx-diskutiert-mit-gaesten-ntk-100.html)
+[3](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/collection_2c47b24d-f85a-49c6-a588-ca8b8cbc48ba/9b261a8c-62e8-4b72-bcfe-ffa56a15df98/Fokus-Flow.txt)
+[4](https://www.mdr.de/wissen/dokumentationen/mein-koerper-meine-konzentration-100.html)
+[5](https://www.zdf.de/video/talk/nano-talk-110/261016-nano-talk-sendung-die-reizflut-alena-buyx-diskutiert-mit-gaesten-ntk-100)
+[6](https://www.3sat.de/wissen/nano/240125-gespraech-der-kampf-um-aufmerksamkeit-nano-100.html)
+[7](https://www.7mind.de/magazin/deep-work-methode-tipps-konzentration)
+[8](https://www.zdf.de/video/explainer/funk-collection-funk-12132-368/funk-im-flow-kannst-du-dich-perfekt-konzentrieren---psychologeek-102)
+[9](https://pressetreff.3sat.de/meldungen/meldung/default-74ffa7ea62)
+[10](https://derfokuspunkt.de/articles/JolvQydufsZDi2uJDYvA)
+[11](https://www.simon-schnetzer.com/blog)
+[12](https://amcrs.de/news/)
+[13](https://www.youtube.com/watch?v=OUHwYir-cHg)
+[14](https://opendata.uni-halle.de/bitstream/1981185920/121122/1/MariaHeider_ChiaraJ%C3%A4hn_Zwischen%20Privatsphaere%20und%20Publikum_Kinder%20in%20sozialen%20Medien.pdf)
+[15](https://www.youtube.com/watch?v=QPj7DXLrai0)
+[16](https://www.youtube.com/watch?v=QYExZwaefZs)
+[17](https://bibliothek.fh-wien.ac.at/obvsg/JOUR/2023/Schmidt.Daniela.pdf)
+[18](https://www.youtube.com/watch?v=ZqQ77xKTklA)
+[19](https://www.bvdw.org/wp-content/uploads/2023/11/231128_LF_Digi_Video_Guide.pdf)
+[20](https://www.youtube.com/@3sat-NANO)
+[21](https://www.youtube.com/watch?v=I_u-Eh3h7Mo)
+
+### Kuratierte Zitate
+
+- **Zitat:** „Information frisst die Aufmerksamkeit ihrer Empfänger.“  
+  **Autor:in:** Herbert A. Simon  
+  **Quelle:** Essay, Die Zeit (zitiert)  
+  **Jahr:** 2021  
+  **Kontext:** Digitale Reizüberflutung verkürzt Aufmerksamkeitsspanne.  
+  **Link:** https://www.zeit.de/digital/internet/2021-10/digitale-reizueberflutung-konzentration-aufmerksamkeitsprobleme-tipps-social-media-internet[1]
+
+- **Zitat:** „We are training ourselves to be distracted all the time.“  
+  **Autor:in:** Cal Newport  
+  **Quelle:** Interview, The Guardian  
+  **Jahr:** 2019  
+  **Kontext:** Wissensarbeiter verlieren Tiefe durch ständiges App-Hopping.  
+  **Link:** https://www.theguardian.com/technology/2019/jan/06/cal-newport-digital-minimalists-smartphone-addiction[3]
+
+- **Zitat:** „Die Zeitspanne, in der sich Menschen auf eine Sache konzentrieren können, wird immer kürzer.“  
+  **Autor:in:** Alena Buyx  
+  **Quelle:** NANO Talk, 3sat  
+  **Jahr:** 2025  
+  **Kontext:** Digitale Medien verursachen Konzentrationsstörungen bis Depressionen.  
+  **Link:** https://www.3sat.de/wissen/nano-talk/261016-nano-talk-sendung-die-reizflut-alena-buyx-diskutiert-mit-gaesten-ntk-100.html[4]
+
+- **Zitat:** „Selbstausbeutung gehe heute einher mit der Illusion von Freiheit.“  
+  **Autor:in:** Byung-Chul Han  
+  **Quelle:** Essay, Ruhrtriennale (SZ-referenziert)  
+  **Jahr:** 2015  
+  **Kontext:** Neoliberalismus zerstört Fokus durch Selbstüberwachung.  
+  **Link:** https://archiv.ruhrtriennale.de/2015/de/byung-chul-han.html[5]
+
+- **Zitat:** „Your attention has been stolen from you by some really big and powerful forces.“  
+  **Autor:in:** Johann Hari  
+  **Quelle:** Vortrag, Ready25 (Guardian-OpEd)  
+  **Jahr:** 2022  
+  **Kontext:** Big Tech-Algorithmen monetarisieren Zerstreuung.  
+  **Link:** https://eliteagent.com/johann-haris-warning-our-attention-was-stolen/[6]
+
+- **Zitat:** „Deep Work requires a level of focus most people have lost.“  
+  **Autor:in:** Cal Newport  
+  **Quelle:** Podcast, Deep Questions  
+  **Jahr:** 2025  
+  **Kontext:** Context-Switching kostet 25 Minuten Rekonzentration.  
+  **Link:** https://www.youtube.com/watch?v=fjQ4ZPOCYEI[7]
+
+- **Zitat:** „Wenn die Zeit verfliegt, dann erleben wir mehr Flow.“  
+  **Autor:in:** Corinna Peifer  
+  **Quelle:** Studie, IDW (NZZ-nah)  
+  **Jahr:** 2023  
+  **Kontext:** Flow verzerrt Zeitwahrnehmung – positive Überforderung.  
+  **Link:** https://idw-online.de/en/news689977[8]
+
+- **Zitat:** „Der Switch-Cost-Effekt macht Multitasking weniger kompetent.“  
+  **Autor:in:** Cal Newport  
+  **Quelle:** Podcast, Carey Nieuwhof  
+  **Jahr:** 2021  
+  **Kontext:** 30-Sekunden-Check zerstört 25 Minuten Denkfähigkeit.  
+  **Link:** https://www.youtube.com/watch?v=d7K_ufzJtiA[9]
+
+- **Zitat:** „Konzentration ist die Balance zwischen Langeweile und Reizüberflutung.“  
+  **Autor:in:** Zeit-Redaktion  
+  **Quelle:** Reportage, Die Zeit  
+  **Jahr:** 2011  
+  **Kontext:** Laborexperimente zeigen optimale arousal-Kurve.  
+  **Link:** https://www.zeit.de/2011/18/Aufmerksamkeit-Laborbesuch[10]
+
+- **Zitat:** „Digitale Reizflut stresst unser Gehirn und killt den Fokus.“  
+  **Autor:in:** Maren Urner  
+  **Quelle:** NANO Talk, 3sat  
+  **Jahr:** 2025  
+  **Kontext:** Neurowissenschaftlerin warnt vor kognitiver Überlastung.  
+  **Link:** https://www.3sat.de/wissen/nano-talk/261016-nano-talk-sendung-die-reizflut-alena-buyx-diskutiert-mit-gaesten-ntk-100.html[4]

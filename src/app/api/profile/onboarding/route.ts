@@ -9,7 +9,26 @@ type UserGoalUpdate = Database['public']['Tables']['user_goals']['Update'];
 
 /**
  * POST /api/profile/onboarding
- * Creates or updates user profile from onboarding data
+ * 
+ * Creates or updates user profile from onboarding data.
+ * 
+ * OWNERSHIP: This API is the SINGLE SOURCE OF TRUTH for initial profile fields.
+ * 
+ * Fields written by this API (INITIAL fields, set once during onboarding):
+ * - display_name (REQUIRED)
+ * - birth_date (REQUIRED, NOT NULL)
+ * - target_age (REQUIRED)
+ * - goal_direction (optional)
+ * - answer_style (optional, default: 'medium')
+ * - guide_tone (optional, default: 'Straight') - can be changed later via /api/profile/guide-settings
+ * - main_goal_id (if goal text is provided, via user_goals table)
+ * 
+ * This API does NOT write:
+ * - Settings fields (nudging_frequency, is_public, bio, etc.) - use respective Settings APIs
+ * - Avatar fields - use /api/profile/avatar
+ * - Any other fields not listed above
+ * 
+ * See FIELD_MATRIX.md and API_OWNERSHIP.md for complete field ownership rules.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +44,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SCHRITT 1: Profil-Existenz garantieren (OHNE birth_date, OHNE Validierung)
+    // Dieses Profil MUSS existieren, bevor Onboarding beginnt
+    // NOTE: 'RealityCheck User' ist nur temporär und wird sofort im nächsten Schritt überschrieben
+    await (supabase
+      .from('user_profiles')
+      .upsert(
+        {
+          user_id: user.id,
+          display_name: 'RealityCheck User', // TEMPORARY - wird sofort im Update überschrieben
+        } as any,
+        { onConflict: 'user_id' }
+      ) as any);
+
     const body = await request.json();
     const {
       name,
@@ -34,28 +66,32 @@ export async function POST(request: NextRequest) {
       targetAge,
       target_age,
       goal,
-      goals,
       goalDirection,
       goal_direction,
-      timePhilosophy,
-      lifestyle,
-      guidePersonality,
-      focusTopic,
-      focus_topic,
-      bio,
-      will_learn,
-      will_share,
+      answerStyle,
+      answer_style,
+      guideTone,
+      guide_tone,
     } = body;
 
+    // VALIDIERUNG: Nur erlaubte Felder
     const final_birth_date = birthDate || birth_date;
     const final_target_age = targetAge || target_age;
-    const final_focus_topic = focusTopic || focus_topic;
     const final_goal_direction = goalDirection || goal_direction || null;
+    const final_answer_style = answerStyle || answer_style || 'medium';
+    const final_guide_tone = guideTone || guide_tone || 'straight';
 
     // Parse target age to number
     const targetAgeNum = typeof final_target_age === 'string' ? parseInt(final_target_age, 10) : final_target_age;
 
-    // 4. VALIDIERUNG
+    // VALIDIERUNG: Pflichtfelder
+    if (!name || name.trim() === '') {
+      return NextResponse.json(
+        { error: 'Name fehlt' }, 
+        { status: 400 }
+      );
+    }
+
     if (!final_birth_date) {
       return NextResponse.json(
         { error: 'Geburtsdatum fehlt' }, 
@@ -70,52 +106,110 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate goal_direction if goal is provided
-    const allowedDirections = new Set(['freedom', 'clarity', 'growth', 'balance', 'meaning']);
-    if (goal && (!final_goal_direction || !allowedDirections.has(final_goal_direction))) {
+    // VALIDIERUNG: Ziel (ENTWEDER goal ODER goalDirection)
+    if (!goal?.trim() && !final_goal_direction) {
       return NextResponse.json(
-        { error: 'Ziel-Richtung fehlt oder ist ungültig' },
+        { error: 'Entweder Ziel-Text oder Ziel-Richtung muss angegeben werden' },
         { status: 400 }
       );
     }
 
-    // 6. Profile-Daten
-    // WICHTIG: birth_date ist optional (nullable in DB)
-    // Kann null sein, wenn User noch kein Geburtsdatum angegeben hat
-    const profileData: UserProfileInsert = {
-      user_id: user.id,
-      display_name: name || 'FYF User',
-      birth_date: final_birth_date || null, // Explizit null, wenn nicht vorhanden
+    if (goal?.trim() && final_goal_direction) {
+      return NextResponse.json(
+        { error: 'Nur Ziel-Text ODER Ziel-Richtung, nicht beides' },
+        { status: 400 }
+      );
+    }
+
+    // VALIDIERUNG: goal_direction
+    if (final_goal_direction) {
+      const allowedDirections = new Set(['freedom', 'clarity', 'growth', 'balance', 'meaning']);
+      if (!allowedDirections.has(final_goal_direction)) {
+        return NextResponse.json(
+          { error: 'Ungültige Ziel-Richtung' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // VALIDIERUNG: answer_style
+    const allowedAnswerStyles = new Set(['short', 'medium', 'long']);
+    if (!allowedAnswerStyles.has(final_answer_style)) {
+      return NextResponse.json(
+        { error: 'Ungültige Antwort-Länge' },
+        { status: 400 }
+      );
+    }
+
+    // VALIDIERUNG: guide_tone
+    const allowedGuideTones = new Set(['soft', 'straight', 'hard']);
+    if (!allowedGuideTones.has(final_guide_tone)) {
+      return NextResponse.json(
+        { error: 'Ungültiger Guide-Ton' },
+        { status: 400 }
+      );
+    }
+
+    // Mapping: guide_tone (soft -> Soft Touch, straight -> Straight, hard -> Hard Truth)
+    const guideToneMapping: Record<string, string> = {
+      'soft': 'Soft Touch',
+      'straight': 'Straight',
+      'hard': 'Hard Truth',
+    };
+    const mapped_guide_tone = guideToneMapping[final_guide_tone] || 'Straight';
+
+    // UPDATE: Nur erlaubte Initial-Felder (siehe API_OWNERSHIP.md)
+    // Diese Felder werden NUR beim Onboarding gesetzt und sollten danach nicht mehr geändert werden
+    // (Ausnahme: guide_tone kann später via /api/profile/guide-settings geändert werden)
+    const updateData: Record<string, any> = {
+      display_name: name.trim(),
+      birth_date: final_birth_date, // NIEMALS NULL - API erzwingt NOT NULL (auch wenn DB nullable ist)
       target_age: targetAgeNum,
-      guide_personality: guidePersonality || timePhilosophy || null,
-      bio: bio || null,
-      focus_topic: final_focus_topic || null,
-      will_learn: Array.isArray(will_learn) ? will_learn : [],
-      will_share: Array.isArray(will_share) ? will_share : [],
       goal_direction: final_goal_direction,
-      is_public: true,
+      answer_style: final_answer_style,
+      guide_tone: mapped_guide_tone, // Initial gesetzt, kann später via guide-settings API geändert werden
       updated_at: new Date().toISOString(),
     };
 
-    // 7. DB-Write mit Error-Handling
-    const { data: profile, error: profileError } = await (supabase
-      .from('user_profiles')
-      .upsert(profileData as any, { onConflict: 'user_id' })
+    // Einfaches UPDATE (Profil existiert garantiert durch Schritt 1)
+    const updateResult = await ((supabase
+      .from('user_profiles') as any)
+      .update(updateData)
+      .eq('user_id', user.id)
       .select()
-      .single() as any);
+      .single());
+    
+    const profile = updateResult.data;
+    const profileError = updateResult.error;
 
     if (profileError || !profile) {
-      console.error('Profile Error:', profileError);
+      console.error('[Onboarding API] Profile Update Error:', {
+        error: profileError,
+        code: profileError?.code,
+        message: profileError?.message,
+        details: profileError?.details,
+        hint: profileError?.hint,
+      });
+      
       return NextResponse.json(
-        { error: `Profil-Fehler: ${profileError?.message || 'Profil konnte nicht geladen werden'}` }, 
+        { 
+          error: `Profil-Fehler: ${profileError?.message || 'Profil konnte nicht aktualisiert werden'}`,
+          details: profileError?.details,
+          code: profileError?.code
+        }, 
         { status: 500 }
       );
     }
 
-    // If goal is provided, create or update primary goal
+    console.log('[Onboarding API] Profile updated successfully:', profile.id);
+
+    // CONSISTENCY: main_goal_id ↔ user_goals.is_primary
+    // If goal is provided (freier Text), create or update primary goal in user_goals,
+    // then set main_goal_id in user_profiles to maintain consistency.
+    // This ensures that main_goal_id always points to a goal with is_primary = true.
     let goalId: string | null = null;
-    if (goal || (goals && goals.length > 0)) {
-      const goalText = goal || goals[0];
+    if (goal && goal.trim()) {
+      const goalText = goal.trim();
       
       // Check if user already has a primary goal
       const { data: existingGoal } = await supabase
@@ -126,10 +220,10 @@ export async function POST(request: NextRequest) {
         .maybeSingle<UserGoal>();
 
       if (existingGoal) {
-        // Update existing primary goal
+        // Update existing primary goal (preserve is_primary = true)
         const goalUpdateData: UserGoalUpdate = {
           title: goalText,
-          is_primary: true,
+          is_primary: true, // Maintain consistency
           updated_at: new Date().toISOString(),
         };
 
@@ -146,11 +240,11 @@ export async function POST(request: NextRequest) {
           goalId = updatedGoal.id;
         }
       } else {
-        // Create new primary goal
+        // Create new primary goal (with is_primary = true)
         const goalInsertData: UserGoalInsert = {
           user_id: user.id,
           title: goalText,
-          is_primary: true,
+          is_primary: true, // Set as primary
           status: 'active',
         };
 
@@ -167,7 +261,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Update profile with main_goal_id if we have one
+      // Update profile with main_goal_id to maintain consistency
+      // main_goal_id must point to the goal we just created/updated (which has is_primary = true)
       if (goalId) {
         const profileUpdateData: UserProfileUpdate = {
           main_goal_id: goalId,

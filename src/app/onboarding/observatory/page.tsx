@@ -450,7 +450,7 @@ export default function ObservatoryOnboarding() {
                   setBio(text)
                 }
               }}
-              placeholder="z. B.: „Ich versuche gerade, meinen Fokus zurückzuholen und bewusster mit meiner Zeit umzugehen.""
+              placeholder='z. B.: Ich versuche gerade, meinen Fokus zurückzuholen und bewusster mit meiner Zeit umzugehen.'
               rows={3}
               style={{
                 width: '100%',

@@ -34,3 +34,4 @@ export interface UserNudgeProfile {
   daysSinceLastGoalActivity: number;
 }
 
+

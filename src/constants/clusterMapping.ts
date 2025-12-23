@@ -14,3 +14,4 @@ export const CLUSTER_LABELS: Record<string, string> = {
 // optional: falls du an anderer Stelle die Keys brauchst
 export type ClusterCode = keyof typeof CLUSTER_LABELS;
 
+

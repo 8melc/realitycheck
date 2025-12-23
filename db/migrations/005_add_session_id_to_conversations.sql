@@ -19,3 +19,4 @@ CREATE INDEX IF NOT EXISTS idx_guide_conversations_session
 COMMENT ON COLUMN guide_conversations.session_id IS 'Optional session identifier for grouping conversations';
 
 
+

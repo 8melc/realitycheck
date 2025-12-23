@@ -14,19 +14,24 @@ export async function GET(req: NextRequest) {
     // Get guide settings from user_profiles
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('guide_tone, guide_nudging_frequency, guide_muted')
+      .select('guide_tone, nudging_frequency, nudging_paused_until')
       .eq('user_id', user.id)
-      .maybeSingle() as { data: { guide_tone: string | null; guide_nudging_frequency: string | null; guide_muted: boolean | null } | null; error: any };
+      .maybeSingle() as { data: { guide_tone: string | null; nudging_frequency: string | null; nudging_paused_until: string | null } | null; error: any };
     
     if (profileError) {
       console.error('[Guide Settings] Error fetching profile:', profileError);
       return NextResponse.json({ error: 'Failed to fetch guide settings' }, { status: 500 });
     }
     
+    // Check if guide is muted (nudging_paused_until is set and in the future)
+    const isMuted = profile?.nudging_paused_until 
+      ? new Date(profile.nudging_paused_until) > new Date()
+      : false;
+    
     return NextResponse.json({
-      guideTone: profile?.guide_tone || 'straight',
-      nudgingFrequency: profile?.guide_nudging_frequency || 'medium',
-      isGuideMuted: profile?.guide_muted || false,
+      guideTone: profile?.guide_tone || 'Straight',
+      nudgingFrequency: profile?.nudging_frequency || 'standard',
+      isGuideMuted: isMuted,
     });
   } catch (error) {
     console.error('[Guide Settings] Error:', error);
@@ -57,11 +62,19 @@ export async function PATCH(req: NextRequest) {
     }
     
     if (nudgingFrequency !== undefined) {
-      updateData.guide_nudging_frequency = nudgingFrequency;
+      updateData.nudging_frequency = nudgingFrequency;
     }
     
+    // Handle guide mute: set nudging_paused_until to future date or null
     if (isGuideMuted !== undefined) {
-      updateData.guide_muted = isGuideMuted;
+      if (isGuideMuted) {
+        // Pause for 1 year (effectively permanent until user unmutes)
+        const pauseUntil = new Date();
+        pauseUntil.setFullYear(pauseUntil.getFullYear() + 1);
+        updateData.nudging_paused_until = pauseUntil.toISOString();
+      } else {
+        updateData.nudging_paused_until = null;
+      }
     }
     
     // Try UPDATE first (profile should exist after onboarding)
@@ -69,7 +82,7 @@ export async function PATCH(req: NextRequest) {
       .from('user_profiles') as any)
       .update(updateData)
       .eq('user_id', user.id)
-      .select('guide_tone, guide_nudging_frequency, guide_muted')
+      .select('guide_tone, nudging_frequency, nudging_paused_until')
       .maybeSingle();
     
     if (updateError) {
@@ -97,10 +110,15 @@ export async function PATCH(req: NextRequest) {
       );
     }
     
+    // Check if guide is muted
+    const isMuted = updatedProfile.nudging_paused_until 
+      ? new Date(updatedProfile.nudging_paused_until) > new Date()
+      : false;
+    
     return NextResponse.json({
-      guideTone: updatedProfile.guide_tone || 'straight',
-      nudgingFrequency: updatedProfile.guide_nudging_frequency || 'medium',
-      isGuideMuted: updatedProfile.guide_muted || false,
+      guideTone: updatedProfile.guide_tone || 'Straight',
+      nudgingFrequency: updatedProfile.nudging_frequency || 'standard',
+      isGuideMuted: isMuted,
     });
   } catch (error) {
     console.error('[Guide Settings] Error:', error);

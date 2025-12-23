@@ -60,7 +60,7 @@ function mapContentItemToFeedItem(item: ContentItem): FeedItem {
     theme,
     perma: 'Meaning', // Default
     link: item.url || '#',
-    image: '', 
+    image: (item as any).thumbnail_url || '', // thumbnail_url exists in DB but not in generated types yet 
     guideWhy: description,
     source: (item.source || 'feedboard') as 'feedboard' | 'guide' | 'manual',
     chips: [],
@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('content_items')
       .select('*')
+      .eq('is_published', true) // Only fetch published items
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -95,6 +96,13 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: contentItems, error } = await query;
+    
+    // Debug logging
+    console.log(`[API] Query params: cluster=${clusterParam || 'all'}, limit=${limit}`);
+    console.log(`[API] Raw DB results: ${contentItems?.length || 0} items`);
+    if (contentItems && contentItems.length > 0) {
+      console.log(`[API] Sample cluster values:`, contentItems.slice(0, 5).map(item => item.cluster));
+    }
 
     if (error) {
       console.error('Error fetching content items:', error);
@@ -110,7 +118,16 @@ export async function GET(request: NextRequest) {
       return feedItem;
     });
 
-    console.log(`API returned ${feedItems.length} items for cluster: ${clusterParam || 'all'}`);
+    // Debug logging after mapping
+    console.log(`[API] Mapped to ${feedItems.length} FeedItems`);
+    if (feedItems.length > 0) {
+      const themeCounts = feedItems.reduce((acc, item) => {
+        acc[item.theme] = (acc[item.theme] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      console.log(`[API] Theme distribution:`, themeCounts);
+      console.log(`[API] Sample themes:`, feedItems.slice(0, 5).map(item => item.theme));
+    }
 
     return NextResponse.json({ 
       items: feedItems,
@@ -121,4 +138,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+
 

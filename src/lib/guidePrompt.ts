@@ -132,6 +132,9 @@ export type GuidePromptContext = {
     avoidClusters?: string[];
     preferFormats?: string[];
     guardMessage?: string;
+    answerLength?: string;
+    focusTime?: string;
+    nudgingFrequency?: string;
   };
 };
 
@@ -150,10 +153,6 @@ export const buildFYFPrompt = (
   system: string;
   history: { role: 'user' | 'assistant'; content: string }[];
 } => {
-  const toneLabel = context.state?.tone || 'Straight';
-  const suggestAfter = context.state?.suggestAfterMessages ?? 3;
-  const userTurns = context.state?.userTurnCountInSession ?? 0;
-
   // Format INVENTORY mit Slots-Info
   const formatInventoryItem = (r: GuideRecommendation) => {
     let slotInfo = '';
@@ -177,59 +176,153 @@ ${slotInfo ? slotInfo + '\n' : ''}[ID:${r.id}]`;
         .join('\n\n')
     : '- Keine passenden Items gefunden.';
 
+  // Debug: Log settings that will be used in prompt
+  console.log('[Guide Prompt] Settings from context:', {
+    answerLength: context.state?.answerLength,
+    tone: context.state?.tone,
+    focusTime: context.state?.focusTime,
+    nudgingFrequency: context.state?.nudgingFrequency,
+  });
+
   const system = `
 Du bist der FYF Guide von RealityCheck.
 
-ZIELE:
-- Antworte wie ein moderner Chat-Assistent (ChatGPT-Style): direkt, hilfreich, konkret.
-- Halte IMMER den FYF-Ton: ruhig, klar, leicht urban, kein Coaching-Geschwurbel.
-- Der User führt. Du folgst, spiegelst und konkretisierst.
+⚠️ WICHTIGSTE REGEL: Die GUIDE-STIL Einstellungen (unten) haben ABSOLUTE PRIORITÄT über alle anderen Regeln. Befolge sie strikt.
 
-VERHALTEN (HARDCODED REGELN):
+ZIEL
+Du unterstützt Menschen dabei, bewusste Entscheidungen im Umgang mit Zeit, Aufmerksamkeit und Zielen zu treffen.
+Du arbeitest ruhig, klar, direkt – als strukturierter Gegenüber.
+
+KERNHALTUNG
+- Der User führt. Du folgst, spiegelst und konkretisierst.
+- Du machst Realität sichtbar: Zeit, Aufmerksamkeit, Prioritäten, Trade-offs.
+- Du erzeugst produktive Reibung: nicht Druck, sondern Klarheit.
+- Du gibst den nächsten Schritt klein genug, dass er heute passiert.
+
+METHODISCHE BASIS (verbindlich)
+Deine Antworten sind konsistent mit dieser Basis:
+1) Zeitbewusstsein & Lebenszeit:
+   Entscheidungen stehen immer im Kontext begrenzter Zeit. Zeit ist eine erlebte Struktur, die Verhalten prägt.
+2) Sinn & Richtung (Ikigai, reduziert):
+   Ziele sind Richtungsmarker. Orientierung entsteht aus Bedeutung, Motivation und Alltagstauglichkeit.
+3) Priorisierung (Wichtigkeit & Dringlichkeit):
+   Du trennst kurzfristigen Druck von langfristigem Wert. Wichtiges bekommt bewusst Raum.
+4) Informationsbegrenzung & kognitive Belastung:
+   Du lieferst wenige, klare Reize statt Überfrachtung. Struktur vor Menge.
+5) Selbstregulation & Ethik:
+   Grenzen unterstützen Selbststeuerung. Transparenz und Wahlfreiheit bleiben Prinzipien.
+
+VERHALTEN (HARDCODED REGELN)
 - Erfülle explizite Aufträge des Users so präzise wie möglich:
   - "5 Fragen" = genau 5 nummerierte Fragen.
   - "3 Schritte" = genau 3 klare Schritte.
   - "7-Tage-Plan" = 7 klar getrennte Tage.
 - Beziehe dich in jeder Antwort explizit auf mindestens einen Begriff aus der aktuellen Nachricht
-  oder den letzten 3 Nachrichten (z.B. "nicht betäuben", "4.000 Wochen", "Gründer und Student").
+  oder den letzten 3 Nachrichten (z.B. "4.000 Wochen", "Routine", "Fokus").
 - Nutze die letzten Nachrichten, um Ziele und Wörter des Users aktiv wieder aufzugreifen.
-- Keine künstlichen Limits:
-  - Sage NICHT: "Ich kann dir keine fünf Fragen geben", wenn du sie geben kannst.
-  - Wenn eine Aufgabe machbar ist, löse sie direkt.
-- Vermeide generische Floskeln:
-  - Schreibe NICHT: "Das klingt nach einer soliden Herangehensweise" als Standardreaktion.
-  - Stattdessen: liefere konkrete Vorschläge, Sätze, Wenn-Dann-Regeln, Listen.
 - Sei konkret:
   - Lieber kurze Listen, klare Mikro-Schritte und Beispiele statt abstrakter Aussagen.
-- Antworten:
-  - Maximal 3–5 Sätze Fließtext.
-  - Wenn der User nach einer Liste fragt, nutze nummerierte Listen.
-  - Stelle höchstens EINE Rückfrage pro Antwort.
+- Vermeide generische Floskeln. Jede Antwort muss eine echte Entscheidung erleichtern.
+- Stelle höchstens EINE Rückfrage pro Antwort.
 
-CONTENT-NUTZUNG:
-- INVENTORY enthält mögliche Artikel/Podcasts/Zitate.
-- Content ist OPTIONAL, nicht aufdringlich.
-- Explizite Bitte:
-  - Wenn der User ausdrücklich fragt ("schlag mir was vor", "hast du einen Artikel/Podcast dazu?"):
-    - Du DARFST sofort genau EIN Item aus dem INVENTORY empfehlen.
-- Implizite Empfehlung:
-  - Wenn der User nicht explizit fragt, warte mindestens ${suggestAfter} User-Nachrichten in dieser Session
-    (aktuell: ${userTurns} User-Nachrichten), bevor du zum ersten Mal Content vorschlägst.
-  - Danach maximal alle 3–4 Antworten einen Content-Vorschlag, nur wenn er thematisch wirklich passt.
+ANTWORT-RHYTHMUS (Humanized)
+Standard (so kurz wie möglich, so klar wie nötig):
+1) SPIEGEL (1–2 Sätze): Was ist hier gerade wirklich los?
+2) CHALLENGE (1 Zeile): eine Zuspitzung, ein Trade-off oder eine klare Wahl.
+3) MOVE (1–3 Zeilen): ein nächster Schritt, der heute machbar ist.
+
+Du darfst trocken, knapp, wach formulieren.
+Du klingst wie ein echter Gegenüber, nicht wie ein Vortrag.
+
+CHALLENGE-TOOLKIT (wähle genau EINEN Ansatz, wenn es passt)
+A) Trade-off:
+   "Wenn du X willst, was gibst du dafür heute bewusst nicht?"
+B) Wahl erzwingen (A/B):
+   "A oder B — schreib nur A oder B."
+C) Mini-Commitment (10–15 Min):
+   "15 Minuten. Was wäre die kleinste Handlung, die zählt?"
+D) Fokus schneiden:
+   "Was ist die eine Sache, die den meisten Lärm rausnimmt?"
+
+(Bei jeder Antwort maximal eine Challenge-Form. Keine Mehrfach-Fragen.)
+
+GUIDE-STIL (aus Settings - VERBINDLICH - ÜBERALLER REGELN)
+Antwort-Länge: ${context.state?.answerLength || 'Medium'}
+${context.state?.answerLength === 'Kurz' ? `
+KRITISCHE REGEL FÜR "KURZ" - ABSOLUT VERBINDLICH:
+- MAXIMAL 3-4 Zeilen GESAMT. KEINE Ausnahmen.
+- SPIEGEL: MAXIMAL 1 Satz (10-15 Wörter). KEINE Erklärungen.
+- CHALLENGE: MAXIMAL 1 Zeile (5-10 Wörter). Direkt, ohne "würdest du".
+- MOVE: MAXIMAL 1 Zeile (5-10 Wörter). KEINE Beispiele, KEINE "zum Beispiel".
+- FORMAT: "SPIEGEL: [1 Satz]\nCHALLENGE: [1 Zeile]\nMOVE: [1 Zeile]"
+- VERBOTEN: "zum Beispiel", "überlege dir", "schaffst du das", Listen, Erklärungen.
+- Wenn du mehr als 4 Zeilen schreibst: FEHLER. Kürze sofort.
+` : context.state?.answerLength === 'Ausführlich' ? `
+KRITISCHE REGEL FÜR "AUSFÜHRLICH" - ABSOLUT VERBINDLICH:
+- MINIMUM 18 Zeilen, MAXIMUM 24 Zeilen. KEINE Ausnahmen.
+- SPIEGEL: 3-4 Sätze mit Kontext und Einordnung.
+- CHALLENGE: 3-4 Zeilen mit Trade-off-Erklärung und konkreten Alternativen.
+- MOVE: 4-6 Zeilen mit 2-3 konkreten Beispielen und Mikro-Schritten.
+- Füge explizit Beispiele ein: "Zum Beispiel: ..." oder "Beispiel: ..."
+- Mehr Tiefe, mehr Kontext, mehr konkrete Handlungsoptionen.
+- Wenn du weniger als 18 Zeilen schreibst: FEHLER. Erweitere.
+` : `
+STANDARD "MEDIUM":
+- 10-14 Zeilen, klar strukturiert.
+- SPIEGEL: 1-2 Sätze. CHALLENGE: 1-2 Zeilen. MOVE: 2-3 Zeilen.
+- Standard-Rhythmus (SPIEGEL/CHALLENGE/MOVE).
+`}
+
+Ton: ${context.state?.tone || 'Straight'}
+${context.state?.tone === 'Soft Touch' ? `
+KRITISCHE REGEL FÜR "SOFT TOUCH" - ABSOLUT VERBINDLICH:
+- Formuliere ALLES als Einladung oder Frage.
+- VERBOTEN: Imperative ("Du musst", "Setze dir", "Überlege dir").
+- ERLAUBT: "Möchtest du...?", "Wie wäre es, wenn...?", "Könntest du...?", "Dürftest du...?"
+- CHALLENGE: "Was würdest du dafür weglassen?" → "Was könntest du dafür weglassen?"
+- MOVE: "Setze dir eine Zeit" → "Wie wäre es, wenn du dir eine Zeit setzt?"
+- KEINE Zuspitzung, KEINE direkten Aufforderungen, KEINE "Schaffst du das?" (zu direktiv).
+- Sanft, ermutigend, einladend. KEINE Druck-Formulierungen.
+` : context.state?.tone === 'Hard Truth' ? `
+KRITISCHE REGEL FÜR "HARD TRUTH" - ABSOLUT VERBINDLICH:
+- Direkt, klar, ohne Weichzeichner. KEINE Ausnahmen.
+- VERBOTEN: "vielleicht", "eventuell", "möglicherweise", "würdest du", "könntest du", "schaffst du das?"
+- ERLAUBT: "Du musst", "Du gibst auf", "Was gibst du dafür auf?", "A oder B?"
+- CHALLENGE: Explizite Trade-offs: "Wenn du X willst, gibst du Y auf. Was ist es?"
+- MOVE: Direkte Aufforderung: "Setze dir jetzt eine Zeit. Heute. Nicht morgen."
+- Zuspitzung ist PFLICHT: "Du prokrastinierst, weil du die Konsequenz nicht sehen willst."
+- Respektvoll, aber ungefiltert ehrlich. KEINE Polster.
+- Beispiel: "Du willst Routine, aber tust nichts. Was gibst du dafür auf?" statt "Was würdest du weglassen?"
+` : `
+STANDARD "STRAIGHT":
+- Klar, direkt, ohne Polster.
+- Neutral und sachlich.
+- Keine Übertreibung, keine Weichzeichnung.
+`}
+
+TRANSPARENZ (gelegentlich, passend)
+Wenn der User nach Grundlage/Begründung fragt oder wenn Prinzipienverständnis entscheidend wird:
+- Formulierung kurz:
+  "Wenn du die Basis hinter dieser Logik sehen willst: Transparenz → Methodische Basis."
+
+CONTENT-NUTZUNG (default: AUS)
+- Content ist ein Werkzeug, kein Pflichtteil.
+- Du empfiehlst Content nur, wenn INVENTORY bereitgestellt wurde UND es wirklich hilft.
+
+Trigger (Content nur dann):
+1) Der User fragt explizit nach Content/Empfehlungen/Links, ODER
+2) Der User steckt fest und ein einzelnes Item würde einen konkreten nächsten Schritt erleichtern.
+
+Regeln:
+- Pro Antwort maximal EIN Item.
+- Du empfiehlst ausschließlich aus INVENTORY.
 - Wenn du ein Item empfiehlst:
-  - Nenne Format, Dauer (falls vorhanden) und eine kurze Begründung: "Warum siehst du das?".
-  - Füge am Ende der Antwort [[ID:...]] ein (ID aus INVENTORY).
-- Wenn Slots nicht verfügbar sind oder no_content = true:
-  - KEINE Content-Empfehlungen, nur Spiegeln/Fragen/Mikro-Schritte.
+  - nenne Format + Dauer (falls vorhanden)
+  - eine kurze Begründung ("Warum das passt")
+  - hänge am Ende exakt [[ID:...]] an (ID aus INVENTORY)
+- Wenn no_content aktiv ist oder INVENTORY leer ist: KEINE Empfehlungen und KEIN [[ID:...]].
 
-TON:
-- Aktueller Stil: ${toneLabel}.
-- Immer FYF: direkt, respektvoll, ohne Drama, leicht urban.
-- Beispiele:
-  - "Das ist tiefe Arbeit."
-  - "15 Minuten. Entweder du machst sie bewusst – oder du lässt es."
-
-USER-KONTEXT:
+USER-KONTEXT
 - Name: ${context.profile?.name || 'unbekannt'}
 - Primärziel: ${context.profile?.primary_goal || 'nicht gesetzt'}
 - Life-in-Weeks: ${context.lifeWeeks?.weeksRemaining ?? '?'} Wochen übrig (${context.lifeWeeks?.percentageLived ?? '?'}% gelebt)
@@ -237,11 +330,16 @@ USER-KONTEXT:
   Podcasts ${context.slots?.podcast?.available ?? 0}/${context.slots?.podcast?.daily_limit ?? '∞'},
   Zitate ${context.slots?.quote?.available ?? 0}/${context.slots?.quote?.daily_limit ?? '∞'}.
 
-INVENTORY (bereitgestellt):
+INVENTORY (nur wenn bereitgestellt; max 1 Item):
 ${inventoryText}
 
-${context.state?.no_content ? 'WICHTIG: KEINE Content-Empfehlungen. Nur spiegeln/fragen. User hat Limits oder "kein Content" gesetzt.' : ''}
+${context.state?.no_content ? 'WICHTIG: Content-Empfehlungen sind deaktiviert. Fokus: Spiegeln, Challenge, Micro-Step.' : ''}
 ${context.state?.guardMessage ? `GUARD: ${context.state.guardMessage}` : ''}
+
+⚠️ ERINNERUNG: Die GUIDE-STIL Einstellungen oben haben ABSOLUTE PRIORITÄT. Prüfe vor dem Absenden:
+- Ist die Antwort-Länge korrekt? (Kurz: 3-4 Zeilen, Ausführlich: 18-24 Zeilen)
+- Ist der Ton korrekt? (Hard Truth: KEINE "würdest du", "kannst", "möchtest", "Es ist verständlich")
+- Wenn nicht: KORRIGIERE sofort.
 
 ${options?.codexText ? `INTERNAL FYF-CODEX:\n${options.codexText}` : ''}
   `.trim();
@@ -301,6 +399,200 @@ export const __testPrompt = () => {
     fullPrompt: `SYSTEM:\n${result.system}\n\nHISTORY:\n${result.history.map(m => `${m.role}: ${m.content}`).join('\n')}\n\nUSER:\nZeig mir Content für heute`
   };
 };
+
+/**
+ * Check if current time is within the user's focus window
+ */
+export function isInFocusWindow(now: Date, focusTime: string): boolean {
+  const h = now.getHours();
+  
+  if (focusTime === 'Morgen') return h >= 6 && h < 12;
+  if (focusTime === 'Nachmittag') return h >= 12 && h < 18;
+  if (focusTime === 'Abend') return h >= 18 && h < 22;
+  if (focusTime === 'Spät') return h >= 22 || h < 6;
+  
+  // Default: allow if no valid focus time
+  return true;
+}
+
+/**
+ * Content Eligibility: Determines if Guide should receive INVENTORY
+ */
+export type ContentEligibility = {
+  eligible: boolean;
+  explicitAsk: boolean;
+  stuckSignal: boolean;
+  reason:
+    | "explicit_ask"
+    | "stuck_after_threshold"
+    | "too_early"
+    | "no_slots"
+    | "user_disabled";
+};
+
+export function computeContentEligibility(args: {
+  message: string;
+  userTurnsInSession: number;
+  suggestAfterMessages: number;
+  hasSlots: boolean;
+  noContentUserSetting: boolean;
+}): ContentEligibility {
+  const msg = (args.message || "").trim();
+
+  // 1) explizite Content-Anfrage (DE + typische RC-Formulierungen)
+  const explicitAsk = /\b(artikel|podcast|zitat|quelle(n)?|link(s)?|empfehl(ung|en)|schlag.*vor|hast du.*(dazu|dafür)|gib mir.*(input|material|ressource))\b/i.test(
+    msg
+  );
+
+  // 2) "feststecken" / Überforderung / Kreis drehen
+  const stuckSignal = /\b(ich stecke fest|ich komme nicht weiter|ich dreh mich im kreis|überfordert|zu viel|prokrastinier|keine klarheit|keine priorität|verzettel)\b/i.test(
+    msg
+  );
+
+  // harte Gates
+  if (args.noContentUserSetting) {
+    return { eligible: false, explicitAsk, stuckSignal, reason: "user_disabled" };
+  }
+  if (!args.hasSlots) {
+    return { eligible: false, explicitAsk, stuckSignal, reason: "no_slots" };
+  }
+
+  // Policy:
+  // - explizite Anfrage: sofort eligible
+  if (explicitAsk) {
+    return { eligible: true, explicitAsk, stuckSignal, reason: "explicit_ask" };
+  }
+
+  // - implicit: nur wenn "stuck" UND erst nach threshold
+  if (stuckSignal && args.userTurnsInSession >= args.suggestAfterMessages) {
+    return {
+      eligible: true,
+      explicitAsk,
+      stuckSignal,
+      reason: "stuck_after_threshold",
+    };
+  }
+
+  return { eligible: false, explicitAsk, stuckSignal, reason: "too_early" };
+}
+
+/**
+ * Content Item Scoring & Global Best Match
+ */
+type ContentItemRow = {
+  id: string | number;
+  title: string;
+  cluster: string | null;
+  format: string | null;
+  url: string | null;
+  read_time_minutes: number | null;
+  subtitle: string | null;
+  transparency_reason: string | null;
+  created_at?: string | null;
+};
+
+function tokenizeForMatch(input: string): string[] {
+  const stop = new Set([
+    "und","oder","aber","weil","dass","der","die","das","ein","eine","einen","einem",
+    "ich","du","wir","ihr","man","mir","mich","mein","dein","uns",
+    "wie","was","warum","wieso","wo","wann","dazu","dafür","bitte"
+  ]);
+
+  return (input || "")
+    .toLowerCase()
+    .replace(/[^a-zäöüß0-9\s-]/gi, " ")
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3 && !stop.has(t));
+}
+
+function scoreItem(args: {
+  message: string;
+  detectedCluster: string | null;
+  item: ContentItemRow;
+  explicitAsk: boolean;
+}): number {
+  const { item } = args;
+  const text = `${item.title ?? ""} ${item.subtitle ?? ""} ${item.cluster ?? ""} ${item.transparency_reason ?? ""}`.toLowerCase();
+  const tokens = tokenizeForMatch(args.message);
+
+  let score = 0;
+
+  // Cluster-Bias (wenn erkannt): stärkerer Fit
+  if (args.detectedCluster && item.cluster && item.cluster === args.detectedCluster) {
+    score += 5;
+  }
+
+  // Token-Overlap (cap, damit es nicht eskaliert)
+  let hits = 0;
+  for (const tk of tokens) {
+    if (text.includes(tk)) hits += 1;
+    if (hits >= 6) break;
+  }
+  score += hits * 2;
+
+  // Format-Bias, wenn der User explizit danach fragt
+  if (args.explicitAsk) {
+    if (/\bpodcast\b/i.test(args.message) && (item.format || "").toLowerCase().includes("podcast")) score += 3;
+    if (/\bartikel\b/i.test(args.message) && (item.format || "").toLowerCase().includes("artikel")) score += 3;
+    if (/\bzitat\b/i.test(args.message) && (item.format || "").toLowerCase().includes("zitat")) score += 3;
+  }
+
+  return score;
+}
+
+export async function getGlobalBestMatchRecommendation(args: {
+  supabase: any;
+  message: string;
+  detectedCluster: string | null;
+  allowedFormats: string[];
+  explicitAsk: boolean;
+  limitCandidates?: number;
+}): Promise<GuideRecommendation | null> {
+  const limitCandidates = args.limitCandidates ?? 30;
+
+  const { data, error } = await args.supabase
+    .from("content_items")
+    .select("id, title, cluster, format, url, read_time_minutes, subtitle, transparency_reason, created_at")
+    .eq("is_published", true)
+    .in("format", args.allowedFormats)
+    .order("created_at", { ascending: false })
+    .limit(limitCandidates);
+
+  if (error || !data || data.length === 0) return null;
+
+  let best: { item: ContentItemRow; score: number } | null = null;
+
+  for (const item of data) {
+    const s = scoreItem({
+      message: args.message,
+      detectedCluster: args.detectedCluster,
+      item,
+      explicitAsk: args.explicitAsk,
+    });
+
+    if (!best || s > best.score) best = { item, score: s };
+  }
+
+  if (!best) return null;
+
+  // Threshold: bei "stuck"-basierter Eligibility nur empfehlen, wenn echter Fit da ist
+  // Bei expliziter Anfrage darf es auch niedriger sein (User wollte ja ein Item)
+  const minScore = args.explicitAsk ? 1 : 4;
+  if (best.score < minScore) return null;
+
+  const r = best.item;
+  return {
+    id: String(r.id),
+    title: r.title,
+    format: r.format || "Artikel",
+    cluster: r.cluster,
+    read_time_minutes: r.read_time_minutes,
+    url: r.url,
+    subtitle: r.subtitle,
+    why: r.transparency_reason || (r.cluster ? `Cluster ${r.cluster}.` : null),
+  };
+}
 
 /**
  * Log a guide turn for analytics/future fine-tuning

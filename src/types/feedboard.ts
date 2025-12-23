@@ -141,4 +141,5 @@ export interface GuideItem {
   clusterId: string;
   format: string;
   read_time_minutes?: number; // Optional: Dauer in Minuten
+  thumbnail_url?: string | null; // Optional: Thumbnail-URL für Vorschaubild
 }

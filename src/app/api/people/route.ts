@@ -4,10 +4,29 @@ import type { UserProfile } from '@/lib/types/database.types';
 
 /**
  * GET /api/people
- * Returns all user profiles with display_name, birth_date, and target_age
  * 
- * Note: This requires RLS policies that allow reading all user_profiles,
- * or a service role client. For demo purposes, you may need to adjust RLS.
+ * Returns public user profiles for the People page.
+ * 
+ * OWNERSHIP: This API reads ONLY public fields (see FIELD_MATRIX.md).
+ * 
+ * Public fields read:
+ * - user_id, display_name, birth_date, target_age, goal_direction
+ * - avatar_type, avatar_url, avatar_seed, avatar_style
+ * - is_public, bio
+ * - created_at, updated_at
+ * 
+ * Plus from user_goals (join): title (as primary_goal.title)
+ * 
+ * Filters:
+ * - is_public = true
+ * - observatory_onboarding_completed = true
+ * - display_name IS NOT NULL
+ * - birth_date IS NOT NULL
+ * - target_age IS NOT NULL
+ * 
+ * This API does NOT read private fields (answer_style, guide_tone, nudging_frequency, slots_*, etc.)
+ * 
+ * See FIELD_MATRIX.md and API_OWNERSHIP.md for complete field ownership rules.
  */
 export async function GET(request: NextRequest) {
   console.log('People API - Request received');
@@ -21,9 +40,10 @@ export async function GET(request: NextRequest) {
     const similarGoal = searchParams.get('similar_goal') === '1';
     
     // Basis-Query: public profiles that have completed observatory onboarding
+    // EXPLICIT select list - only public fields (see FIELD_MATRIX.md)
     let query = supabase
       .from('user_profiles')
-      .select('*, avatar_type, avatar_url, avatar_seed, avatar_style')
+      .select('user_id, display_name, birth_date, target_age, goal_direction, avatar_type, avatar_url, avatar_seed, avatar_style, is_public, bio, created_at, updated_at, observatory_onboarding_completed')
       .not('display_name', 'is', null)
       .not('birth_date', 'is', null)
       .not('target_age', 'is', null)

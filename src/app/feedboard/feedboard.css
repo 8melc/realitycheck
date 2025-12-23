@@ -28,6 +28,12 @@
   padding-top: 128px;
 }
 
+@media (min-width: 1024px) {
+  .feedboard-shell.has-sidebar {
+    padding-right: 452px; /* 420px Sidebar + 16px right + 16px gap */
+  }
+}
+
 .feedboard-shell__background {
   position: fixed;
   inset: 0;
@@ -660,13 +666,130 @@
 
 .feedboard-empty {
   grid-column: span 12;
-  padding: 64px;
+  padding: 80px 64px;
   border-radius: 24px;
   border: 1px dashed rgba(78, 205, 196, 0.35);
-  background: rgba(255, 255, 255, 0.03);
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+    rgba(6, 8, 10, 0.4);
   text-align: center;
-  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.feedboard-empty::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(78, 205, 196, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.feedboard-empty__icon {
+  font-size: 64px;
+  color: rgba(78, 205, 196, 0.4);
+  line-height: 1;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.feedboard-empty__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--fyf-offwhite);
+  font-family: 'Space Grotesk', sans-serif;
+  position: relative;
+  z-index: 1;
+}
+
+.feedboard-empty__message {
+  margin: 0;
+  font-size: 16px;
   color: rgba(255, 255, 255, 0.66);
+  line-height: 1.6;
+  max-width: 480px;
+  position: relative;
+  z-index: 1;
+}
+
+.feedboard-empty__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.feedboard-empty__button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease;
+  border: none;
+  outline: none;
+}
+
+.feedboard-empty__button--primary {
+  background: var(--fyf-coral);
+  color: var(--fyf-noir);
+  border: 2px solid var(--fyf-coral);
+}
+
+.feedboard-empty__button--primary:hover {
+  background: transparent;
+  color: var(--fyf-coral);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+}
+
+.feedboard-empty__button--secondary {
+  background: transparent;
+  color: var(--fyf-mint);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.feedboard-empty__button--secondary:hover {
+  background: rgba(78, 205, 196, 0.1);
+  border-color: var(--fyf-mint);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .feedboard-empty {
+    padding: 48px 32px;
+  }
+
+  .feedboard-empty__icon {
+    font-size: 48px;
+  }
+
+  .feedboard-empty__title {
+    font-size: 20px;
+  }
+
+  .feedboard-empty__message {
+    font-size: 14px;
+  }
+
+  .feedboard-empty__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .feedboard-empty__button {
+    width: 100%;
+  }
 }
 
 /* Body scroll lock for guidechat modal */
@@ -2208,20 +2331,28 @@
 
 .guidechat-sidebar {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 360px;
-  background: linear-gradient(180deg, rgba(7, 9, 12, 0.98), rgba(7, 9, 12, 0.96));
-  border-left: 1px solid rgba(78, 205, 196, 0.2);
-  backdrop-filter: blur(12px);
+  top: 72px;
+  right: 16px;
+  bottom: 16px;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  border-radius: 16px;
+  z-index: 60;
+  
+  background: rgba(7, 9, 12, 0.72);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(78, 205, 196, 0.06) inset;
+  
   display: flex;
   flex-direction: column;
-  z-index: 30;
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
   
   /* Default: Hidden */
-  transform: translateX(100%);
+  transform: translateX(calc(100% + 16px));
   opacity: 0;
   pointer-events: none;
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -2231,14 +2362,18 @@
   transform: translateX(0);
   opacity: 1;
   pointer-events: auto;
-  /* Ensure clean separation from feedboard content */
   isolation: isolate;
 }
 
 .guidechat-sidebar__header {
-  padding: 24px 20px 20px;
+  padding: 14px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  background: rgba(7, 9, 12, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .guidechat-sidebar__title-row {
@@ -2276,10 +2411,11 @@
 }
 
 .guidechat-sidebar__title {
-  font-family: var(--fyf-font-display);
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--fyf-offwhite);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
 }
 
@@ -2338,10 +2474,11 @@
 .guidechat-sidebar__history {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  overflow-x: hidden;
+  padding: 14px 14px 10px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .guidechat-sidebar__empty {
@@ -2392,15 +2529,59 @@
 
 .guidechat-sidebar__comment {
   margin: 0;
-  padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border-left: 3px solid var(--fyf-mint);
-  border-radius: 0 12px 12px 0;
-  font-size: 15px;
-  line-height: 1.6;
-  font-style: italic;
+  padding: 14px 14px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  font-style: normal;
+  letter-spacing: 0.01em;
   color: var(--fyf-offwhite);
   position: relative;
+}
+
+.guidechat-sidebar__comment:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(78, 205, 196, 0.55);
+  opacity: 0.6;
+}
+
+.guidechat-sidebar__comment:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(78, 205, 196, 0.55);
+  opacity: 0.6;
+}
+
+.guidechat-sidebar__comment p {
+  margin: 6px 0;
+}
+
+.guidechat-sidebar__comment strong {
+  font-weight: 650;
+  color: var(--fyf-offwhite);
+}
+
+.guidechat-sidebar__comment ol {
+  margin: 8px 0 8px 18px;
+  padding: 0;
+  list-style: decimal;
+}
+
+.guidechat-sidebar__comment li {
+  margin: 4px 0;
 }
 
 .guidechat-sidebar__comment--fallback {
@@ -2466,29 +2647,74 @@
 
 .guidechat-sidebar__item {
   padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
   transition: all 160ms ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .guidechat-sidebar__item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--cluster-accent, rgba(78, 205, 196, 0.3));
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(78, 205, 196, 0.35);
+}
+
+.guidechat-sidebar__item-thumbnail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: saturate(0.85) contrast(1.1);
+  opacity: 0.25;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.guidechat-sidebar__item-thumbnail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 8, 10, 0.4), rgba(6, 8, 10, 0.95));
 }
 
 .guidechat-sidebar__item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.guidechat-sidebar__item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guidechat-sidebar__pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .guidechat-sidebar__item-format {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 650;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.10em;
+  opacity: 0.9;
   color: var(--cluster-accent, var(--fyf-mint));
 }
 
@@ -2503,42 +2729,61 @@
   font-weight: 600;
   color: var(--fyf-offwhite);
   line-height: 1.4;
+  position: relative;
+  z-index: 1;
+}
+
+.guidechat-sidebar__item-duration {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.guidechat-sidebar__item-why-wrapper {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .guidechat-sidebar__item-why {
   margin-top: 12px;
   padding: 10px 12px;
-  background: rgba(78, 205, 196, 0.08);
-  border: 1px solid rgba(78, 205, 196, 0.2);
-  border-radius: 8px;
+  background: rgba(78, 205, 196, 0.06);
+  border: 1px solid rgba(78, 205, 196, 0.18);
+  border-radius: 10px;
   font-size: 13px;
+  line-height: 1.45;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+.guidechat-sidebar__item-why button,
+.guidechat-sidebar__item-whyBtn,
 .guidechat-sidebar__item-why-trigger {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--fyf-mint);
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  background: none;
-  border: none;
+  background: transparent;
+  border: 0;
   padding: 0;
-  text-decoration: underline;
-  text-decoration-style: dashed;
-  text-decoration-color: rgba(78, 205, 196, 0.5);
+  margin: 0;
+  color: var(--fyf-mint);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.92;
   transition: all 160ms ease;
 }
 
+.guidechat-sidebar__item-why button:hover,
+.guidechat-sidebar__item-whyBtn:hover,
 .guidechat-sidebar__item-why-trigger:hover {
-  color: var(--fyf-offwhite);
-  text-decoration-color: rgba(78, 205, 196, 0.8);
+  opacity: 1;
+  text-decoration: underline;
 }
 
 .guidechat-sidebar__item-why-text {
@@ -2554,20 +2799,68 @@
   align-items: center;
   gap: 4px;
   margin-top: 10px;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
   background: rgba(78, 205, 196, 0.1);
   border: 1px solid rgba(78, 205, 196, 0.2);
   color: var(--fyf-mint);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   transition: all 160ms ease;
 }
 
 .guidechat-sidebar__item-link:hover {
-  background: rgba(78, 205, 196, 0.18);
-  border-color: rgba(78, 205, 196, 0.4);
+  background: rgba(78, 205, 196, 0.14);
+  border-color: rgba(78, 205, 196, 0.28);
+}
+
+.guidechat-sidebar__curated-item {
+  margin-top: 10px;
+}
+
+.guidechat-sidebar__item-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.guidechat-sidebar__action-btn {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--fyf-offwhite);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.guidechat-sidebar__action-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(78, 205, 196, 0.28);
+}
+
+.guidechat-sidebar__action-btn--primary {
+  border-color: rgba(78, 205, 196, 0.35);
+  background: rgba(78, 205, 196, 0.10);
+  color: var(--fyf-mint);
+}
+
+.guidechat-sidebar__action-btn--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.10);
+  opacity: 0.9;
+}
+
+.guidechat-sidebar__action-btn--ghost:hover {
+  opacity: 1;
+  border-color: rgba(78, 205, 196, 0.22);
 }
 
 .guidechat-feedback-buttons {
@@ -2623,10 +2916,10 @@
 }
 
 .guidechat-sidebar__composer {
-  padding: 16px 20px 20px;
+  padding: 12px 14px 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
-  background: rgba(7, 9, 12, 0.6);
+  background: rgba(7, 9, 12, 0.45);
 }
 
 .guidechat-sidebar__composer-wrapper {
@@ -2655,6 +2948,7 @@
   outline: none;
   border-color: var(--fyf-mint);
   background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.18);
 }
 
 .guidechat-sidebar__textarea::placeholder {
@@ -2680,8 +2974,11 @@
 }
 
 .guidechat-sidebar__send:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .guidechat-sidebar__hint {
@@ -2691,16 +2988,73 @@
   text-align: center;
 }
 
-/* Desktop: Sidebar pushes content */
-@media (min-width: 1200px) {
+/* ===== RESPONSIVE: Sidebar + Nav ===== */
+
+/* Mobile: Sidebar als Vollbild-Overlay */
+@media (max-width: 1023px) {
+  .guidechat-sidebar {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    z-index: 100;
+  }
+
+  .guidechat-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  /* Nav-Zeile reagiert auf Sidebar auf Mobile */
+  .ticktock-header {
+    z-index: 101; /* Über Sidebar, damit Nav noch sichtbar/klickbar bleibt */
+  }
+}
+
+/* Tablet/Desktop: Sidebar als Panel rechts */
+@media (min-width: 1024px) {
+  .guidechat-sidebar {
+    top: 72px;
+    right: 16px;
+    bottom: 16px;
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    border-radius: 16px;
+  }
+
+  /* Nav-Zeile bleibt normal, da Sidebar nicht überlappt */
+  .ticktock-header {
+    z-index: 10;
+  }
+}
+
+/* Sehr kleine Screens: Sidebar noch kompakter */
+@media (max-width: 640px) {
+  .guidechat-sidebar__header {
+    padding: 12px 14px;
+  }
+
+  .guidechat-sidebar__history {
+    padding: 12px 12px 8px;
+  }
+
+  .guidechat-sidebar__composer {
+    padding: 10px 12px 12px;
+  }
+}
+
+/* Desktop: Feedboard passt sich an, wenn Sidebar offen ist */
+@media (min-width: 1024px) {
   .feedboard-shell.has-sidebar {
-    margin-right: 360px;
+    padding-right: 452px; /* 420px Sidebar + 16px right + 16px gap */
   }
 }
 
 /* Ensure clean layer separation when guide is open */
 .feedboard-shell.has-sidebar .ticktock-header {
-  z-index: 5;
+  z-index: 65; /* Über Sidebar (60) aber unter Modal/Overlay */
 }
 
 .feedboard-shell.has-sidebar .feedboard-controls,
@@ -2709,11 +3063,31 @@
   z-index: 1;
 }
 
-/* Mobile: Sidebar as full overlay */
-@media (max-width: 1199px) {
+/* Mobile/Tablet: Sidebar als Vollbild-Overlay */
+@media (max-width: 1023px) {
   .guidechat-sidebar {
-    width: 100vw;
-    max-width: 400px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    z-index: 100;
+  }
+
+  .guidechat-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  /* Nav-Zeile bleibt sichtbar/klickbar über Sidebar */
+  .feedboard-shell.has-sidebar .ticktock-header {
+    z-index: 101;
+  }
+
+  /* Feedboard behält normales Padding auf Mobile */
+  .feedboard-shell.has-sidebar {
+    padding-right: clamp(20px, 4vw, 56px);
   }
 }
 

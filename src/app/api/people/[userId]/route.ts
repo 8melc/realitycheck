@@ -1,6 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * GET /api/people/[userId]
+ * 
+ * Returns a single public user profile.
+ * 
+ * OWNERSHIP: This API reads ONLY public fields (see FIELD_MATRIX.md).
+ * 
+ * Public fields read (same as /api/people):
+ * - user_id, display_name, birth_date, target_age, goal_direction
+ * - avatar_type, avatar_url, avatar_seed, avatar_style
+ * - is_public, bio
+ * - created_at, updated_at
+ * 
+ * Plus from user_goals (join): title (as primary_goal.title)
+ * 
+ * This API does NOT read private fields.
+ * 
+ * See FIELD_MATRIX.md and API_OWNERSHIP.md for complete field ownership rules.
+ */
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -13,9 +33,11 @@ export async function GET(
     const supabase = await createClient();
 
     // 1. Profil laden (nur öffentlich beobachtbare Felder)
+    // EXPLICIT select list - only public fields (see FIELD_MATRIX.md)
+    // This API reads the same public fields as /api/people
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('user_id, display_name, birth_date, target_age, goal_direction, avatar_type, avatar_url, avatar_seed, avatar_style, is_public, created_at, updated_at')
+      .select('user_id, display_name, birth_date, target_age, goal_direction, avatar_type, avatar_url, avatar_seed, avatar_style, is_public, bio, created_at, updated_at')
       .eq('user_id', userId)
       .single();
 

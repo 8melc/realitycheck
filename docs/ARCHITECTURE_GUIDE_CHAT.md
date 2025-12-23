@@ -124,3 +124,4 @@ LLM wählt 1 Item aus (selected_item)
 - **Feedboard Integration**: `src/app/feedboard/page.tsx`
 - **Types**: `src/types/feedboard.ts`
 
+

@@ -255,3 +255,4 @@ if (slotsExists) {
 console.log('\n' + '='.repeat(60));
 console.log('✅ Check abgeschlossen\n');
 
+

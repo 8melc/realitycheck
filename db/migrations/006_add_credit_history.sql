@@ -26,3 +26,4 @@ COMMENT ON COLUMN credit_history.amount IS 'Negative for spending, positive for 
 COMMENT ON COLUMN credit_history.reason IS 'Type of transaction: extend_session, guide_message, content_open, purchase, earned, etc.';
 COMMENT ON COLUMN credit_history.meta IS 'Optional JSON metadata: session_id, content_id, guide_message_id, etc.';
 
+

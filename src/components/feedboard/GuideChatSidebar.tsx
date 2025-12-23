@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { GuideConversationTurn } from '@/types/feedboard';
 import { getClusterConfig } from '@/lib/guideChatEngine';
 import GuideFeedbackButtons from './GuideFeedbackButtons';
 import { buildWhyText } from '@/utils/whyText';
+import { CLUSTER_LABELS } from '@/constants/clusterMapping';
 
 interface GuideChatSidebarProps {
   isOpen: boolean;
@@ -32,6 +34,7 @@ export default function GuideChatSidebar({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [whyOpenItems, setWhyOpenItems] = useState<Set<string>>(new Set());
 
   // Auto-focus composer when sidebar opens
   useEffect(() => {
@@ -160,14 +163,16 @@ export default function GuideChatSidebar({
 
               {/* Bot Response */}
               <div className="guidechat-sidebar__bot">
-                <blockquote className={`guidechat-sidebar__comment ${turn.isFallback ? 'guidechat-sidebar__comment--fallback' : ''}`}>
-                  {turn.comment}
+                <div className={`guidechat-sidebar__comment ${turn.isFallback ? 'guidechat-sidebar__comment--fallback' : ''}`}>
+                  <ReactMarkdown>
+                    {turn.comment}
+                  </ReactMarkdown>
                   {turn.isFallback && (
                     <div className="guidechat-sidebar__fallback-badge">
                       Offline-Modus aktiv
                     </div>
                   )}
-                </blockquote>
+                </div>
 
                 {/* Follow-up Question */}
                 {turn.followUp && (
@@ -193,24 +198,57 @@ export default function GuideChatSidebar({
                       const matchReason = turn.matchReasons.find(mr => mr.itemId === item.id);
                       // Nutze buildWhyText Helper für saubere, vollständige Sätze
                       const whyText = buildWhyText({
-                        matchReason: matchReason?.reason ?? matchReason ?? null,
+                        matchReason: matchReason?.reason ?? null,
                         guideWhy: item?.guideWhy ?? null,
                         lastUserMessage: turn?.prompt ?? null,
-                        clusterCode: item?.clusterId ?? item?.theme ?? null,
+                        clusterCode: item?.clusterId ?? null,
                       });
+                      
+                      // Cluster-Label Mapping (keine internen Keys im UI)
+                      const clusterLabel = item.clusterId ? (CLUSTER_LABELS[item.clusterId] || item.clusterId) : null;
+                      
+                      // Toggle State für "Warum sehe ich das?" (pro Item)
+                      const isWhyOpen = whyOpenItems.has(item.id);
+                      const toggleWhy = () => {
+                        setWhyOpenItems(prev => {
+                          const next = new Set(prev);
+                          if (next.has(item.id)) {
+                            next.delete(item.id);
+                          } else {
+                            next.add(item.id);
+                          }
+                          return next;
+                        });
+                      };
                       
                       return (
                         <div 
                           className="guidechat-sidebar__item"
                           style={{ '--cluster-accent': clusterConfig?.color } as React.CSSProperties}
                         >
+                          {/* Thumbnail (wenn verfügbar) */}
+                          {item.thumbnail_url && (
+                            <div 
+                              className="guidechat-sidebar__item-thumbnail"
+                              style={{
+                                backgroundImage: `url(${item.thumbnail_url})`,
+                              } as React.CSSProperties}
+                              aria-hidden="true"
+                            />
+                          )}
+                          
+                          {/* Header: Format (links) + Dauer (rechts) */}
                           <div className="guidechat-sidebar__item-header">
-                            <span className="guidechat-sidebar__item-format">
-                              {item.format}
-                            </span>
-                            <span className="guidechat-sidebar__item-cluster">
-                              {item.clusterId}
-                            </span>
+                            <div className="guidechat-sidebar__item-meta">
+                              <span className="guidechat-sidebar__item-format">
+                                {item.format}
+                              </span>
+                              {clusterLabel && (
+                                <span className="guidechat-sidebar__pill">
+                                  {clusterLabel}
+                                </span>
+                              )}
+                            </div>
                             {item.read_time_minutes && (
                               <span className="guidechat-sidebar__item-duration">
                                 {item.read_time_minutes} min
@@ -222,74 +260,61 @@ export default function GuideChatSidebar({
                             {item.title}
                           </h4>
                           
+                          {/* "Warum sehe ich das?" als Toggle (default zu) */}
                           {whyText && (
-                            <div className="guidechat-sidebar__item-why">
+                            <div className="guidechat-sidebar__item-why-wrapper">
                               <button
                                 type="button"
-                                className="guidechat-sidebar__item-why-trigger"
-                                title={whyText}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  // Toggle visibility oder show tooltip
-                                  const target = e.currentTarget.nextElementSibling as HTMLElement;
-                                  if (target) {
-                                    target.style.display = target.style.display === 'none' ? 'block' : 'none';
-                                  }
-                                }}
+                                className="guidechat-sidebar__item-whyBtn"
+                                onClick={toggleWhy}
                               >
                                 Warum sehe ich das?
                               </button>
-                              <p className="guidechat-sidebar__item-why-text">{whyText}</p>
+                              {isWhyOpen && (
+                                <div className="guidechat-sidebar__item-why">
+                                  <p className="guidechat-sidebar__item-why-text">{whyText}</p>
+                                </div>
+                              )}
                             </div>
                           )}
                           
-                          {/* Action Buttons: Ja / Später / Skip */}
+                          {/* Action Buttons: Öffnen / Später / Nicht relevant */}
                           <div className="guidechat-sidebar__item-actions">
                             <button
                               type="button"
                               className="guidechat-sidebar__action-btn guidechat-sidebar__action-btn--primary"
                               onClick={() => {
-                                // TODO: Implement "Ja" action - mark as consumed, decrement slot
-                                console.log('[Guide] Item accepted:', item.id);
+                                console.log('[Guide] Item opened:', item.id);
                                 if (item.link && item.link !== '#') {
                                   window.open(item.link, '_blank');
                                 }
                               }}
                             >
-                              Ja
+                              Öffnen
                             </button>
+
                             <button
                               type="button"
-                              className="guidechat-sidebar__action-btn guidechat-sidebar__action-btn--secondary"
+                              className="guidechat-sidebar__action-btn"
                               onClick={() => {
-                                // TODO: Implement "Später" action - save for later
-                                console.log('[Guide] Item saved for later:', item.id);
+                                console.log('[Guide] Item later:', item.id);
+                                // TODO: mark "later" (UI only ok for MVP)
                               }}
                             >
                               Später
                             </button>
+
                             <button
                               type="button"
-                              className="guidechat-sidebar__action-btn guidechat-sidebar__action-btn--tertiary"
+                              className="guidechat-sidebar__action-btn guidechat-sidebar__action-btn--ghost"
                               onClick={() => {
-                                // TODO: Implement "Skip" action - mark as skipped
-                                console.log('[Guide] Item skipped:', item.id);
+                                console.log('[Guide] Item not relevant:', item.id);
+                                // TODO: mark "not relevant" (feed_interactions / guide_feedback später)
                               }}
                             >
-                              Skip
+                              Nicht relevant
                             </button>
                           </div>
-                          
-                          {item.link && item.link !== '#' && (
-                            <a
-                              href={item.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="guidechat-sidebar__item-link"
-                            >
-                              Ansehen →
-                            </a>
-                          )}
                         </div>
                       );
                     })()}

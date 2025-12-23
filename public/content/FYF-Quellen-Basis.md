@@ -190,3 +190,4 @@ Reine Selbstregulation von Plattformen hat klare Grenzen und braucht Regeln, dam
 
 [^17]: https://academic.oup.com/icc/article-abstract/30/5/1259/6355574
 
+

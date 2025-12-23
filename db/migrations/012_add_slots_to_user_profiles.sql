@@ -30,3 +30,4 @@ COMMENT ON COLUMN user_profiles.slots_article IS 'Maximum number of articles to 
 COMMENT ON COLUMN user_profiles.slots_podcast IS 'Maximum number of podcasts to show per day (default: 2)';
 COMMENT ON COLUMN user_profiles.slots_quote IS 'Maximum number of quotes to show per day (default: 4)';
 
+

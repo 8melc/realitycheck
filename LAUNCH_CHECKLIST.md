@@ -142,3 +142,4 @@ OpenAI → Usage → RealityCheck Project
 
 **Sonntag 30 Min → Montag LIVE!** 🏆
 
+

@@ -156,3 +156,4 @@ Transparenz und Wahlfreiheit bleiben dabei zentrale Prinzipien.
 Diese methodische Basis dient als gemeinsamer Referenzrahmen für alle Bereiche von RealityCheck.  
 Sie legt fest, wie Zeit, Ziele, Prioritäten und Grenzen verstanden werden – und bildet damit die Grundlage für eine konsistente Arbeitsweise im gesamten System.
 
+

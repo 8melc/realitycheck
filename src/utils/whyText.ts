@@ -57,3 +57,4 @@ export function buildWhyText(opts: BuildWhyTextOpts): string {
   return "Weil Inhalt, Dauer und Thema zu deinem Fokus und deinen Filtern passen – nicht optimiert für Klicks, sondern für deine Zeit.";
 }
 
+

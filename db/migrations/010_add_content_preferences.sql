@@ -37,3 +37,4 @@ COMMENT ON COLUMN content_preferences.max_podcasts_per_day IS 'Maximum number of
 COMMENT ON COLUMN content_preferences.max_quotes_per_day IS 'Maximum number of quotes to show per day';
 COMMENT ON COLUMN content_preferences.max_events_per_week IS 'Maximum number of events to show per week';
 
+

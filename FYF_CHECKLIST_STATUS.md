@@ -50,3 +50,4 @@
 2. **guide_conversations INSERT aktivieren** → logGuideTurn() erweitern oder neue Funktion
 3. **content_items COUNT prüfen** → CSV-Import Status verifizieren
 
+

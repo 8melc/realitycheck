@@ -1,0 +1,121 @@
+/**
+ * Layout System - Einheitliche Grundregeln
+ * Gilt für Onboarding, People, Dashboard, Settings
+ */
+
+:root {
+  /* Spacing Scale (einheitlich) */
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* Typografie-Hierarchie */
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* H1: Page-Title */
+  --h1-size: clamp(2.5rem, 5vw, 4rem);
+  --h1-weight: 900;
+  --h1-line-height: 1.1;
+  --h1-letter-spacing: -0.02em;
+
+  /* H2: Abschnitt */
+  --h2-size: clamp(1.75rem, 3vw, 2.5rem);
+  --h2-weight: 700;
+  --h2-line-height: 1.2;
+  --h2-letter-spacing: -0.01em;
+
+  /* H3: Karten-Titel */
+  --h3-size: clamp(1.25rem, 2vw, 1.5rem);
+  --h3-weight: 600;
+  --h3-line-height: 1.3;
+
+  /* Content Container */
+  --content-max-width: 720px;
+  --content-padding: var(--spacing-xl);
+
+  /* Card Styles */
+  --card-padding: var(--spacing-lg);
+  --card-border-radius: 16px;
+  --card-gap: var(--spacing-md);
+
+  /* Input Styles */
+  --input-padding: var(--spacing-md);
+  --input-border-radius: 12px;
+  --input-gap: var(--spacing-sm);
+}
+
+/* Utility Classes */
+.spacing-xs { gap: var(--spacing-xs); }
+.spacing-sm { gap: var(--spacing-sm); }
+.spacing-md { gap: var(--spacing-md); }
+.spacing-lg { gap: var(--spacing-lg); }
+.spacing-xl { gap: var(--spacing-xl); }
+.spacing-2xl { gap: var(--spacing-2xl); }
+
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+.mt-2xl { margin-top: var(--spacing-2xl); }
+
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+.mb-2xl { margin-bottom: var(--spacing-2xl); }
+
+/* Typography */
+.h1-page-title {
+  font-family: var(--font-display);
+  font-size: var(--h1-size);
+  font-weight: var(--h1-weight);
+  line-height: var(--h1-line-height);
+  letter-spacing: var(--h1-letter-spacing);
+}
+
+.h2-section {
+  font-family: var(--font-display);
+  font-size: var(--h2-size);
+  font-weight: var(--h2-weight);
+  line-height: var(--h2-line-height);
+  letter-spacing: var(--h2-letter-spacing);
+}
+
+.h3-card-title {
+  font-family: var(--font-display);
+  font-size: var(--h3-size);
+  font-weight: var(--h3-weight);
+  line-height: var(--h3-line-height);
+}
+
+/* Content Container */
+.content-container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--content-padding);
+}
+
+/* Card */
+.card {
+  padding: var(--card-padding);
+  border-radius: var(--card-border-radius);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Step Indicator */
+.step-indicator {
+  font-size: 0.875rem;
+  color: var(--rc-steel, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+}
+
