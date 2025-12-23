@@ -72,6 +72,8 @@ export async function POST(request: NextRequest) {
       answer_style,
       guideTone,
       guide_tone,
+      bio,
+      isPublic,
     } = body;
 
     // VALIDIERUNG: Nur erlaubte Felder
@@ -168,6 +170,8 @@ export async function POST(request: NextRequest) {
       goal_direction: final_goal_direction,
       answer_style: final_answer_style,
       guide_tone: mapped_guide_tone, // Initial gesetzt, kann später via guide-settings API geändert werden
+      bio: bio?.trim() || null, // Optional, kann später geändert werden
+      is_public: isPublic !== undefined ? isPublic : true, // Default = sichtbar
       updated_at: new Date().toISOString(),
     };
 
@@ -310,6 +314,55 @@ export async function POST(request: NextRequest) {
       console.warn('[Onboarding] Could not initialize credits:', creditsError);
     }
 
+    // Set onboarding flags based on what was provided
+    // These flags track progress through the onboarding phases
+    const flags: Record<string, boolean> = {};
+    
+    // Phase 1: Identity completed
+    if (name && final_birth_date && targetAgeNum) {
+      flags.onboarding_phase_1_completed = true;
+    }
+    
+    // Phase 2: Goal set
+    if (goal?.trim() || final_goal_direction) {
+      flags.primary_goal_set = true;
+    }
+    
+    // Phase 2b: Guide preferences set
+    if (final_answer_style && mapped_guide_tone) {
+      flags.guide_preferences_set = true;
+    }
+    
+    // Phase 3: Visibility set (if bio or isPublic provided)
+    if (isPublic !== undefined || bio) {
+      flags.people_visibility_set = true;
+    }
+    
+    // Overall completion: all phases done
+    const isComplete = flags.onboarding_phase_1_completed && 
+                      flags.primary_goal_set && 
+                      flags.guide_preferences_set && 
+                      flags.people_visibility_set;
+    
+    if (isComplete) {
+      flags.onboarding_completed = true;
+    }
+    
+    // Update flags if any were set (gracefully handle missing columns)
+    if (Object.keys(flags).length > 0) {
+      try {
+        await (supabase
+          .from('user_profiles') as any)
+          .update(flags)
+          .eq('user_id', user.id);
+      } catch (flagError: any) {
+        // Non-critical: Log but don't fail (columns may not exist yet)
+        if (!flagError?.message?.includes('column') && !flagError?.code?.includes('42703')) {
+          console.warn('[Onboarding] Could not set onboarding flags:', flagError);
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       profile: {
@@ -318,9 +371,47 @@ export async function POST(request: NextRequest) {
         birth_date: profile.birth_date,
         target_age: profile.target_age,
       },
+      onboarding_completed: isComplete,
     });
   } catch (error) {
     console.error('Error in onboarding API:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/profile/onboarding
+ * Updates onboarding completion status
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createSupabaseServerClient();
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { onboarding_completed } = body;
+
+    if (onboarding_completed === true) {
+      await (supabase
+        .from('user_profiles') as any)
+        .update({ onboarding_completed: true })
+        .eq('user_id', user.id);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error in onboarding PATCH:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -513,8 +513,8 @@ export default function LifeWeeksPage() {
 
   if (currentView === 'grid' && currentStats) {
     return (
-      <div className="container">
-        <section className="life-weeks-shell-v2">
+      <div className="container h-screen overflow-hidden">
+        <section className="life-weeks-shell-v2 h-full">
           {/* Vertical Tab Strip (left, 60px) */}
           <div className="vertical-tab-strip">
             {statsTabs.map(tab => {
@@ -539,8 +539,8 @@ export default function LifeWeeksPage() {
           </div>
 
           {/* Main Grid Area (center, flex-grow) */}
-          <div className="grid-main-area">
-            <div className="title-container">
+          <div className="grid-main-area flex-1 min-h-0 flex flex-col">
+            <div className="title-container shrink-0">
               <h1 className="fyf-display">
                 <div className="coral">Life</div>
                 <div className="cream">in</div>
@@ -548,63 +548,68 @@ export default function LifeWeeksPage() {
               </h1>
             </div>
 
-            <div className="metrics-intro">
-              <p className="font-roboto-mono text-sm uppercase tracking-[0.12em] text-fyf-steel/80">
-                Zahlen sagen immer die Wahrheit.
-                <br />Was machst du daraus?
-              </p>
-            </div>
-
-            <div className={`week-grid-wrapper ${isPanelOpen ? 'week-grid-wrapper--muted' : ''}`}>
-              <div className="grid-container-with-legend">
-                <WeekGrid 
-                  currentStats={currentStats} 
-                  onHover={showHoverInfo}
-                  onLeave={hideHoverInfo}
-                />
-
-                {/* Legend positioned right side of grid */}
-                <div className="grid-legend-overlay">
-                  <button 
-                    className="legend-toggle-btn"
-                    onClick={() => setIsLegendOpen(!isLegendOpen)}
-                    aria-haspopup="dialog"
-                    aria-expanded={isLegendOpen}
-                    aria-controls="grid-legend-panel"
-                  >
-                    <span>ℹ︎</span>
-                  </button>
-                  
-                  {isLegendOpen && (
-                    <div className="legend-panel" id="grid-legend-panel">
-                      <p className="legend-title">Wie lese ich das Wochenraster?</p>
-                      <ul className="legend-list">
-                        <li><span className="dot past" />Vergangene Wochen ({formatNumber(currentStats.weeksLived)})</li>
-                        <li><span className="dot present" />Aktuelle Woche</li>
-                        <li><span className="dot future" />Verbleibende Wochen ({formatNumber(currentStats.weeksRemaining)})</li>
-                      </ul>
-                    </div>
-                  )}
+            <div className="grid-content-wrapper flex-1 min-h-0 flex">
+              {/* Left Column: Metrics + Button */}
+              <div className="metrics-column shrink-0 flex flex-col">
+                <div className="metrics-intro shrink-0">
+                  <p className="font-roboto-mono text-sm uppercase tracking-[0.12em] text-fyf-steel/80">
+                    Zahlen sagen immer die Wahrheit.
+                    <br />Was machst du daraus?
+                  </p>
                 </div>
+                {/* CTA - Subtle button at bottom left */}
+                <a href="/onboarding" className="subtle-cta-button mt-auto shrink-0">
+                  Bist du bereit FYF zu entdecken?
+                </a>
               </div>
 
-              {hoverInfo.visible && (
-                <div 
-                  className="hover-info"
-                  style={{
-                    left: tooltipPosition.x,
-                    top: tooltipPosition.y,
-                  }}
-                >
-                  <p className="steel" dangerouslySetInnerHTML={{ __html: hoverInfo.text }}></p>
-                </div>
-              )}
-            </div>
+              {/* Right Column: Grid */}
+              <div className={`week-grid-wrapper flex-1 min-h-0 overflow-hidden ${isPanelOpen ? 'week-grid-wrapper--muted' : ''}`}>
+                <div className="grid-container-with-legend h-full w-full">
+                  <WeekGrid 
+                    currentStats={currentStats} 
+                    onHover={showHoverInfo}
+                    onLeave={hideHoverInfo}
+                  />
 
-            {/* CTA - Subtle button at bottom left */}
-            <a href="/onboarding" className="subtle-cta-button">
-              Bist du bereit FYF zu entdecken?
-            </a>
+                  {/* Legend positioned right side of grid */}
+                  <div className="grid-legend-overlay">
+                    <button 
+                      className="legend-toggle-btn"
+                      onClick={() => setIsLegendOpen(!isLegendOpen)}
+                      aria-haspopup="dialog"
+                      aria-expanded={isLegendOpen}
+                      aria-controls="grid-legend-panel"
+                    >
+                      <span>ℹ︎</span>
+                    </button>
+                    
+                    {isLegendOpen && (
+                      <div className="legend-panel" id="grid-legend-panel">
+                        <p className="legend-title">Wie lese ich das Wochenraster?</p>
+                        <ul className="legend-list">
+                          <li><span className="dot past" />Vergangene Wochen ({formatNumber(currentStats.weeksLived)})</li>
+                          <li><span className="dot present" />Aktuelle Woche</li>
+                          <li><span className="dot future" />Verbleibende Wochen ({formatNumber(currentStats.weeksRemaining)})</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {hoverInfo.visible && (
+                  <div 
+                    className="hover-info"
+                    style={{
+                      left: tooltipPosition.x,
+                      top: tooltipPosition.y,
+                    }}
+                  >
+                    <p className="steel" dangerouslySetInnerHTML={{ __html: hoverInfo.text }}></p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Off-Canvas Panel (slides from left over grid) */}
@@ -755,37 +760,82 @@ function WeekGrid({
   onHover: (index: number, event: React.MouseEvent) => void;
   onLeave: () => void;
 }) {
-  const determineWeeksPerRow = (width: number, total: number) => {
-    const availableWidth = Math.max(width - 64, 240);
-    const targetSize = width < 480 ? 12 : width < 1024 ? 11 : 9;
-    const calculatedColumns = Math.floor(availableWidth / targetSize);
-    const boundedColumns = Math.min(80, Math.max(20, calculatedColumns));
-    return Math.min(boundedColumns, total);
-  };
-
-  const initialWeeksPerRow =
-    typeof window === 'undefined'
-      ? Math.min(80, currentStats.totalWeeks)
-      : determineWeeksPerRow(window.innerWidth, currentStats.totalWeeks);
-
-  const [weeksPerRow, setWeeksPerRow] = useState(initialWeeksPerRow);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState<number>(9);
+  const [weeksPerRow, setWeeksPerRow] = useState<number>(80);
   const [cells, setCells] = useState<
     Array<{ cellIndex: number; isPast: boolean; isCurrent: boolean }>
   >([]);
 
   const totalWeeks = Math.max(1, currentStats.totalWeeks);
+  const gap = 2; // Gap between cells in pixels (clamp(1px, 0.2vw, 3px) ≈ 2px)
 
+  // Calculate optimal weeks per row and cell size based on available space
   useEffect(() => {
-    const handleResize = () => {
-      const next = determineWeeksPerRow(window.innerWidth, totalWeeks);
-      setWeeksPerRow((prev) => (prev === next ? prev : next));
+    if (!containerRef.current) return;
+
+    const updateGridSize = () => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const padding = 32; // 16px padding on each side
+      const availableWidth = Math.max(100, containerRect.width - padding);
+      const availableHeight = Math.max(100, containerRect.height - padding);
+
+      // Try different column counts to find the best fit
+      let bestCols = Math.min(80, totalWeeks);
+      let bestCellSize = 9;
+      let bestScore = -1;
+
+      // Search for optimal column count (between 20 and 80, or totalWeeks if smaller)
+      const minCols = Math.max(10, Math.min(20, totalWeeks));
+      const maxCols = Math.min(80, totalWeeks);
+      
+      for (let cols = minCols; cols <= maxCols; cols++) {
+        const rows = Math.ceil(totalWeeks / cols);
+        
+        // Calculate cell size based on width constraint
+        const cellSizeFromWidth = (availableWidth - gap * (cols - 1)) / cols;
+        
+        // Calculate cell size based on height constraint
+        const cellSizeFromHeight = (availableHeight - gap * (rows - 1)) / rows;
+        
+        // Use the smaller one to fit both dimensions
+        const cellSize = Math.min(cellSizeFromWidth, cellSizeFromHeight);
+        
+        // Score: prefer larger cells that fit well (cellSize * 100 - penalty for being too small/large)
+        if (cellSize >= 3 && cellSize <= 20) {
+          const score = cellSize * 100 - Math.abs(cellSize - 9) * 10;
+          if (score > bestScore) {
+            bestScore = score;
+            bestCols = cols;
+            bestCellSize = cellSize;
+          }
+        }
+      }
+
+      // Ensure we have valid values
+      if (bestCellSize >= 3 && bestCellSize <= 20) {
+        setWeeksPerRow(bestCols);
+        setCellSize(Math.max(3, Math.min(20, bestCellSize)));
+      }
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [totalWeeks]);
+    updateGridSize();
 
+    const resizeObserver = new ResizeObserver(() => {
+      updateGridSize();
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [totalWeeks, gap]);
+
+  // Generate cells based on weeksPerRow
   useEffect(() => {
     const adjustedWeeksPerRow = Math.max(
       1,
@@ -826,10 +876,14 @@ function WeekGrid({
 
   return (
     <div
+      ref={containerRef}
       className="week-grid"
       style={{
-        gridTemplateColumns: `repeat(${effectiveWeeksPerRow}, minmax(0, 1fr))`,
-      }}
+        gridTemplateColumns: `repeat(${effectiveWeeksPerRow}, ${cellSize}px)`,
+        gridAutoRows: `${cellSize}px`,
+        gap: `${gap}px`,
+        '--cell-size': `${cellSize}px`,
+      } as React.CSSProperties & { '--cell-size': string }}
     >
       {cells.map((cell) => {
         const { cellIndex, isPast, isCurrent } = cell;
@@ -843,6 +897,12 @@ function WeekGrid({
           <div
             key={cellIndex}
             className={className}
+            style={{
+              width: `${cellSize}px`,
+              height: `${cellSize}px`,
+              minWidth: `${cellSize}px`,
+              minHeight: `${cellSize}px`,
+            }}
             onMouseEnter={(e) => onHover(cellIndex, e)}
             onMouseLeave={onLeave}
           />

@@ -120,36 +120,36 @@ export function SlotManager() {
 
   if (loading) {
     return (
-      <div className="rounded-xl bg-neutral-900 p-6 text-sm text-neutral-300">
+      <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--rc-steel, #9ca3af)' }}>
         Lade deine Slots …
       </div>
     );
   }
 
   return (
-    <section className="rounded-xl bg-neutral-900 p-6 text-neutral-100 shadow-lg">
-      <header className="mb-4 flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-red-500">
+    <div>
+      <header className="mb-6">
+        <h3 className="settings-section-title" style={{ marginBottom: '0.5rem' }}>
           Fokus. 12 Slots. Null Ausreden.
-        </h2>
-        <p className="text-sm text-neutral-300">
+        </h3>
+        <p className="settings-section-description">
           Stell ein, wie viel Input dein Tag aushält – nicht, wie viel dein Dopamin will.
         </p>
       </header>
 
-      <div className="mb-4 flex items-baseline justify-between text-sm text-neutral-300">
+      <div className="mb-6 flex items-baseline justify-between" style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>
         <span>Gesamt-Slots pro Tag</span>
-        <span className={overLimit ? 'text-red-400' : 'text-green-400'}>
+        <span style={{ color: overLimit ? 'var(--rc-coral, #ff6b6b)' : 'var(--rc-mint, #4ecdc4)', fontWeight: 600 }}>
           {total} / {MAX_SLOTS}
         </span>
       </div>
 
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Artikel */}
         <div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="font-medium">Artikel pro Tag</label>
-            <span className="tabular-nums text-neutral-200">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <label className="form-label" style={{ margin: 0 }}>Artikel pro Tag</label>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--rc-cream, #f3efe8)' }}>
               {slots.article}
             </span>
           </div>
@@ -159,18 +159,27 @@ export function SlotManager() {
             max={MAX_SLOTS}
             value={slots.article}
             onChange={(e) => updateSlot('article', Number(e.target.value))}
-            className="mt-2 w-full accent-red-500"
+            style={{
+              width: '100%',
+              height: '6px',
+              borderRadius: '3px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              outline: 'none',
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            }}
+            className="slider-input"
           />
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="form-hint">
             Für Tiefgang, nicht für Scrollen.
           </p>
         </div>
 
         {/* Podcasts */}
         <div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="font-medium">Podcasts pro Tag</label>
-            <span className="tabular-nums text-neutral-200">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <label className="form-label" style={{ margin: 0 }}>Podcasts pro Tag</label>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--rc-cream, #f3efe8)' }}>
               {slots.podcast}
             </span>
           </div>
@@ -180,18 +189,27 @@ export function SlotManager() {
             max={MAX_SLOTS}
             value={slots.podcast}
             onChange={(e) => updateSlot('podcast', Number(e.target.value))}
-            className="mt-2 w-full accent-red-500"
+            style={{
+              width: '100%',
+              height: '6px',
+              borderRadius: '3px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              outline: 'none',
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            }}
+            className="slider-input"
           />
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="form-hint">
             Für unterwegs. Kein Nebenbei-Gedudel.
           </p>
         </div>
 
         {/* Zitate */}
         <div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="font-medium">Zitate pro Tag</label>
-            <span className="tabular-nums text-neutral-200">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <label className="form-label" style={{ margin: 0 }}>Zitate pro Tag</label>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--rc-cream, #f3efe8)' }}>
               {slots.quote}
             </span>
           </div>
@@ -201,42 +219,55 @@ export function SlotManager() {
             max={MAX_SLOTS}
             value={slots.quote}
             onChange={(e) => updateSlot('quote', Number(e.target.value))}
-            className="mt-2 w-full accent-red-500"
+            style={{
+              width: '100%',
+              height: '6px',
+              borderRadius: '3px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              outline: 'none',
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            }}
+            className="slider-input"
           />
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="form-hint">
             Kleine Hiebe statt Kalendersprüche.
           </p>
         </div>
       </div>
 
       {error && (
-        <p className="mt-4 text-xs text-red-400">
+        <div className="form-error" style={{ marginTop: '1rem' }}>
           {error}
-        </p>
+        </div>
       )}
 
       {overLimit && !error && (
-        <p className="mt-4 text-xs text-red-300">
+        <div className="form-error" style={{ marginTop: '1rem' }}>
           Du bist bei {total}. Du hast aber nur 12 Slots. Streichen gehört dazu.
-        </p>
+        </div>
       )}
 
       {saveMessage && !error && (
-        <p className="mt-4 text-xs text-green-400">
+        <div className="form-success" style={{ marginTop: '1rem' }}>
           {saveMessage}
-        </p>
+        </div>
       )}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving}
-        className="mt-5 w-full rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-800"
-      >
-        {saving ? 'Speichere …' : 'Festnageln'}
-      </button>
-    </section>
+      <div className="form-actions" style={{ marginTop: '1.5rem' }}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="btn btn-primary"
+          style={{ width: '100%' }}
+        >
+          {saving ? 'Speichere …' : 'Festnageln'}
+        </button>
+      </div>
+    </div>
   );
 }
+
 
 

@@ -18,15 +18,15 @@ function calculateAge(birthDate: string | null): number | null {
   return age
 }
 
-interface PeopleProfile extends UserProfile {
-  avatar_type?: 'initials' | 'upload' | 'generated' | null
-  avatar_url?: string | null
-  avatar_seed?: string | null
-  avatar_style?: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
+interface PeopleProfile extends Omit<UserProfile, 'avatar_type' | 'avatar_url' | 'avatar_seed' | 'avatar_style' | 'goal_direction'> {
+  avatar_type: 'initials' | 'upload' | 'generated' | null
+  avatar_url: string | null
+  avatar_seed: string | null
+  avatar_style: 'avataaars' | 'personas' | 'bottts' | 'micah' | 'lorelei' | null
   primary_goal?: {
     title: string
   } | null
-  goal_direction?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
+  goal_direction: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
   timeFacts?: {
     weeksLived: number
     weeksRemaining: number
@@ -250,9 +250,9 @@ export default function People() {
 
   return (
     <div style={{
-      maxWidth: '1280px',
+      maxWidth: '1400px',
       margin: '0 auto',
-      padding: '60px 20px 40px',
+      padding: '60px 40px 40px',
       background: '#0A0A0A',
       color: '#FFF8E7',
       minHeight: '100vh'
@@ -272,6 +272,41 @@ export default function People() {
       }}>
         PEOPLE
       </h1>
+
+      {/* Klare Einordnung */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '40px',
+        maxWidth: '800px',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        padding: '1.5rem',
+        background: 'rgba(78, 205, 196, 0.05)',
+        border: '1px solid rgba(78, 205, 196, 0.2)',
+        borderRadius: '12px',
+        position: 'relative'
+      }}>
+        <p style={{
+          fontSize: '1rem',
+          color: '#FFF8E7',
+          lineHeight: '1.7',
+          margin: 0,
+          marginBottom: '0.75rem'
+        }}>
+          People sind andere Nutzer von RealityCheck.<br />
+          Keine Follower, keine Reichweite.<br />
+          Nur Einblicke und Perspektiven.
+        </p>
+        <p style={{
+          fontSize: '0.875rem',
+          color: 'rgba(255, 248, 231, 0.7)',
+          lineHeight: '1.6',
+          margin: 0,
+          fontStyle: 'italic'
+        }}>
+          Hier sehen dich andere – so, wie du es freigegeben hast.
+        </p>
+      </div>
 
       {/* Editorial Intro */}
       <div style={{

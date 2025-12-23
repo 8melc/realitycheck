@@ -33,8 +33,8 @@ export default function GoalStep({ formData, updateFormData }: GoalStepProps) {
     <div className="step-content">
       <div className="form-content">
         <div className="form-group">
-          <p className="step-subtitle" style={{ marginBottom: '1.5rem' }}>
-            Wähle EIN Ziel oder eine Ziel-Richtung. Nicht beides.
+          <p className="step-subtitle" style={{ marginBottom: '1.5rem', fontSize: '1rem', lineHeight: '1.6' }}>
+            Dein Ziel gibt deinem Guide Orientierung. Es entscheidet, worauf er dich aufmerksam macht.
           </p>
           
           {/* Option 1: Freier Text */}
@@ -46,11 +46,20 @@ export default function GoalStep({ formData, updateFormData }: GoalStepProps) {
               className="input-field"
               value={formData.goal}
               onChange={(e) => updateGoal(e.target.value)}
-              placeholder="Was würdest du tun, wenn du niemandem etwas beweisen müsstest?" 
+              placeholder="Beispiel: Ich will meine Zeit wieder selbst bestimmen und aufhören, mich ständig abzulenken." 
               rows={4}
               style={{ resize: 'vertical', minHeight: '120px', width: '100%' }}
               disabled={!!formData.goalDirection}
             />
+            <p style={{ 
+              marginTop: '0.75rem', 
+              fontSize: '0.875rem', 
+              color: 'var(--rc-steel, #9ca3af)',
+              lineHeight: '1.5'
+            }}>
+              Dieses Ziel nutzt nur dein Guide.<br />
+              Es ist keine Verpflichtung, kein Profil-Statement und nicht öffentlich.
+            </p>
           </div>
 
           {/* Divider */}

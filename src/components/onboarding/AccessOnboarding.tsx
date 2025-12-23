@@ -8,6 +8,8 @@ import IntroStep from './steps/IntroStep'
 import BasicsStep from './steps/BasicsStep'
 import GoalStep from './steps/GoalStep'
 import GuideStyleStep from './steps/GuideStyleStep'
+import VisibilityStep from './steps/VisibilityStep'
+import CompletionStep from './steps/CompletionStep'
 
 export interface AccessFormData {
   name: string
@@ -18,6 +20,8 @@ export interface AccessFormData {
   goalDirection?: 'freedom' | 'clarity' | 'growth' | 'balance' | 'meaning' | null
   answerStyle: 'short' | 'medium' | 'long'
   guideTone: 'soft' | 'straight' | 'hard'
+  bio?: string
+  isPublic?: boolean
 }
 
 const steps = [
@@ -39,7 +43,7 @@ const steps = [
     id: 'goal',
     navLabel: 'Ziel',
     heading: 'Dein Ziel',
-    microcopy: 'Kein Marketing-Bullshit, kein Fremdzweck. Nur du, radikal und ehrlich.',
+    microcopy: 'Dein Ziel hilft deinem Guide, dir relevante Inhalte zu zeigen.',
     content: 'goal'
   },
   {
@@ -48,6 +52,20 @@ const steps = [
     heading: 'Wie soll dein Guide sein?',
     microcopy: 'Wähle, wie dein Guide mit dir kommuniziert.',
     content: 'guide-style'
+  },
+  {
+    id: 'visibility',
+    navLabel: 'Sichtbarkeit',
+    heading: 'Deine Sichtbarkeit',
+    microcopy: 'Entscheide, ob du im Beobachtungsraum sichtbar sein möchtest.',
+    content: 'visibility'
+  },
+  {
+    id: 'completion',
+    navLabel: 'Abschluss',
+    heading: 'Dein Setup ist abgeschlossen.',
+    microcopy: '',
+    content: 'completion'
   }
 ]
 
@@ -62,7 +80,9 @@ export default function AccessOnboarding() {
     goal: '',
     goalDirection: null,
     answerStyle: 'medium',
-    guideTone: 'straight'
+    guideTone: 'straight',
+    bio: '',
+    isPublic: true // Default = sichtbar
   })
 
   const step = steps[currentStep]
@@ -112,7 +132,7 @@ export default function AccessOnboarding() {
 
   const nextStep = async () => {
     if (validateCurrentStep()) {
-      // Last step (guide-style) - save profile and redirect
+      // Completion step (last) - save profile and redirect to /guide
       if (currentStep === steps.length - 1) {
         try {
           // Save profile to Supabase
@@ -130,6 +150,8 @@ export default function AccessOnboarding() {
               goalDirection: formData.goalDirection,
               answerStyle: formData.answerStyle,
               guideTone: formData.guideTone,
+              bio: formData.bio,
+              isPublic: formData.isPublic ?? true,
             }),
           });
 
@@ -147,6 +169,17 @@ export default function AccessOnboarding() {
             // Don't redirect if save fails - let user try again
             return;
           }
+
+          // Mark onboarding as completed
+          await fetch('/api/profile/onboarding', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              onboarding_completed: true,
+            }),
+          });
         } catch (error) {
           console.error('[Onboarding] Error saving profile:', error);
           alert(`Fehler beim Speichern: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`);
@@ -176,6 +209,10 @@ export default function AccessOnboarding() {
         return !!(formData.goal.trim() || formData.goalDirection)
       case 'guide-style':
         return !!(formData.answerStyle && formData.guideTone)
+      case 'visibility':
+        return true // Optional, immer valid
+      case 'completion':
+        return true // Always valid, just shows completion message
       default:
         return true
     }
@@ -191,6 +228,10 @@ export default function AccessOnboarding() {
         return <GoalStep formData={formData} updateFormData={updateFormData} />
       case 'guide-style':
         return <GuideStyleStep formData={formData} updateFormData={updateFormData} />
+      case 'visibility':
+        return <VisibilityStep formData={formData} updateFormData={updateFormData} />
+      case 'completion':
+        return <CompletionStep />
       default:
         return null
     }
@@ -218,6 +259,14 @@ export default function AccessOnboarding() {
             <button className="nav-button next" onClick={nextStep}>
               Los geht's
             </button>
+          ) : currentStep === steps.length - 1 ? (
+            <button 
+              className="nav-button next" 
+              onClick={nextStep}
+              disabled={!validateCurrentStep()}
+            >
+              Zum Dashboard →
+            </button>
           ) : (
             <>
               <button className="nav-button back" onClick={prevStep}>
@@ -228,7 +277,7 @@ export default function AccessOnboarding() {
                 onClick={nextStep}
                 disabled={!validateCurrentStep()}
               >
-                {currentStep === steps.length - 1 ? 'Abschließen →' : 'Weiter →'}
+                Weiter →
               </button>
             </>
           )}

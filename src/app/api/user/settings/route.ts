@@ -3,7 +3,8 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/user/settings
- * Retrieve current user account settings (email, name from auth)
+ * Retrieve current user account settings (email, name from user_profiles)
+ * SINGLE SOURCE OF TRUTH: display_name comes from user_profiles, not auth metadata
  */
 export async function GET(request: NextRequest) {
   try {
@@ -17,11 +18,46 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Load display_name from user_profiles (SINGLE SOURCE OF TRUTH)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('display_name, avatar_url')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // Fallback: If display_name is not set in user_profiles, try auth metadata (for legacy users)
+    // This is a one-time migration path - new users should always have display_name in user_profiles
+    const displayName = profile?.display_name 
+      ?? user.user_metadata?.full_name 
+      ?? user.user_metadata?.name 
+      ?? null;
+
+    // Sync display_name to user_profiles if it exists in metadata but not in profile (one-time migration)
+    if (!profile?.display_name && (user.user_metadata?.full_name || user.user_metadata?.name)) {
+      const nameToSync = user.user_metadata?.full_name || user.user_metadata?.name;
+      if (nameToSync) {
+        // Non-blocking: Don't fail the request if sync fails
+        supabase
+          .from('user_profiles')
+          .upsert({
+            user_id: user.id,
+            display_name: nameToSync,
+          } as any, { onConflict: 'user_id' })
+          .then(({ error }) => {
+            if (error) {
+              console.warn('[Settings] Could not sync display_name from metadata:', error);
+            } else {
+              console.log('[Settings] Synced display_name from auth metadata to user_profiles');
+            }
+          });
+      }
+    }
+
     return NextResponse.json({
       email: user.email,
-      name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+      name: displayName,
       emailConfirmed: !!user.email_confirmed_at,
-      avatarUrl: user.user_metadata?.avatar_url || null,
+      avatarUrl: profile?.avatar_url || user.user_metadata?.avatar_url || null,
     });
   } catch (error) {
     console.error('[Settings] Error fetching user settings:', error);
@@ -83,7 +119,7 @@ export async function PATCH(request: NextRequest) {
       updates.password = newPassword;
     }
 
-    // Update user metadata (name, avatar)
+    // Update user metadata (name, avatar) - for backward compatibility
     if (name !== undefined) {
       updates.data = {
         ...user.user_metadata,
@@ -92,7 +128,7 @@ export async function PATCH(request: NextRequest) {
       };
     }
 
-    // Perform update
+    // Perform auth update
     const { data: updatedUser, error: updateError } = await supabase.auth.updateUser(updates);
 
     if (updateError) {
@@ -103,11 +139,38 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // SINGLE SOURCE OF TRUTH: Update display_name in user_profiles
+    // This is the authoritative source - auth metadata is just for backward compatibility
+    if (name !== undefined) {
+      const { error: profileUpdateError } = await supabase
+        .from('user_profiles')
+        .update({ display_name: name.trim() })
+        .eq('user_id', user.id);
+
+      if (profileUpdateError) {
+        console.error('[Settings] Error updating display_name in user_profiles:', profileUpdateError);
+        // Don't fail the request - auth update succeeded, profile update is secondary
+        // But log it for debugging
+      }
+    }
+
+    // Return the name from user_profiles (or fallback to auth metadata if profile update failed)
+    const { data: updatedProfile } = await supabase
+      .from('user_profiles')
+      .select('display_name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const finalName = updatedProfile?.display_name 
+      ?? updatedUser.user.user_metadata?.full_name 
+      ?? updatedUser.user.user_metadata?.name 
+      ?? null;
+
     return NextResponse.json({
       success: true,
       user: {
         email: updatedUser.user.email,
-        name: updatedUser.user.user_metadata?.full_name || updatedUser.user.user_metadata?.name || null,
+        name: finalName,
         emailConfirmed: !!updatedUser.user.email_confirmed_at,
       },
     });

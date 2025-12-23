@@ -327,25 +327,27 @@ h1 {
 .week-grid {
   width: 100%;
   max-width: 100%;
+  height: 100%;
   display: grid;
-  gap: clamp(1px, 0.2vw, 3px);
-  padding: clamp(8px, 1.5vw, 16px);
+  gap: 2px; /* Fixed gap for consistent calculation */
+  padding: 16px;
   background: rgba(7, 16, 18, 0.6);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  /* Grid passt sich automatisch an Inhalt an */
-  height: auto;
   box-sizing: border-box;
+  overflow: hidden; /* Prevent overflow - grid should fit perfectly */
+  justify-content: center;
+  align-content: start;
 }
 
 .week-cell {
-  aspect-ratio: 1;
-  border-radius: clamp(1px, 0.5vw, 3px);
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.2s ease;
   /* All cells start as gray */
   background: rgba(184, 188, 200, 0.15);
   border: 1px solid rgba(184, 188, 200, 0.3);
+  flex-shrink: 0; /* Prevent cells from shrinking */
 }
 
 .week-cell.filling {
@@ -4093,9 +4095,10 @@ body.card-expanded .feed-card:not(.expanded) {
   width: 100%;
   max-width: 1600px; /* Increased for horizontal layout */
   margin: 0 auto;
-  padding: 48px 32px 32px; /* Added padding-top: 48px to prevent cut-off */
+  padding: 24px 32px 32px; /* Reduced top padding for viewport fit */
   gap: 1rem; /* Tighter gap */
-  min-height: 80vh;
+  height: 100%;
+  min-height: 0; /* Allow shrinking */
 }
 
 /* Vertical Tab Strip (60px left strip) */
@@ -4105,8 +4108,11 @@ body.card-expanded .feed-card:not(.expanded) {
   display: flex;
   flex-direction: column;
   gap: 1rem; /* Reduced from 1.5rem */
-  padding: 2rem 0;
+  padding: 1rem 0;
   border-right: 1px solid rgba(78, 205, 196, 0.18);
+  height: 100%;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .vertical-tab {
@@ -4159,24 +4165,36 @@ body.card-expanded .feed-card:not(.expanded) {
 /* Grid Main Area (center flex-grow) */
 .grid-main-area {
   flex: 1;
-  display: grid; /* Changed from flex */
-  grid-template-columns: auto 1fr; /* Two columns: content + grid */
-  grid-template-rows: auto auto auto; /* Three rows */
-  gap: 2rem;
-  padding: 48px 0 2rem 1.5rem; /* Added padding-top: 48px to prevent cut-off */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 0 0 1.5rem;
   position: relative;
   z-index: 1;
+  min-height: 0; /* Allow shrinking */
 }
 
 .title-container {
-  grid-column: 1 / -1; /* Spans both columns */
   margin-bottom: 0.5rem;
   padding-left: 0;
 }
 
+/* Grid Content Wrapper - Two column layout */
+.grid-content-wrapper {
+  display: flex;
+  gap: 2rem;
+  min-height: 0; /* Allow shrinking */
+}
+
+/* Metrics Column - Left side with metrics and button */
+.metrics-column {
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .metrics-intro {
-  grid-column: 1; /* Left column */
-  grid-row: 2;
   margin-bottom: 0;
   padding-left: 0;
   max-width: 400px;
@@ -4186,6 +4204,8 @@ body.card-expanded .feed-card:not(.expanded) {
 .grid-container-with-legend {
   position: relative;
   width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent grid overflow */
 }
 
 /* Legend Overlay - Right Side of Grid */
@@ -4282,12 +4302,10 @@ body.card-expanded .feed-card:not(.expanded) {
 
 /* Week Grid Muted State */
 .week-grid-wrapper {
-  grid-column: 2; /* Right column */
-  grid-row: 2 / 4; /* Spans rows 2 and 3 */
   position: relative;
   width: 100%;
   max-width: 100%;
-  overflow: visible; /* Changed from hidden */
+  overflow: hidden; /* Prevent overflow */
   margin: 0;
   transition: transform 320ms ease, filter 320ms ease, opacity 320ms ease;
 }
@@ -4619,23 +4637,34 @@ body.card-expanded .feed-card:not(.expanded) {
 @media (max-width: 1024px) {
   .life-weeks-shell-v2 {
     flex-direction: column;
-    padding: 32px 32px 32px; /* Smaller screens: 32px top padding */
+    padding: 16px 16px 16px; /* Reduced padding for mobile */
   }
   
   .grid-main-area {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 32px 0 5rem 0; /* Mobile: 32px top padding */
+    padding: 0 0 5rem 0; /* Mobile: no top padding, space for bottom tab bar */
+  }
+  
+  .grid-content-wrapper {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .metrics-column {
+    width: 100%;
+    max-width: 100%;
   }
   
   .metrics-intro {
     max-width: 100%;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
   }
   
   .week-grid-wrapper {
-    margin: 2rem 0;
+    margin: 0;
+    min-height: 300px; /* Minimum height on mobile */
   }
   
   .metrics-cta-panel {

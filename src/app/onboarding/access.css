@@ -105,8 +105,9 @@
 /* Form Content */
 .form-content {
   width: 100%;
-  max-width: none;
-  margin: 0;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
 /* Form Groups */
@@ -185,13 +186,14 @@
   line-height: 1.3;
 }
 
-/* Goal Step Special Grid Layout */
+/* Goal Step Special Grid Layout - Horizontal */
 .goal-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-direction: row;
   gap: 1rem;
   margin-bottom: 0.5rem;
-  justify-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .goal-grid .option-card:nth-child(1),
@@ -389,21 +391,9 @@
   }
   
   .goal-grid {
-    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
     gap: 0.75rem;
-  }
-  
-  .goal-grid .option-card:nth-child(1),
-  .goal-grid .option-card:nth-child(2),
-  .goal-grid .option-card:nth-child(3),
-  .goal-grid .option-card:nth-child(4),
-  .goal-grid .option-card:nth-child(5),
-  .goal-grid .option-card:nth-child(6),
-  .goal-grid .option-card:nth-child(7),
-  .goal-grid .option-card:nth-child(8),
-  .goal-grid .option-card:nth-child(9) {
-    grid-column: span 1;
-    justify-self: center;
+    justify-content: center;
   }
   
   .options-grid {

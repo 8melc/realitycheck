@@ -148,6 +148,7 @@ export const buildFYFPrompt = (
   userMessage: string,
   options?: {
     codexText?: string;
+    systemMessagePrefix?: string;
   }
 ): {
   system: string;
@@ -184,7 +185,7 @@ ${slotInfo ? slotInfo + '\n' : ''}[ID:${r.id}]`;
     nudgingFrequency: context.state?.nudgingFrequency,
   });
 
-  const system = `
+  const system = `${options?.systemMessagePrefix || ''}
 Du bist der FYF Guide von RealityCheck.
 
 ⚠️ WICHTIGSTE REGEL: Die GUIDE-STIL Einstellungen (unten) haben ABSOLUTE PRIORITÄT über alle anderen Regeln. Befolge sie strikt.

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import AvatarSettings from '@/components/profile/AvatarSettings';
 
@@ -237,11 +238,11 @@ export default function AccountSettingsPage() {
         </form>
       </section>
 
-      {/* Avatar Section */}
+      {/* Avatar Section - Sekundär, kompakt */}
       <section className="settings-section">
-        <div className="settings-section-header">
-          <h2 className="settings-section-title">Profilbild</h2>
-          <p className="settings-section-description">Wähle dein Avatar: Initialen, eigenes Bild oder KI-generiert</p>
+        <div className="settings-section-header" style={{ marginBottom: '1rem' }}>
+          <h2 className="settings-section-title" style={{ fontSize: '1.125rem' }}>Profilbild</h2>
+          <p className="settings-section-description" style={{ fontSize: '0.8125rem', marginTop: '0.25rem' }}>Initialen, eigenes Bild oder KI-generiert</p>
         </div>
 
         {userId ? (
@@ -260,6 +261,15 @@ export default function AccountSettingsPage() {
                 <div className="settings-section-header">
                   <h2 className="settings-section-title">Passwort ändern</h2>
                   <p className="settings-section-description">Sicherheit deines Accounts</p>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <Link 
+                      href="/auth/reset-password" 
+                      className="form-hint"
+                      style={{ textDecoration: 'underline', color: 'var(--rc-mint, #4ecdc4)' }}
+                    >
+                      Passwort vergessen?
+                    </Link>
+                  </div>
                 </div>
 
         <form onSubmit={handlePasswordChange} className="settings-form">

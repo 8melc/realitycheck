@@ -112,50 +112,38 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
   };
 
   return (
-    <div id="tageslimit" className="rc-card motion-fade-up">
-      <div className="flex flex-col gap-6">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="rc-subheading mb-2">Tageslimit</h3>
-            <p className="rc-microcopy">
-              Setze ein tägliches Zeitlimit für deine RealityCheck-Nutzung. Änderungen werden erst nach erneutem Anmelden aktiv.
-            </p>
-          </div>
-          {onEdit && (
-            <button
-              type="button"
-              onClick={() => {
-                onEdit();
-                toggleRef.current?.focus();
-              }}
-              className="rc-btn rc-btn--ghost inline-flex items-center gap-2"
-            >
-              <PenSquareIcon className="h-4 w-4" aria-hidden="true" />
-              Bearbeiten
-            </button>
-          )}
-        </header>
+    <div>
+      <header style={{ marginBottom: '1.5rem' }}>
+        <h3 className="settings-section-title" style={{ marginBottom: '0.5rem' }}>
+          Tageslimit
+        </h3>
+        <p className="settings-section-description">
+          Setze ein tägliches Zeitlimit für deine RealityCheck-Nutzung. Änderungen werden erst nach erneutem Anmelden aktiv.
+        </p>
+      </header>
 
         {/* Toggle */}
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="limit-toggle"
-            checked={isEnabled}
-            onChange={(e) => handleToggleChange(e.target.checked)}
-            disabled={isLoading || requiresReauth}
-            ref={toggleRef}
-            className="w-5 h-5 rounded border-2 border-rc-mint bg-transparent text-rc-mint focus:ring-2 focus:ring-rc-mint focus:ring-offset-2 focus:ring-offset-rc-noir"
-          />
-          <label htmlFor="limit-toggle" className="text-rc-cream font-medium">
-            Tageslimit aktivieren
-          </label>
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <input
+              type="checkbox"
+              id="limit-toggle"
+              checked={isEnabled}
+              onChange={(e) => handleToggleChange(e.target.checked)}
+              disabled={isLoading || requiresReauth}
+              ref={toggleRef}
+              className="form-checkbox"
+            />
+            <label htmlFor="limit-toggle" className="form-checkbox-label">
+              Tageslimit aktivieren
+            </label>
+          </div>
         </div>
 
         {/* Limit Selector */}
         {isEnabled && (
-          <div className="flex flex-col gap-3">
-            <label htmlFor="limit-select" className="text-rc-cream font-medium">
+          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <label htmlFor="limit-select" className="form-label">
               Maximale Nutzungszeit pro Tag
             </label>
             <select
@@ -163,7 +151,7 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
               value={selectedMinutes || ''}
               onChange={(e) => handleMinutesChange(parseInt(e.target.value))}
               disabled={isLoading || requiresReauth}
-              className="w-full p-3 rounded-lg border border-rc-steel bg-rc-noir text-rc-cream focus:border-rc-mint focus:ring-2 focus:ring-rc-mint focus:ring-offset-2 focus:ring-offset-rc-noir"
+              className="form-select"
             >
               <option value="">Wähle ein Limit</option>
               {limitOptions.map((minutes) => {
@@ -183,10 +171,16 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
         )}
 
         {/* Today's Usage Display */}
-        <div className="rc-subcard">
-          <div className="flex items-center justify-between">
-            <span className="text-rc-steel">Heute verbraucht:</span>
-            <span className="text-rc-mint font-semibold">
+        <div style={{ 
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '12px',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>Heute verbraucht:</span>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--rc-mint, #4ecdc4)' }}>
               {Math.floor(todayUsageMinutes / 60)}h {todayUsageMinutes % 60}m
             </span>
           </div>
@@ -194,22 +188,38 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
 
         {/* Reauth Warning */}
         {requiresReauth && (
-          <div className="rc-subcard rc-subcard--accent">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full bg-rc-coral flex items-center justify-center">
-                <span className="text-rc-noir text-sm font-bold">!</span>
+          <div style={{ 
+            background: 'rgba(78, 205, 196, 0.06)',
+            border: '1px solid var(--rc-mint, #4ecdc4)',
+            borderRadius: '12px',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ 
+                width: '24px', 
+                height: '24px', 
+                borderRadius: '50%', 
+                background: 'var(--rc-coral, #ff6b6b)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <span style={{ color: 'var(--rc-noir, #06090b)', fontSize: '0.75rem', fontWeight: 700 }}>!</span>
               </div>
-              <div className="flex-1">
-                <p className="text-rc-cream font-medium mb-1">
+              <div style={{ flex: 1 }}>
+                <p style={{ color: 'var(--rc-cream, #f3efe8)', fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.875rem' }}>
                   Re-Anmeldung erforderlich
                 </p>
-                <p className="text-rc-steel text-sm">
+                <p style={{ color: 'var(--rc-steel, #9ca3af)', fontSize: '0.8125rem' }}>
                   Melde dich neu an, um das Limit zu ändern.
                 </p>
               </div>
               <button
                 onClick={handleReauth}
-                className="rc-btn rc-btn--outline"
+                className="btn btn-secondary"
+                style={{ flexShrink: 0 }}
               >
                 Neu anmelden
               </button>
@@ -219,38 +229,38 @@ const UsageLimitSettings = ({ onEdit }: UsageLimitSettingsProps) => {
 
         {/* Error Display */}
         {error && (
-          <div className="rc-subcard" style={{ borderColor: 'var(--rc-coral)' }}>
-            <p className="text-rc-coral text-sm">{error}</p>
+          <div className="form-error" style={{ marginBottom: '1.5rem' }}>
+            {error}
           </div>
         )}
 
         {/* Success Message */}
         {showSuccess && (
-          <div className="rc-subcard" style={{ borderColor: 'var(--rc-mint)' }}>
-            <p className="text-rc-mint text-sm">
-              ✓ Limit aktualisiert. Melde dich neu an, um es zu aktivieren.
-            </p>
+          <div className="form-success" style={{ marginBottom: '1.5rem' }}>
+            ✓ Limit aktualisiert. Melde dich neu an, um es zu aktivieren.
           </div>
         )}
 
         {/* Save Button */}
-        <button
-          onClick={handleSave}
-          disabled={isLoading || requiresReauth || (isEnabled && selectedMinutes === null)}
-          className="rc-btn rc-btn--primary w-full"
-        >
-          {isLoading ? 'Speichern...' : 'Speichern'}
-        </button>
+        <div className="form-actions">
+          <button
+            onClick={handleSave}
+            disabled={isLoading || requiresReauth || (isEnabled && selectedMinutes === null)}
+            className="btn btn-primary"
+            style={{ width: '100%' }}
+          >
+            {isLoading ? 'Speichern...' : 'Speichern'}
+          </button>
+        </div>
 
         {/* Help Text */}
-        <div className="text-xs text-rc-steel">
-          <p>
+        <div className="form-hint" style={{ marginTop: '1rem' }}>
+          <p style={{ margin: 0, lineHeight: '1.6' }}>
             • Limit wird täglich um Mitternacht zurückgesetzt<br/>
             • Änderungen werden erst nach erneutem Anmelden wirksam<br/>
             • Bei Erreichen des Limits wirst du automatisch abgemeldet
           </p>
         </div>
-      </div>
     </div>
   );
 };

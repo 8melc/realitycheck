@@ -257,9 +257,9 @@ export async function POST(req: NextRequest) {
     if (user) {
       const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
-        .select('display_name, focus_topic, bio, slots_article, slots_podcast, slots_quote, answer_style, guide_tone, focus_window, nudging_frequency')
+        .select('display_name, focus_topic, bio, slots_article, slots_podcast, slots_quote, answer_style, guide_tone, focus_window, nudging_frequency, onboarding_completed')
         .eq('user_id', user.id)
-        .maybeSingle<UserProfile>();
+        .maybeSingle<UserProfile & { onboarding_completed?: boolean }>();
       
       if (profileError) {
         console.error('[Guide Chat] Error loading profile:', profileError);
@@ -474,8 +474,22 @@ export async function POST(req: NextRequest) {
 
     const codexText = await fetchCodex(supabase);
 
+    // First message after onboarding: Add special system message
+    const isFirstMessageAfterOnboarding = !sessionId && 
+                                          (profile as any)?.onboarding_completed && 
+                                          messagesForContext.length === 0;
+    
+    let systemMessagePrefix = '';
+    if (isFirstMessageAfterOnboarding) {
+      systemMessagePrefix = `[SYSTEM: User hat gerade Onboarding abgeschlossen. Dies ist die erste Nachricht im Guide. Beginne mit diesem Statement:]
+"Ich kenne jetzt dein Setup. Wenn du willst, fangen wir mit einer einfachen Frage an: Was beschäftigt dich gerade wirklich?"
+
+[WICHTIG: Dieses Statement ist PFLICHT als erste Antwort. Danach normal weiter.]\n\n`;
+    }
+
     const fyfPrompt = buildFYFPrompt(promptContext, message, {
       codexText,
+      systemMessagePrefix,
     });
 
     // Antwortlänge aus Profil bestimmen (stärkere Differenzierung)

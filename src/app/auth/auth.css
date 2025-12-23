@@ -1,4 +1,4 @@
-.login-container {
+.auth-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -8,7 +8,7 @@
   color: var(--realitycheck-cream);
 }
 
-.login-card {
+.auth-card {
   max-width: 440px;
   width: 100%;
   background: var(--realitycheck-carbon);
@@ -24,7 +24,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.login-title {
+.auth-title {
   font-family: var(--font-display);
   font-size: 2.25rem;
   font-weight: 700;
@@ -36,7 +36,15 @@
   -webkit-text-fill-color: transparent;
 }
 
-.login-error {
+.auth-description {
+  color: var(--realitycheck-steel);
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.auth-error {
   background: rgba(255, 107, 107, 0.08);
   border: 1px solid rgba(255, 107, 107, 0.3);
   color: var(--realitycheck-coral);
@@ -47,14 +55,39 @@
   text-align: center;
 }
 
-.login-form-group {
+.auth-success {
+  background: rgba(78, 205, 196, 0.08);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  color: var(--realitycheck-mint);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.auth-success p {
+  margin: 0.5rem 0;
+}
+
+.auth-success-note {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin-top: 0.5rem !important;
+}
+
+.auth-form {
+  width: 100%;
+}
+
+.auth-form-group {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   margin-bottom: 2rem;
 }
 
-.login-input {
+.auth-input {
   width: 100%;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -66,23 +99,23 @@
   transition: all 0.3s ease;
 }
 
-.login-input:focus {
+.auth-input:focus {
   outline: none;
   border-color: var(--realitycheck-mint);
   background: rgba(255, 255, 255, 0.05);
   box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1);
 }
 
-.login-password-wrapper {
+.auth-password-wrapper {
   position: relative;
   width: 100%;
 }
 
-.login-password-wrapper .login-input {
+.auth-password-wrapper .auth-input {
   padding-right: 3.5rem;
 }
 
-.password-toggle {
+.auth-password-toggle {
   position: absolute;
   right: 1rem;
   top: 50%;
@@ -98,15 +131,15 @@
   transition: color 0.2s;
 }
 
-.password-toggle:hover {
+.auth-password-toggle:hover {
   color: var(--realitycheck-mint);
 }
 
-.login-input::placeholder {
+.auth-input::placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
 
-.login-button {
+.auth-button {
   width: 100%;
   background: var(--realitycheck-mint);
   color: var(--realitycheck-noir);
@@ -121,56 +154,42 @@
   margin-top: 0.5rem;
 }
 
-.login-button:hover:not(:disabled) {
+.auth-button:hover:not(:disabled) {
   background: var(--realitycheck-mint-dark);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
 }
 
-.login-button:active:not(:disabled) {
+.auth-button:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.login-button:disabled {
+.auth-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.login-hints {
-  margin-top: 2.5rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  font-size: 0.8rem;
-  color: var(--realitycheck-steel);
+.auth-link {
+  margin-top: 2rem;
   text-align: center;
-  line-height: 1.5;
 }
 
-.login-hints p {
-  margin: 0.4rem 0;
-}
-
-.login-hints strong {
-  color: var(--realitycheck-mint);
-}
-
-.login-forgot-password {
-  margin-top: 0.5rem;
-  text-align: right;
-}
-
-.login-forgot-password a {
+.auth-link a {
   color: var(--realitycheck-mint);
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.2s;
 }
 
-.login-forgot-password a:hover {
+.auth-link a:hover {
   color: var(--realitycheck-mint-dark);
   text-decoration: underline;
 }
 
+.auth-hint {
+  font-size: 0.85rem;
+  color: var(--realitycheck-steel);
+  margin-top: -0.75rem;
+  margin-bottom: 0;
+}
 

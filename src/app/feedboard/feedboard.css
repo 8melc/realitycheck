@@ -13,25 +13,29 @@
   --fyf-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
 }
 
+/* === LAYOUT: FEEDBOARD + GUIDE-SIDEBAR ======================= */
+
+.feedboard-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Main content (Feedboard) */
 .feedboard-shell {
+  flex: 1 1 auto;
+  min-width: 0;
   position: relative;
   padding: 88px clamp(20px, 4vw, 56px) 120px;
-  background: 
+  background:
     radial-gradient(circle at top right, rgba(78, 205, 196, 0.08), transparent 60%),
     linear-gradient(135deg, rgba(6, 8, 10, 0.95), rgba(12, 14, 16, 0.88), rgba(6, 8, 10, 0.98));
   color: var(--fyf-offwhite);
   font-family: var(--fyf-font-sans);
-  min-height: 100vh;
 }
 
 .feedboard-shell.header-open {
   padding-top: 128px;
-}
-
-@media (min-width: 1024px) {
-  .feedboard-shell.has-sidebar {
-    padding-right: 452px; /* 420px Sidebar + 16px right + 16px gap */
-  }
 }
 
 .feedboard-shell__background {
@@ -422,6 +426,11 @@
   border-radius: 32px;
   margin: 0 -20px;
   padding: 40px 20px;
+  min-height: 320px;
+}
+
+.feedboard-grid:has(.feedboard-empty) {
+  place-items: center;
 }
 
 .feed-card {
@@ -666,10 +675,12 @@
 
 .feedboard-empty {
   grid-column: span 12;
-  padding: 80px 64px;
+  max-width: 420px;
+  padding: 2.5rem 2rem;
   border-radius: 24px;
-  border: 1px dashed rgba(78, 205, 196, 0.35);
+  border: 1px solid rgba(78, 205, 196, 0.12);
   background: 
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.04), transparent 55%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
     rgba(6, 8, 10, 0.4);
   text-align: center;
@@ -718,9 +729,28 @@
   z-index: 1;
 }
 
+.feedboard-empty__slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  opacity: 0.4;
+  width: 100%;
+  max-width: 280px;
+  position: relative;
+  z-index: 1;
+}
+
+.feedboard-empty__slot {
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 .feedboard-empty__actions {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 8px;
@@ -729,8 +759,8 @@
 }
 
 .feedboard-empty__button {
-  padding: 12px 24px;
-  border-radius: 12px;
+  padding: 0.9rem 1.6rem;
+  border-radius: 999px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -738,30 +768,37 @@
   transition: all 200ms ease;
   border: none;
   outline: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.feedboard-empty__button-icon {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .feedboard-empty__button--primary {
-  background: var(--fyf-coral);
-  color: var(--fyf-noir);
-  border: 2px solid var(--fyf-coral);
+  background: var(--fyf-mint, #4ecdc4);
+  color: rgba(6, 8, 10, 0.95);
+  border: 2px solid var(--fyf-mint, #4ecdc4);
 }
 
 .feedboard-empty__button--primary:hover {
-  background: transparent;
-  color: var(--fyf-coral);
+  background: rgba(78, 205, 196, 0.9);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 8px 24px rgba(78, 205, 196, 0.3);
 }
 
 .feedboard-empty__button--secondary {
   background: transparent;
-  color: var(--fyf-mint);
+  color: var(--fyf-mint, #4ecdc4);
   border: 1px solid rgba(78, 205, 196, 0.3);
 }
 
 .feedboard-empty__button--secondary:hover {
   background: rgba(78, 205, 196, 0.1);
-  border-color: var(--fyf-mint);
+  border-color: var(--fyf-mint, #4ecdc4);
   transform: translateY(-1px);
 }
 
@@ -2329,58 +2366,151 @@
    GUIDE CHAT SIDEBAR
    ====================== */
 
-.guidechat-sidebar {
-  position: fixed;
-  top: 72px;
-  right: 16px;
-  bottom: 16px;
-  width: 420px;
-  max-width: calc(100vw - 32px);
-  border-radius: 16px;
-  z-index: 60;
-  
-  background: rgba(7, 9, 12, 0.72);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(78, 205, 196, 0.06) inset;
-  
-  display: flex;
-  flex-direction: column;
+/* Sidebar Wrapper: reserviert nur Platz wenn offen */
+/* Sidebar-Wrapper: feste Spalte rechts */
+.feedboard-sidebar-wrapper {
+  flex: 0 0 420px;
+  max-width: 420px;
+  align-self: stretch;
+  box-sizing: border-box;
+  border-left: 1px solid var(--fyf-border-subtle, rgba(255,255,255,0.06));
+  background: radial-gradient(circle at top, rgba(255,255,255,0.04), transparent 55%);
+  position: relative;
   overflow: hidden;
-  
-  /* Default: Hidden */
-  transform: translateX(calc(100% + 16px));
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-.guidechat-sidebar.is-open {
+/* Eigentliche Sidebar-Komponente */
+.feedboard-sidebar-wrapper .guidechat-sidebar {
+  height: 100vh;
+  padding: 88px 24px 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
   transform: translateX(0);
   opacity: 1;
-  pointer-events: auto;
-  isolation: isolate;
+  transition: transform 0.25s ease-out, opacity 0.2s ease-out;
+}
+
+
+.guidechat-sidebar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panel look */
+.guidePanel {
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  margin: 0;
+  border-radius: 24px;
+  border: 1px solid rgba(120, 255, 230, 0.12);
+  background: radial-gradient(1200px 600px at 30% 0%, rgba(40, 70, 70, 0.55), rgba(10, 12, 14, 0.86));
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 18px 60px rgba(0,0,0,0.45);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+}
+
+/* Header / footer separation */
+.guidePanelHeader {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 14px 16px;
+  background: rgba(10, 12, 14, 0.75);
+  border-bottom: 1px solid rgba(120, 255, 230, 0.10);
+  flex-shrink: 0;
+}
+
+.guidePanelBody {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 18px 16px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.guidePanelFooter {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 14px 16px 16px;
+  background: rgba(10, 12, 14, 0.80);
+  border-top: 1px solid rgba(120, 255, 230, 0.10);
+  flex-shrink: 0;
+}
+
+/* === MOBILE-BEHAVIOUR ======================================= */
+
+@media (max-width: 768px) {
+  .feedboard-layout {
+    display: block;
+  }
+
+  .feedboard-sidebar-wrapper {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border-left: none;
+    flex: none;
+  }
+
+  .feedboard-sidebar-wrapper .guidechat-sidebar {
+    max-width: 440px;
+    margin-left: auto;
+    height: 100%;
+    padding: 24px 16px 16px;
+    background: linear-gradient(135deg, #06080a, #14171b);
+    box-shadow: -24px 0 48px rgba(0, 0, 0, 0.8);
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  .feedboard-sidebar-wrapper.is-open .guidechat-sidebar {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .guidePanel {
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+/* Kleine Z-Index-Korrektur für Header, falls nötig */
+.feedboard-layout .ticktock-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
 }
 
 .guidechat-sidebar__header {
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0;
+  border-bottom: none;
   flex-shrink: 0;
-  background: rgba(7, 9, 12, 0.35);
+  background: transparent;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 0;
 }
 
 .guidechat-sidebar__title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .guidechat-sidebar__title-actions {
@@ -2447,35 +2577,13 @@
   50% { opacity: 0.5; }
 }
 
-.guidechat-sidebar__reset {
-  width: 100%;
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 160ms ease;
-}
-
-.guidechat-sidebar__reset:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--fyf-offwhite);
-}
-
-.guidechat-sidebar__reset:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+/* Reset button styles are inline in component */
 
 .guidechat-sidebar__history {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 14px 14px 10px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -2493,10 +2601,10 @@
   font-size: 14px;
 }
 
-.guidechat-sidebar__hint {
+.guidechat-sidebar__empty-hint {
   font-size: 12px;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .guidechat-sidebar__turn {
@@ -2924,21 +3032,23 @@
 
 .guidechat-sidebar__composer-wrapper {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-end;
+  width: 100%;
 }
 
 .guidechat-sidebar__textarea {
   flex: 1;
-  min-height: 40px;
+  min-height: 44px;
   max-height: 120px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--fyf-offwhite);
   font-family: var(--fyf-font-sans);
   font-size: 14px;
+  line-height: 1.5;
   line-height: 1.5;
   resize: none;
   transition: all 160ms ease;
@@ -2956,16 +3066,18 @@
 }
 
 .guidechat-sidebar__send {
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 12px;
   border: 1px solid var(--fyf-mint);
-  background: rgba(78, 205, 196, 0.1);
+  background: rgba(78, 205, 196, 0.12);
   color: var(--fyf-mint);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 160ms ease;
   white-space: nowrap;
+  height: 44px;
+  flex-shrink: 0;
 }
 
 .guidechat-sidebar__send:hover:not(:disabled) {
@@ -2981,10 +3093,11 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
-.guidechat-sidebar__hint {
+.guidechat-sidebar__composer-hint {
   margin-top: 8px;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.4);
   text-align: center;
 }
 
@@ -3014,16 +3127,8 @@
 }
 
 /* Tablet/Desktop: Sidebar als Panel rechts */
+/* Desktop: Sidebar ist Flex-Item, keine Overlay-Positionierung */
 @media (min-width: 1024px) {
-  .guidechat-sidebar {
-    top: 72px;
-    right: 16px;
-    bottom: 16px;
-    width: 420px;
-    max-width: calc(100vw - 32px);
-    border-radius: 16px;
-  }
-
   /* Nav-Zeile bleibt normal, da Sidebar nicht überlappt */
   .ticktock-header {
     z-index: 10;
@@ -3045,50 +3150,18 @@
   }
 }
 
-/* Desktop: Feedboard passt sich an, wenn Sidebar offen ist */
-@media (min-width: 1024px) {
-  .feedboard-shell.has-sidebar {
-    padding-right: 452px; /* 420px Sidebar + 16px right + 16px gap */
-  }
-}
-
 /* Ensure clean layer separation when guide is open */
-.feedboard-shell.has-sidebar .ticktock-header {
+.feedboard-sidebar-wrapper.is-open ~ .feedboard-shell .ticktock-header,
+.feedboard-layout:has(.guidechat-sidebar.is-open) .ticktock-header {
   z-index: 65; /* Über Sidebar (60) aber unter Modal/Overlay */
 }
 
-.feedboard-shell.has-sidebar .feedboard-controls,
-.feedboard-shell.has-sidebar .feedboard-grid {
+.feedboard-sidebar-wrapper.is-open ~ .feedboard-shell .feedboard-controls,
+.feedboard-sidebar-wrapper.is-open ~ .feedboard-shell .feedboard-grid,
+.feedboard-layout:has(.guidechat-sidebar.is-open) .feedboard-controls,
+.feedboard-layout:has(.guidechat-sidebar.is-open) .feedboard-grid {
   position: relative;
   z-index: 1;
-}
-
-/* Mobile/Tablet: Sidebar als Vollbild-Overlay */
-@media (max-width: 1023px) {
-  .guidechat-sidebar {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    max-width: 100%;
-    border-radius: 0;
-    z-index: 100;
-  }
-
-  .guidechat-sidebar.is-open {
-    transform: translateX(0);
-  }
-
-  /* Nav-Zeile bleibt sichtbar/klickbar über Sidebar */
-  .feedboard-shell.has-sidebar .ticktock-header {
-    z-index: 101;
-  }
-
-  /* Feedboard behält normales Padding auf Mobile */
-  .feedboard-shell.has-sidebar {
-    padding-right: clamp(20px, 4vw, 56px);
-  }
 }
 
 /* Guide Overlay */

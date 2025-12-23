@@ -360,46 +360,121 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
   // Get preview seed for generated avatars
   const previewSeed = avatarSeed || userEmail || userId;
 
-  return (
-    <div className="settings-form">
-      {/* Live Preview */}
-      <div className="form-group" style={{ marginBottom: '2rem' }}>
-        <label className="form-label">Vorschau</label>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '1rem', 
-          marginTop: '1rem',
-          flexWrap: 'wrap'
-        }}>
-          <UserAvatar
-            userId={userId}
-            size="lg"
-            displayName={displayName}
-            email={userEmail}
-          />
-          {avatarType === 'upload' && previewUrl && (
-            <div style={{ position: 'relative' }}>
-              <img
-                src={previewUrl}
-                alt="Avatar Vorschau"
-                style={{
-                  width: '128px',
-                  height: '128px',
-                  borderRadius: '50%',
-                  border: '1px solid rgba(78, 205, 196, 0.6)',
-                  objectFit: 'cover'
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
+  // Calculate responsive avatar size
+  const avatarSize = 'clamp(96px, 12vw, 160px)';
 
-      {/* Avatar Type Selection */}
-      <div className="form-group">
-        <label className="form-label">Avatar-Typ</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+  return (
+    <div style={{ 
+      maxWidth: '1100px', 
+      width: 'min(1100px, 100% - 64px)',
+      margin: '0 auto',
+      padding: '0 1rem'
+    }}>
+      {/* Responsive Grid Layout: 2 Spalten Desktop (lg+), 1 Spalte Mobile */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gap: '2.5rem',
+        alignItems: 'start'
+      }}
+      className="lg:grid-cols-[minmax(320px,420px)_1fr]">
+        
+        {/* Spalte 1: Preview (Links auf Desktop, Oben auf Mobile) */}
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          minHeight: '200px',
+          justifyContent: 'flex-start',
+          padding: '1rem',
+          maxWidth: '420px',
+          margin: '0 auto'
+        }}
+        className="lg:max-w-none lg:m-0">
+          <label className="form-label" style={{ fontSize: '0.875rem', marginBottom: '1.5rem', width: '100%', textAlign: 'center' }}>Vorschau</label>
+          <div style={{ 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ 
+              width: avatarSize,
+              height: avatarSize,
+              maxWidth: '160px',
+              maxHeight: '160px',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              {avatarType === 'upload' && previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Avatar Vorschau"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '50%',
+                    border: '2px solid rgba(78, 205, 196, 0.4)',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <div style={{ 
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <UserAvatar
+                    userId={userId}
+                    size="md"
+                    displayName={displayName}
+                    email={userEmail}
+                    style={{
+                      width: '100%',
+                      height: '100%'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Save Button - In Preview Column */}
+          <div className="form-actions" style={{ width: '100%' }}>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || uploading || !hasChanges}
+              className="btn btn-primary"
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                backgroundColor: saving || uploading || !hasChanges ? 'rgba(156, 163, 175, 0.3)' : 'var(--rc-mint, #00D9FF)',
+                color: saving || uploading || !hasChanges ? 'var(--rc-steel, #9ca3af)' : '#000',
+                borderRadius: '0.5rem',
+                fontWeight: 600,
+                cursor: saving || uploading || !hasChanges ? 'not-allowed' : 'pointer',
+                opacity: saving || uploading || !hasChanges ? 0.6 : 1,
+                border: 'none'
+              }}
+            >
+              {uploading ? 'Hochladen...' : saving ? 'Speichern...' : 'Avatar speichern'}
+            </button>
+          </div>
+        </div>
+
+        {/* Spalte 2: Controls (Rechts auf Desktop, Unten auf Mobile) */}
+        <div>
+          {/* Avatar Type Selection */}
+          <div className="form-group">
+            <label className="form-label">Avatar-Typ</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
           {/* Initials Option */}
           <button
             type="button"
@@ -411,7 +486,7 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
             className={`btn ${avatarType === 'initials' ? 'btn-primary' : 'btn-secondary'}`}
             style={{
               width: '100%',
-              padding: '1rem',
+              padding: '0.75rem',
               borderRadius: '0.5rem',
               border: avatarType === 'initials' ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
               backgroundColor: avatarType === 'initials' ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
@@ -422,8 +497,8 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
               opacity: saving || uploading ? 0.6 : 1
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Initialen</div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>Zeigt deine Initialen in farbigem Kreis</div>
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.875rem' }}>Initialen</div>
+            <div style={{ fontSize: '0.8125rem', color: 'var(--rc-steel, #9ca3af)' }}>Zeigt deine Initialen in farbigem Kreis</div>
           </button>
 
           {/* Upload Option */}
@@ -437,7 +512,7 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
             className={`btn ${avatarType === 'upload' ? 'btn-primary' : 'btn-secondary'}`}
             style={{
               width: '100%',
-              padding: '1rem',
+              padding: '0.75rem',
               borderRadius: '0.5rem',
               border: avatarType === 'upload' ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
               backgroundColor: avatarType === 'upload' ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
@@ -448,8 +523,8 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
               opacity: saving || uploading ? 0.6 : 1
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Eigenes Bild hochladen</div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>JPG, PNG oder WEBP, max. 2MB</div>
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.875rem' }}>Eigenes Bild hochladen</div>
+            <div style={{ fontSize: '0.8125rem', color: 'var(--rc-steel, #9ca3af)' }}>JPG, PNG oder WEBP, max. 2MB</div>
           </button>
 
           {/* Generated Option */}
@@ -463,7 +538,7 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
             className={`btn ${avatarType === 'generated' ? 'btn-primary' : 'btn-secondary'}`}
             style={{
               width: '100%',
-              padding: '1rem',
+              padding: '0.75rem',
               borderRadius: '0.5rem',
               border: avatarType === 'generated' ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
               backgroundColor: avatarType === 'generated' ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
@@ -474,16 +549,16 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
               opacity: saving || uploading ? 0.6 : 1
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>KI-generierter Avatar</div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--rc-steel, #9ca3af)' }}>Wähle aus verschiedenen Styles</div>
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.875rem' }}>KI-generierter Avatar</div>
+            <div style={{ fontSize: '0.8125rem', color: 'var(--rc-steel, #9ca3af)' }}>Wähle aus verschiedenen Styles</div>
           </button>
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Upload Zone */}
-      {avatarType === 'upload' && (
-        <div className="form-group" style={{ marginTop: '2rem' }}>
-          <label className="form-label">Bild hochladen</label>
+          {/* Upload Zone - Kompakt */}
+          {avatarType === 'upload' && (
+            <div className="form-group" style={{ marginTop: '1.5rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem' }}>Bild hochladen</label>
           <div
             ref={dropZoneRef}
             onDrop={handleDrop}
@@ -492,12 +567,12 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
             style={{
               border: '2px dashed rgba(255, 255, 255, 0.2)',
               borderRadius: '0.5rem',
-              padding: '2rem',
+              padding: '1.5rem',
               textAlign: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s',
               backgroundColor: 'rgba(255, 255, 255, 0.02)',
-              minHeight: '200px',
+              minHeight: '140px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -537,8 +612,8 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
                   src={previewUrl}
                   alt="Vorschau"
                   style={{
-                    maxWidth: '200px',
-                    maxHeight: '200px',
+                    maxWidth: '160px',
+                    maxHeight: '160px',
                     width: 'auto',
                     height: 'auto',
                     borderRadius: '0.5rem',
@@ -600,137 +675,115 @@ export default function AvatarSettings({ userId }: AvatarSettingsProps) {
         </div>
       )}
 
-      {/* Generated Avatar Options */}
-      {avatarType === 'generated' && (
-        <div className="form-group" style={{ marginTop: '2rem' }}>
-          <label className="form-label">Avatar-Style</label>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-              gap: '0.75rem',
-              marginTop: '1rem',
-              width: '100%',
-              boxSizing: 'border-box'
-            }}
-          >
-            {AVATAR_STYLES.map((style) => (
-              <button
-                key={style.value}
-                type="button"
-                onClick={() => setAvatarStyle(style.value)}
-                disabled={saving || uploading}
-                className={`btn ${avatarStyle === style.value ? 'btn-primary' : 'btn-secondary'}`}
+          {/* Generated Avatar Options */}
+          {avatarType === 'generated' && (
+            <div className="form-group" style={{ marginTop: '1.5rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem' }}>Avatar-Style</label>
+              <div
                 style={{
-                  padding: '1rem',
-                  borderRadius: '0.5rem',
-                  border: avatarStyle === style.value ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
-                  backgroundColor: avatarStyle === style.value ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
-                  transition: 'all 0.2s',
-                  cursor: saving || uploading ? 'not-allowed' : 'pointer',
-                  textAlign: 'center',
-                  color: 'var(--rc-cream, #f3efe8)',
-                  minHeight: '120px',
-                  opacity: saving || uploading ? 0.6 : 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+                  gap: '0.5rem',
+                  marginTop: '0.75rem',
                   width: '100%',
                   boxSizing: 'border-box'
                 }}
               >
-                <img
-                  src={`https://api.dicebear.com/9.x/${style.value}/svg?seed=${encodeURIComponent(previewSeed)}`}
-                  alt={style.label}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    marginBottom: '0.5rem',
-                    borderRadius: '50%',
-                    display: 'block',
-                    margin: '0 auto 0.5rem auto'
-                  }}
-                />
-                <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem' }}>{style.label}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--rc-steel, #9ca3af)' }}>{style.desc}</div>
-              </button>
-            ))}
-          </div>
+                {AVATAR_STYLES.map((style) => (
+                  <button
+                    key={style.value}
+                    type="button"
+                    onClick={() => setAvatarStyle(style.value)}
+                    disabled={saving || uploading}
+                    className={`btn ${avatarStyle === style.value ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      border: avatarStyle === style.value ? '2px solid var(--rc-mint, #00D9FF)' : '2px solid rgba(255, 255, 255, 0.1)',
+                      backgroundColor: avatarStyle === style.value ? 'rgba(0, 217, 255, 0.1)' : 'transparent',
+                      transition: 'all 0.2s',
+                      cursor: saving || uploading ? 'not-allowed' : 'pointer',
+                      textAlign: 'center',
+                      color: 'var(--rc-cream, #f3efe8)',
+                      minHeight: '100px',
+                      opacity: saving || uploading ? 0.6 : 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <img
+                      src={`https://api.dicebear.com/9.x/${style.value}/svg?seed=${encodeURIComponent(previewSeed)}`}
+                      alt={style.label}
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        marginBottom: '0.5rem',
+                        borderRadius: '50%',
+                        display: 'block',
+                        margin: '0 auto 0.5rem auto'
+                      }}
+                    />
+                    <div style={{ fontWeight: 600, fontSize: '0.8125rem', marginBottom: '0.25rem' }}>{style.label}</div>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--rc-steel, #9ca3af)' }}>{style.desc}</div>
+                  </button>
+                ))}
+              </div>
 
-          <div style={{ marginTop: '1rem' }}>
-            <button
-              type="button"
-              onClick={generateRandomSeed}
-              disabled={saving || uploading}
-              className="btn btn-secondary"
+              <div style={{ marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={generateRandomSeed}
+                  disabled={saving || uploading}
+                  className="btn btn-secondary"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                  }}
+                >
+                  🎲 Neuer Avatar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Error/Success Messages */}
+          {error && (
+            <div
+              className="form-error"
               style={{
-                width: '100%',
                 padding: '0.75rem',
+                backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                color: '#FCA5A5',
+                borderRadius: '0.5rem',
+                marginTop: '1rem',
+                border: '1px solid rgba(220, 38, 38, 0.3)',
               }}
             >
-              🎲 Neuer Avatar
-            </button>
-          </div>
-        </div>
-      )}
+              {error}
+            </div>
+          )}
 
-      {/* Error/Success Messages */}
-      {error && (
-        <div
-          className="form-error"
-          style={{
-            padding: '0.75rem',
-            backgroundColor: 'rgba(220, 38, 38, 0.1)',
-            color: '#FCA5A5',
-            borderRadius: '0.5rem',
-            marginTop: '1rem',
-            border: '1px solid rgba(220, 38, 38, 0.3)',
-          }}
-        >
-          {error}
+          {success && (
+            <div
+              className="form-success"
+              style={{
+                padding: '0.75rem',
+                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                color: '#6EE7B7',
+                borderRadius: '0.5rem',
+                marginTop: '1rem',
+                border: '1px solid rgba(5, 150, 105, 0.3)',
+              }}
+            >
+              ✓ Avatar erfolgreich aktualisiert
+            </div>
+          )}
         </div>
-      )}
-
-      {success && (
-        <div
-          className="form-success"
-          style={{
-            padding: '0.75rem',
-            backgroundColor: 'rgba(5, 150, 105, 0.1)',
-            color: '#6EE7B7',
-            borderRadius: '0.5rem',
-            marginTop: '1rem',
-            border: '1px solid rgba(5, 150, 105, 0.3)',
-          }}
-        >
-          ✓ Avatar erfolgreich aktualisiert
-        </div>
-      )}
-
-      {/* Save Button */}
-      <div className="form-actions" style={{ marginTop: '1.5rem' }}>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || uploading || !hasChanges}
-          className="btn btn-primary"
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: saving || uploading || !hasChanges ? 'rgba(156, 163, 175, 0.3)' : 'var(--rc-mint, #00D9FF)',
-            color: saving || uploading || !hasChanges ? 'var(--rc-steel, #9ca3af)' : '#000',
-            borderRadius: '0.5rem',
-            fontWeight: 600,
-            cursor: saving || uploading || !hasChanges ? 'not-allowed' : 'pointer',
-            opacity: saving || uploading || !hasChanges ? 0.6 : 1,
-            border: 'none'
-          }}
-        >
-          {uploading ? 'Hochladen...' : saving ? 'Speichern...' : 'Avatar speichern'}
-        </button>
       </div>
     </div>
   );
 }
-

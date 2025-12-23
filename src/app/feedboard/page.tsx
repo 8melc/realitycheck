@@ -153,8 +153,19 @@ export default function FeedboardPage() {
           }, {});
           console.log('[FeedboardPage] Theme distribution:', themeCounts);
           console.log('[FeedboardPage] Sample items:', items.slice(0, 3).map(item => ({ id: item.id, title: item.title, theme: item.theme, format: item.format })));
+          console.log('[FeedboardPage] All unique themes:', Array.from(new Set(items.map(item => item.theme))));
+          setFeedItems(items);
+        } else {
+          console.warn('[FeedboardPage] No items returned from API! This could mean:');
+          console.warn('  - No items in database with is_published=true');
+          console.warn('  - API error or authentication issue');
+          console.warn('  - Database connection problem');
+          console.warn('[FeedboardPage] Falling back to mock data for development');
+          // Fallback to mock data when API returns empty array
+          const mockItems = feedboardService.getAllItems();
+          console.log('[FeedboardPage] Using mock items:', mockItems.length);
+          setFeedItems(mockItems);
         }
-        setFeedItems(items);
       } catch (error) {
         console.error('Error fetching feed items:', error);
         // Fallback to mock data on error
@@ -295,7 +306,19 @@ export default function FeedboardPage() {
 
   const modeItems = useMemo(() => {
     const clusters = MODE_CONFIG[activeMode].clusters;
-    return standardItems.filter(item => clusters.includes(item.theme));
+    const filtered = standardItems.filter(item => clusters.includes(item.theme));
+    
+    // Debug logging
+    console.log('[FeedboardPage] modeItems calculation:', {
+      activeMode,
+      expectedClusters: clusters,
+      standardItemsCount: standardItems.length,
+      availableThemes: Array.from(new Set(standardItems.map(item => item.theme))),
+      filteredCount: filtered.length,
+      sampleItems: standardItems.slice(0, 3).map(item => ({ id: item.id, title: item.title, theme: item.theme }))
+    });
+    
+    return filtered;
   }, [standardItems, activeMode]);
 
   // Clear override when filters change
@@ -688,10 +711,11 @@ export default function FeedboardPage() {
 
 {/* PersonalitySection temporarily disabled */}
 
-      <div className={`feedboard-shell ${isHeaderOpen ? 'header-open' : ''} ${isSidebarOpen ? 'has-sidebar' : ''}`}>
-        <div className="feedboard-shell__background" aria-hidden="true" />
+      <div className="feedboard-layout">
+        <div className={`feedboard-shell ${isHeaderOpen ? 'header-open' : ''}`}>
+          <div className="feedboard-shell__background" aria-hidden="true" />
 
-        <section className="feedboard-controls">
+          <section className="feedboard-controls">
           <div className="feedboard-controls__mode">
             <span className="feedboard-controls__mode-label">
               {MODE_CONFIG[activeMode].emoji} {MODE_CONFIG[activeMode].label}
@@ -776,22 +800,28 @@ export default function FeedboardPage() {
               </div>
               <h3 className="feedboard-empty__title">
                 {activeCluster 
-                  ? `Keine Inhalte in "${activeCluster}"`
-                  : 'Keine Inhalte gefunden'
+                  ? `Dein Territorium "${activeCluster}" ist noch leer`
+                  : 'Dein Feed ist noch leer'
                 }
               </h3>
               <p className="feedboard-empty__message">
                 {activeCluster
-                  ? 'Dieses Territorium ist gerade leer. Frag den Guide oder wähl ein anderes Terrain.'
-                  : 'Frag den Guide nach spezifischen Inhalten oder wähl ein Territorium aus.'
+                  ? 'Frag den Guide z.B.: "Was killt meinen Fokus?" oder wähle ein anderes Territorium, um Slots zu füllen.'
+                  : 'Frag den Guide z.B.: "Wie baue ich eine neue Routine?" und wir füllen deine 12 Slots.'
                 }
               </p>
+              <div className="feedboard-empty__slots">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="feedboard-empty__slot" />
+                ))}
+              </div>
               <div className="feedboard-empty__actions">
                 <button
                   type="button"
                   className="feedboard-empty__button feedboard-empty__button--primary"
                   onClick={() => setIsSidebarOpen(true)}
                 >
+                  <span className="feedboard-empty__button-icon">▶</span>
                   Guide fragen
                 </button>
                 {activeCluster && (
@@ -821,20 +851,22 @@ export default function FeedboardPage() {
           </div>
         </section>
         )}
-      </div>
+        </div>
 
-      <div ref={sidebarRef}>
-        <GuideChatSidebar
-          isOpen={isSidebarOpen}
-          turns={conversationTurns}
-          activeTurn={activeTurn}
-          prompt={prompt}
-          isLoading={isGuideLoading}
-          onPromptChange={setPrompt}
-          onSubmit={handleGuidePromptSubmit}
-          onFollowUpSelect={handleFollowUpSelect}
-          onReset={handleResetGuide}
-        />
+        <div ref={sidebarRef} className={`feedboard-sidebar-wrapper ${isSidebarOpen ? 'is-open' : ''}`}>
+          <GuideChatSidebar
+            isOpen={isSidebarOpen}
+            turns={conversationTurns}
+            activeTurn={activeTurn}
+            prompt={prompt}
+            isLoading={isGuideLoading}
+            onPromptChange={setPrompt}
+            onSubmit={handleGuidePromptSubmit}
+            onFollowUpSelect={handleFollowUpSelect}
+            onReset={handleResetGuide}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+        </div>
       </div>
 
       <div ref={partnerModalRef}>
@@ -894,8 +926,7 @@ function TickTockHeader({
         <div className="ticktock-header__manifest">
           <div className="ticktock-header__manifest-title">GUIDE</div>
           <p className="ticktock-header__manifest-copy">
-            Dein Fokus-Feed. Schraub das Hustle-Level runter und hol dir 12 Stunden Fokus zurück – ohne
-            schlechter zu performen.
+            Dein Fokus-Feed. Schraub das Hustle-Level runter und hol dir 12 Stunden Fokus zurück – ohne schlechter zu performen.
           </p>
           <div className="ticktock-header__manifest-glow" aria-hidden="true" />
         </div>

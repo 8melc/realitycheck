@@ -18,6 +18,7 @@ interface GuideChatSidebarProps {
   onSubmit: (prompt: string) => void;
   onFollowUpSelect: (text: string) => void;
   onReset: () => void;
+  onClose?: () => void;
 }
 
 export default function GuideChatSidebar({
@@ -29,7 +30,8 @@ export default function GuideChatSidebar({
   onPromptChange,
   onSubmit,
   onFollowUpSelect,
-  onReset
+  onReset,
+  onClose
 }: GuideChatSidebarProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
@@ -47,7 +49,7 @@ export default function GuideChatSidebar({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onReset();
+        onClose?.() || onReset();
       }
     };
 
@@ -55,7 +57,7 @@ export default function GuideChatSidebar({
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen, onReset]);
+  }, [isOpen, onClose, onReset]);
 
   // Auto-scroll to bottom when new turn is added
   useEffect(() => {
@@ -102,8 +104,9 @@ export default function GuideChatSidebar({
       aria-labelledby="guidechat-title"
       role="complementary"
     >
-      {/* Header */}
-      <div className="guidechat-sidebar__header">
+      <div className="guidePanel">
+        {/* Header */}
+        <div className="guidePanelHeader guidechat-sidebar__header">
         <div className="guidechat-sidebar__title-row">
           <h2 id="guidechat-title" className="guidechat-sidebar__title">
             Guide
@@ -113,7 +116,7 @@ export default function GuideChatSidebar({
             <button
               type="button"
               className="guidechat-sidebar__close"
-              onClick={onReset}
+              onClick={() => onClose?.() || onReset()}
               aria-label="Sidebar schließen"
             >
               ×
@@ -125,6 +128,31 @@ export default function GuideChatSidebar({
           className="guidechat-sidebar__reset"
           onClick={onReset}
           disabled={turns.length === 0}
+          style={{
+            width: '100%',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            background: turns.length === 0 ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+            color: turns.length === 0 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+            fontSize: '13px',
+            fontWeight: 500,
+            cursor: turns.length === 0 ? 'not-allowed' : 'pointer',
+            transition: 'all 160ms ease',
+            marginTop: '12px'
+          }}
+          onMouseEnter={(e) => {
+            if (turns.length > 0) {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (turns.length > 0) {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+            }
+          }}
         >
           Reset Feed
         </button>
@@ -133,15 +161,26 @@ export default function GuideChatSidebar({
       {/* Conversation History */}
       <div 
         ref={historyRef}
-        className="guidechat-sidebar__history"
+        className="guidePanelBody guidechat-sidebar__history"
         role="log"
         aria-live="polite"
         aria-relevant="additions"
       >
         {turns.length === 0 && (
-          <div className="guidechat-sidebar__empty">
-            <p>Stell eine Frage, um deinen Feed zu kuratieren.</p>
-            <p className="guidechat-sidebar__hint">
+          <div className="guidechat-sidebar__empty" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: '60px 20px',
+            gap: '12px',
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '14px',
+            lineHeight: '1.6'
+          }}>
+            <p style={{ margin: 0, opacity: 0.9 }}>Stell eine Frage, um deinen Feed zu kuratieren.</p>
+            <p className="guidechat-sidebar__empty-hint">
               Beispiel: "Was killt meinen Fokus?"
             </p>
           </div>
@@ -336,7 +375,7 @@ export default function GuideChatSidebar({
 
       {/* Composer */}
       <form 
-        className="guidechat-sidebar__composer"
+        className="guidePanelFooter guidechat-sidebar__composer"
         onSubmit={handleSubmit}
       >
         <div className="guidechat-sidebar__composer-wrapper">
@@ -364,10 +403,11 @@ export default function GuideChatSidebar({
           </button>
         </div>
         
-        <p className="guidechat-sidebar__hint">
+        <p className="guidechat-sidebar__composer-hint">
           ⌘+Enter zum Senden
         </p>
       </form>
+      </div>
     </aside>
   );
 }
